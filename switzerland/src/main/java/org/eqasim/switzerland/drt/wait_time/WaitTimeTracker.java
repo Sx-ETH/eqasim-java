@@ -59,8 +59,8 @@ public class WaitTimeTracker implements PersonEntersVehicleEventHandler, DrtRequ
             double totalTravelTime = event.getTime() - drtTrip.pickUpTime;
 
 
-            drtTrip.pickUpTime = event.getTime();
-            drtTrip.waitTime = drtTrip.pickUpTime - drtTrip.startTime ;
+            drtTrip.totalTravelTime = totalTravelTime;
+            //drtTrip.waitTime = drtTrip.pickUpTime - drtTrip.startTime ;
             this.drtTrips.add(drtTrip);
         }
     }

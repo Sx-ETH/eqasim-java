@@ -33,5 +33,9 @@ public class SwissDrtWaitTimeModule extends AbstractEqasimExtension {
         Preconditions.checkNotNull(params.getCellSize());
         WayneCountyDrtZonalSystem drtZonalSystem = new WayneCountyDrtZonalSystem(scenario.getNetwork(),params.getCellSize());
         bind(WayneCountyDrtZonalSystem.class).toInstance(drtZonalSystem);
+        
+        addControlerListenerBinding().to(DrtWaitTimeGlobal.class);
+        bind(DrtWaitTimeGlobal.class).asEagerSingleton();
+        
     }
 }

@@ -14,4 +14,16 @@ public class DrtTripData {
 
     public double totalTravelTime;
     public boolean rejected = false;
+    
+    @Override
+    public String toString() {
+    	String result = "starLinkId = " + startLinkId;
+    	result += "\nstartTime = " + String.valueOf(startTime);
+    	result += "\npickUpTime = " + String.valueOf(pickUpTime);
+    	result += "\nwaitTime = " + String.valueOf(waitTime);
+    	result += "\nunsharedTime = " + String.valueOf(unsharedTime);
+    	result += "\ntotalTravelTime = " + String.valueOf(totalTravelTime);
+    	result += "\nrejected = " + String.valueOf(rejected);
+    	return result;
+    }
 }
