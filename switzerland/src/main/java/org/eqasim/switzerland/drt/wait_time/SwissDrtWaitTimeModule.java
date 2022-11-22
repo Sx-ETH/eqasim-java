@@ -37,5 +37,8 @@ public class SwissDrtWaitTimeModule extends AbstractEqasimExtension {
         addControlerListenerBinding().to(DrtWaitTimeGlobal.class);
         bind(DrtWaitTimeGlobal.class).asEagerSingleton();
         
+        addControlerListenerBinding().to(WayneCountyDrtZonalSystemListener.class);
+        bind(WayneCountyDrtZonalSystemListener.class).asEagerSingleton();
+        
     }
 }

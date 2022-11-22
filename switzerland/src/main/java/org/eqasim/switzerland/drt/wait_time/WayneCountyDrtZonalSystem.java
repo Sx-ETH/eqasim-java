@@ -29,7 +29,10 @@ import org.matsim.api.core.v01.network.Network;
 import org.matsim.contrib.drt.analysis.zonal.DrtGridUtils;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.utils.collections.QuadTree;
+import org.matsim.core.utils.io.IOUtils;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -98,6 +101,27 @@ public class WayneCountyDrtZonalSystem {
         link2zone.put(linkId, zoneId);
         return zoneId;
 
+    }
+    
+    public void writeLink2Zone(String fileName) {
+    	String delimiter = ";";
+    	BufferedWriter writer = IOUtils.getBufferedWriter(fileName);
+    	
+    	try {
+			writer.append("link_id;zone");
+			for (Entry<Id<Link>, String> entry : this.link2zone.entrySet()) {
+				writer.append("\n");
+				writer.append(Id.writeId(entry.getKey()));
+				writer.append(delimiter);
+				writer.append(entry.getValue());
+				
+			}
+			writer.flush();
+			writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+    	
     }
 
 }

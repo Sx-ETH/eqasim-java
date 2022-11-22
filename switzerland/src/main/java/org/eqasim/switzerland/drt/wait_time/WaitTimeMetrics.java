@@ -21,6 +21,7 @@ public class WaitTimeMetrics {
                 WaitTimeData wtd = new WaitTimeData();
                 wtd.startTime = drtTrip.startTime;
                 wtd.waitTime = drtTrip.waitTime;
+                wtd.rejected = drtTrip.rejected;
 
                 zonalWaitTimes.get(zone).add(wtd);
             } else {
@@ -29,6 +30,7 @@ public class WaitTimeMetrics {
                 WaitTimeData wtd = new WaitTimeData();
                 wtd.startTime = drtTrip.startTime;
                 wtd.waitTime = drtTrip.waitTime;
+                wtd.rejected = drtTrip.rejected;
                 newWaitingTimes.add(wtd);
                 zonalWaitTimes.put(zone, newWaitingTimes);
             }
@@ -48,10 +50,11 @@ public class WaitTimeMetrics {
             int[] observations = new int[timeBins];
 
             for (WaitTimeData d : zonalWaitTimes.get(zone)) {
-
-                int index = ((int) (d.startTime / 3600.0));
-                average[index] += d.waitTime;
-                observations[index]++;
+            	if (!d.rejected) {
+	                int index = ((int) (d.startTime / 3600.0));
+	                average[index] += d.waitTime;
+	                observations[index]++;
+            	}
 
             }
             for (int i = 0; i < average.length; i++) {
