@@ -32,10 +32,10 @@ public class DrtDetourTimes implements IterationEndsListener {
         //this.avgWaitTimes = WaitTimeMetrics.calculateZonalAverageWaitTimes(trackedWaitTimes, zones);
 
         //toDo if...then configuration for what method to use - define moving window
-        //this.avgWaitTimes = WaitTimeMetrics.calculateMovingZonalAverageWaitTimes(trackedWaitTimes, zones, event.getIteration(), 0);
+        this.avgWaitTimes = WaitTimeMetrics.calculateMovingZonalAverageWaitTimes(trackedWaitTimes.getDrtTrips(), zones, event.getIteration(), 0);
 
         //test different weights to know the best
-        this.avgWaitTimes = WaitTimeMetrics.calculateMethodOfSuccessiveAverageWaitTimes(trackedWaitTimes, zones, event.getIteration(), 0.1);
+        //this.avgWaitTimes = WaitTimeMetrics.calculateMethodOfSuccessiveAverageWaitTimes(trackedWaitTimes, zones, event.getIteration(), 0.1);
     }
 
     public Map<String, double[]> getAvgWaitTimes() {

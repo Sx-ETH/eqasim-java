@@ -8,11 +8,10 @@ import java.util.stream.IntStream;
 
 
 public class WaitTimeMetrics {
-    private static final Map<Integer, WaitTimeTracker> dailyWaitTimes = new HashMap<>();
-    private static Map<String, double[]> dailyAverageWaitTimes = new HashMap<>();
-
-    private static Map<String, Set<WaitTimeData>> createZonalStats(WaitTimeTracker waitTimes, WayneCountyDrtZonalSystem zones, Map<String, Set<WaitTimeData>> zonalWaitTimes) {
-        Set<DrtTripData> drtTrips = waitTimes.getDrtTrips();
+	private static final Map<Integer,Set<DrtTripData>> iterationsDrtTrips = new HashMap<>();
+	private static final Map<Integer,Map<String, double[]>> iterationsSuccessiveAvg = new HashMap<>();
+	
+    private static Map<String, Set<WaitTimeData>> createZonalStats(Set<DrtTripData> drtTrips, WayneCountyDrtZonalSystem zones, Map<String, Set<WaitTimeData>> zonalWaitTimes) {
 
         for (DrtTripData drtTrip : drtTrips) {
 
@@ -40,10 +39,10 @@ public class WaitTimeMetrics {
 
     }
 
-    public static Map<String, double[]> calculateZonalAverageWaitTimes(WaitTimeTracker waitTimes, WayneCountyDrtZonalSystem zones) {
-        Map<String, Set<WaitTimeData>> zonalWaitTimes = createZonalStats(waitTimes, zones, new HashMap<>());
+    public static Map<String, double[]> calculateZonalAverageWaitTimes(Set<DrtTripData> drtTrips, WayneCountyDrtZonalSystem zones) {
+        Map<String, Set<WaitTimeData>> zonalWaitTimes = createZonalStats(drtTrips, zones, new HashMap<>());
         Map<String, double[]> avgZonalWaitTimes = new HashMap<>();
-        int timeBins = 100; //toDo justify the choice of this time bin now it is hourly and set at 100 to capture multiday trips
+        int timeBins = 30; //toDo justify the choice of this time bin now it is hourly and set at 100 to capture multiday trips
 
         for (String zone : zonalWaitTimes.keySet()) {
             double[] average = new double[timeBins];
@@ -58,64 +57,78 @@ public class WaitTimeMetrics {
 
             }
             for (int i = 0; i < average.length; i++) {
-                if (observations[i] > 0)
-                    average[i] = average[i] / observations[i];
+                average[i] = average[i] / observations[i];
             }
 
             avgZonalWaitTimes.put(zone, average);
-        }
+        }        
         return avgZonalWaitTimes;
     }
 
-    public static Map<String, double[]> calculateMovingZonalAverageWaitTimes(WaitTimeTracker waitTimes, WayneCountyDrtZonalSystem zones, int iteration, int movingWindow) {
+    public static Map<String, double[]> calculateMovingZonalAverageWaitTimes(Set<DrtTripData> drtTrips, WayneCountyDrtZonalSystem zones, int iteration, int movingWindow) {
 
-        Set<DrtTripData> newDrtTrips = waitTimes.getDrtTrips();
+    	Set<DrtTripData> iterationDrtTrips = new HashSet<>();
+    	
+    	iterationDrtTrips.addAll(drtTrips);
+		//update with current drt trips
+		iterationsDrtTrips.put(iteration, iterationDrtTrips);
 
         //define starting window  //iteration starts from zero so subtract 1 from movingWindow
         int start = 0;
-        if (iteration > 0 && iteration > movingWindow) {
-            start = iteration - movingWindow - 1;
+        if (iteration > 0 && iteration >= movingWindow) {
+            start = iteration - movingWindow + 1;
         }
-//        if (iteration == 0) {
-//            dailyWaitTimes.put(iteration, waitTimes);
-//        }
-
-        //add past wait times from the starting window
-        if(iteration != 0) {
-            for (int i = start; i<iteration; i++){
-                newDrtTrips.addAll(dailyWaitTimes.get(i).getDrtTrips());
-            }
+        
+        Set<DrtTripData> allDrtTrips = new HashSet<>();
+        
+        for (int i = start; i<=iteration; i++){
+        	allDrtTrips.addAll(iterationsDrtTrips.get(i));
         }
-
-        //update with current wait times of the day
-        dailyWaitTimes.put(iteration, waitTimes);
-
-        //get all the wait times and combine per iteration
-        WaitTimeTracker updatedWaitTimes = new WaitTimeTracker();
-        updatedWaitTimes.setDrtTrips(newDrtTrips);
 
         //Find total averages for the time period
-        return calculateZonalAverageWaitTimes(updatedWaitTimes, zones);
+        return calculateZonalAverageWaitTimes(allDrtTrips, zones);
     }
 
-    public static Map<String, double[]> calculateMethodOfSuccessiveAverageWaitTimes(WaitTimeTracker waitTimes, WayneCountyDrtZonalSystem zones, int iteration, double weight) {
-
+    public static Map<String, double[]> calculateMethodOfSuccessiveAverageWaitTimes(Set<DrtTripData> drtTrips, WayneCountyDrtZonalSystem zones, int iteration, double weight) {
+    	Map<String, double[]> iterationAvg = calculateZonalAverageWaitTimes(drtTrips, zones);
+    	Map<String, double[]> successiveItAvg = new HashMap<>();
+    	int timeBins = 30; // TODO: get from params or from iterationAvg
         //avgwaitTime = (1-phi)V_prev_iter + phi*V_iter where V are wait time averages of past or current iterations
         if (iteration == 0) {
-            dailyAverageWaitTimes = calculateZonalAverageWaitTimes(waitTimes, zones);
+        	iterationsSuccessiveAvg.put(iteration, iterationAvg);
+			return iterationAvg;
         }
+        
+        Map<String, double[]> previousAvg = iterationsSuccessiveAvg.get(iteration - 1);
+        //Set<String> allZones = new HashSet<>();
+        //allZones.addAll(iterationAvg.keySet());
+        //allZones.addAll(previousAvg.keySet());
+        
+        for (String zone: iterationAvg.keySet()) {
+        	double[] successiveAvg = new double[timeBins];
 
-        Map<String, double[]> currentAvgwaitTime = calculateZonalAverageWaitTimes(waitTimes, zones);
-        currentAvgwaitTime.forEach((k, v) -> {
-            dailyAverageWaitTimes.merge(k, v, (v1, v2) -> {
-                IntStream.range(0, v1.length).forEach(i -> {
-                    v1[i] = (1-weight) * v1[i] + weight * v2[i];
-                });
-                return v1;
-            });
-        });
+            for (int i = 0; i < successiveAvg.length; i++) {
+            	if (iterationAvg.keySet().contains(zone) && previousAvg.keySet().contains(zone)) {
+            		if (Double.isNaN(previousAvg.get(zone)[i])) {
+                		successiveAvg[i] = iterationAvg.get(zone)[i];
+                	}
+            		// Think about what to do in case we don't have drtTrips (then iterationAvg is nan)
+            		else {
+            			successiveAvg[i] = (1 - weight) * previousAvg.get(zone)[i] + weight * iterationAvg.get(zone)[i];
+            		}
+            		
+            	}
+            	else {
+            		successiveAvg[i] = iterationAvg.get(zone)[i];
+            	}
+            }
+            successiveItAvg.put(zone, successiveAvg);
+        }
+        iterationsSuccessiveAvg.put(iteration, successiveItAvg);
+        
+        
 
-        return dailyAverageWaitTimes;
+        return successiveItAvg;
 
 
 
