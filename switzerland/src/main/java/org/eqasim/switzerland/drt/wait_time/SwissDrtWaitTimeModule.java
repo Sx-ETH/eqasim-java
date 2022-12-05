@@ -1,6 +1,8 @@
 package org.eqasim.switzerland.drt.wait_time;
 
 import com.google.common.base.Preconditions;
+import com.google.inject.name.Names;
+
 import org.eqasim.core.simulation.mode_choice.AbstractEqasimExtension;
 import org.eqasim.switzerland.drt.wait_time.DrtWaitTimes;
 import org.eqasim.switzerland.drt.wait_time.WaitTimeTracker;
@@ -31,8 +33,9 @@ public class SwissDrtWaitTimeModule extends AbstractEqasimExtension {
 
         DrtZonalSystemParams params = this.drtConfig.getZonalSystemParams().orElseThrow();
         Preconditions.checkNotNull(params.getCellSize());
-        WayneCountyDrtZonalSystem drtZonalSystem = new WayneCountyDrtZonalSystem(scenario.getNetwork(),params.getCellSize());
-        bind(WayneCountyDrtZonalSystem.class).toInstance(drtZonalSystem);
+        Double cellSize = params.getCellSize();
+        bind(Double.class).annotatedWith(Names.named("gridCellSize")).toInstance(cellSize);
+        bind(WayneCountyDrtZonalSystem.class).asEagerSingleton();
         
         addControlerListenerBinding().to(DrtWaitTimeGlobal.class);
         bind(DrtWaitTimeGlobal.class).asEagerSingleton();
