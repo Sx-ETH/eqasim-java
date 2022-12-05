@@ -1,6 +1,10 @@
 package org.eqasim.switzerland.drt.wait_time;
 
-import com.google.inject.Inject;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.IntStream;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -9,12 +13,7 @@ import org.matsim.core.controler.events.IterationEndsEvent;
 import org.matsim.core.controler.listener.IterationEndsListener;
 import org.matsim.core.utils.io.IOUtils;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.IntStream;
+import com.google.inject.Inject;
 
 public class DrtWaitTimes implements IterationEndsListener {
 
@@ -33,40 +32,58 @@ public class DrtWaitTimes implements IterationEndsListener {
 	@Override
 	public void notifyIterationEnds(IterationEndsEvent event) {
 		// generate wait times for use.
-		this.avgWaitTimes = WaitTimeMetrics.calculateZonalAverageWaitTimes(trackedWaitTimes.getDrtTrips(), zones);
+		Map<String, double[]> avgWaitTimesZonal = WaitTimeMetrics
+				.calculateZonalAverageWaitTimes(trackedWaitTimes.getDrtTrips(), zones);
 		String fileName = event.getServices().getControlerIO().getIterationFilename(event.getIteration(),
 				"DrtWaitTimesZonalAvg.csv");
-		write(fileName);
+		write(fileName, avgWaitTimesZonal);
 
-		// toDo if...then configuration for what method to use - define moving window
-		this.avgWaitTimes = WaitTimeMetrics.calculateMovingZonalAverageWaitTimes(trackedWaitTimes.getDrtTrips(), zones,
-				event.getIteration(), 2);
+		Map<String, double[]> movingAvgWaitTimesZonal = WaitTimeMetrics
+				.calculateMovingZonalAverageWaitTimes(trackedWaitTimes.getDrtTrips(), zones, event.getIteration(), 2);
 		fileName = event.getServices().getControlerIO().getIterationFilename(event.getIteration(),
 				"DrtWaitTimesZonalMovingAvg.csv");
 
-		write(fileName);
+		write(fileName, movingAvgWaitTimesZonal);
 
-		this.avgWaitTimes = WaitTimeMetrics.calculateMethodOfSuccessiveAverageWaitTimes(trackedWaitTimes.getDrtTrips(), zones, event.getIteration(), 0.5);
-		
+		Map<String, double[]> successiveAvgWaitTimesZonal = WaitTimeMetrics.calculateMethodOfSuccessiveAverageWaitTimes(
+				trackedWaitTimes.getDrtTrips(), zones, event.getIteration(), 0.5);
+
 		fileName = event.getServices().getControlerIO().getIterationFilename(event.getIteration(),
 				"DrtWaitTimesZonalSuccessiveAvg.csv");
 
-		write(fileName);
+		write(fileName, successiveAvgWaitTimesZonal);
+
+		String method = "global";
+		switch (method) {
+		case "global":
+			this.avgWaitTimes = avgWaitTimesZonal;
+			break;
+		case "moving":
+			this.avgWaitTimes = movingAvgWaitTimesZonal;
+			break;
+		case "successive":
+			this.avgWaitTimes = successiveAvgWaitTimesZonal;
+			break;
+		default:
+			throw new IllegalArgumentException(
+					"Method for computing avergae has to be one of [global, moving, successive]");
+
+		}
 	}
 
-	private void write(String fileName) {
+	private void write(String fileName, Map<String, double[]> valuesToWrite) {
 		String delimiter = ";";
 		BufferedWriter writer = IOUtils.getBufferedWriter(fileName);
 
 		String firstLine = "zone;";
-		int timeBins = 30; // toDo: Get from config or avgWaitTime
+		int timeBins = DrtTimeUtils.getWaitingTimeBinCount(); 
 		int[] array = IntStream.range(0, timeBins).toArray();
 		firstLine = firstLine.concat(StringUtils.join(ArrayUtils.toObject(array), delimiter));
 
 		try {
 			writer.append(firstLine);
 
-			this.avgWaitTimes.forEach((k, v) -> {
+			valuesToWrite.forEach((k, v) -> {
 				try {
 					writer.append("\n").append(k).append(delimiter)
 							.append(StringUtils.join(ArrayUtils.toObject(v), delimiter));
