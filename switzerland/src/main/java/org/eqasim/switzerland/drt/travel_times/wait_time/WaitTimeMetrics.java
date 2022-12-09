@@ -1,4 +1,8 @@
-package org.eqasim.switzerland.drt.wait_time;
+package org.eqasim.switzerland.drt.travel_times.wait_time;
+
+import com.google.inject.Inject;
+import org.matsim.api.core.v01.Scenario;
+import org.matsim.core.router.TripRouter;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -6,6 +10,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class WaitTimeMetrics {
+    private static final Map<Integer, DrtTimeTracker> dailyWaitTimes = new HashMap<>();
+    private static Map<String, double[]> dailyAverageWaitTimes = new HashMap<>();
 	private static final Map<Integer, Set<DrtTripData>> iterationsDrtTrips = new HashMap<>();
 	private static final Map<Integer, Map<String, double[]>> iterationsSuccessiveAvg = new HashMap<>();
 
@@ -34,9 +40,9 @@ public class WaitTimeMetrics {
 			}
 		}
 
-		return zonalWaitTimes;
+        return zonalWaitTimes;
 
-	}
+    }
 
 	public static Map<String, double[]> calculateZonalAverageWaitTimes(Set<DrtTripData> drtTrips,
 			WayneCountyDrtZonalSystem zones) {
@@ -45,9 +51,9 @@ public class WaitTimeMetrics {
 		int timeBins = DrtTimeUtils.getWaitingTimeBinCount(); // toDo justify the choice of this time bin now it is hourly and set at 100 to
 							// capture multiday trips
 
-		for (String zone : zonalWaitTimes.keySet()) {
-			double[] average = new double[timeBins];
-			int[] observations = new int[timeBins];
+        for (String zone : zonalWaitTimes.keySet()) {
+            double[] average = new double[timeBins];
+            int[] observations = new int[timeBins];
 
 			for (WaitTimeData d : zonalWaitTimes.get(zone)) {
 				if (!d.rejected) {
@@ -61,10 +67,10 @@ public class WaitTimeMetrics {
 				average[i] = average[i] / observations[i];
 			}
 
-			avgZonalWaitTimes.put(zone, average);
-		}
-		return avgZonalWaitTimes;
-	}
+            avgZonalWaitTimes.put(zone, average);
+        }
+        return avgZonalWaitTimes;
+    }
 
 	public static Map<String, double[]> calculateMovingZonalAverageWaitTimes(Set<DrtTripData> drtTrips,
 			WayneCountyDrtZonalSystem zones, int iteration, int movingWindow) {
@@ -133,19 +139,19 @@ public class WaitTimeMetrics {
 
 		return successiveItAvg;
 
-		// avgwaitTime = (1-phi)V_prev_iter + phi*V_iter where V are wait time averages
-		// of past or current iterations
-		// v_iter = calculateZonalAverageWaitTimes(waitTimes, zones);
+        //avgwaitTime = (1-phi)V_prev_iter + phi*V_iter where V are wait time averages of past or current iterations
+        //v_iter = calculateZonalAverageWaitTimes(waitTimes, zones);
 
-		// for each zone in dict v_iter and for each zone in dict v_prev_iter
-		// if they are same zone:
-		// do an array sum:
-		// for element in the arrays combine based on formula
-		// update new array
-		// add new array to zone in a new dict
+        //for each zone in dict v_iter and for each zone in dict v_prev_iter
+        //if they are same zone:
+        //do an array sum:
+        //for element in the arrays combine based on formula
+        //update new array
+        //add new array to zone in a new dict
 
-		// update v_prev_iter
-		// v_prev_iter = avgwaittime
+        //update v_prev_iter
+        //v_prev_iter = avgwaittime
 
-	}
+
+    }
 }

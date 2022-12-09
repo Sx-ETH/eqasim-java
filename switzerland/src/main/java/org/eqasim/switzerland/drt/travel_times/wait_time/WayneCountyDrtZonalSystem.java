@@ -1,4 +1,4 @@
-package org.eqasim.switzerland.drt.wait_time;
+package org.eqasim.switzerland.drt.travel_times.wait_time;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
