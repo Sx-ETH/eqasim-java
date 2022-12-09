@@ -1,4 +1,4 @@
-package org.eqasim.switzerland.drt.TravelTimes.wait_time;
+package org.eqasim.switzerland.drt.travel_times.wait_time;
 
 import com.google.inject.Inject;
 import org.matsim.api.core.v01.Scenario;

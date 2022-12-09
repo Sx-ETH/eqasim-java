@@ -1,4 +1,4 @@
-package org.eqasim.switzerland.drt.TravelTimes;
+package org.eqasim.switzerland.drt.travel_times;
 
 public class TravelTimeUpdates {
 

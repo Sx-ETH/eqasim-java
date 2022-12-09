@@ -1,4 +1,4 @@
-package org.eqasim.switzerland.drt.TravelTimes.wait_time;
+package org.eqasim.switzerland.drt.travel_times.wait_time;
 
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;

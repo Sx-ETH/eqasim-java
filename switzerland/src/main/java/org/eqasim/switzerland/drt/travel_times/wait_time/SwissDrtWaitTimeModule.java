@@ -1,8 +1,8 @@
-package org.eqasim.switzerland.drt.TravelTimes.wait_time;
+package org.eqasim.switzerland.drt.travel_times.wait_time;
 
 import com.google.common.base.Preconditions;
 import org.eqasim.core.simulation.mode_choice.AbstractEqasimExtension;
-import org.eqasim.switzerland.drt.TravelTimes.detour_time.DrtDetourTimes;
+import org.eqasim.switzerland.drt.travel_times.detour_time.DrtDetourTimes;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.contrib.drt.analysis.zonal.DrtZonalSystemParams;
 import org.matsim.contrib.drt.run.DrtConfigGroup;
