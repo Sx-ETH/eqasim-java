@@ -4,7 +4,7 @@ import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import org.eqasim.core.components.config.EqasimConfigGroup;
 import org.eqasim.core.simulation.calibration.CalibrationConfigGroup;
 import org.eqasim.switzerland.SwitzerlandConfigurator;
-import org.eqasim.switzerland.drt.TravelTimes.wait_time.SwissDrtWaitTimeModule;
+import org.eqasim.switzerland.drt.travel_times.wait_time.SwissDrtWaitTimeModule;
 import org.eqasim.switzerland.drt.mode_choice.SwissDrtModeAvailability;
 import org.eqasim.switzerland.drt.mode_choice.SwissDrtModeChoiceModule;
 import org.matsim.api.core.v01.Scenario;
