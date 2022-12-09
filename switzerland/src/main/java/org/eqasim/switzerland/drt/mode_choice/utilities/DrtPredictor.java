@@ -6,8 +6,9 @@ import com.google.inject.name.Named;
 import org.eqasim.core.simulation.mode_choice.cost.CostModel;
 import org.eqasim.core.simulation.mode_choice.utilities.predictors.CachedVariablePredictor;
 import org.eqasim.core.simulation.mode_choice.utilities.predictors.PredictorUtils;
-import org.eqasim.switzerland.drt.wait_time.DrtWaitTimes;
-import org.eqasim.switzerland.drt.wait_time.WayneCountyDrtZonalSystem;
+import org.eqasim.switzerland.drt.TravelTimes.detour_time.DrtDetourTimes;
+import org.eqasim.switzerland.drt.TravelTimes.wait_time.DrtWaitTimes;
+import org.eqasim.switzerland.drt.TravelTimes.wait_time.WayneCountyDrtZonalSystem;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Link;
@@ -25,12 +26,15 @@ public class DrtPredictor extends CachedVariablePredictor<DrtVariables> {
     private WayneCountyDrtZonalSystem zones;
     private final DrtWaitTimes drtWaitTimes;
 
+    private final DrtDetourTimes drtDetourTimes;
+
     @Inject
-    public DrtPredictor(@Named("drt") CostModel costModel, WayneCountyDrtZonalSystem zones, DrtWaitTimes drtWaitTimes) {
+    public DrtPredictor(@Named("drt") CostModel costModel, WayneCountyDrtZonalSystem zones, DrtWaitTimes drtWaitTimes, DrtDetourTimes drtDetourtimes, DrtDetourTimes drtDetourTimes) {
 
         this.costModel = costModel;
         this.zones = zones;
         this.drtWaitTimes = drtWaitTimes;
+        this.drtDetourTimes = drtDetourTimes;
     }
 
     @Override
@@ -40,6 +44,7 @@ public class DrtPredictor extends CachedVariablePredictor<DrtVariables> {
         double cost_MU = 0.0;
         double waitingTime_min = 0.0;
         boolean useAverageWaitTime = true; //toDo cmd config should say to use avg wait time or not
+        boolean useDelayFactor = true; //todo transfer to config
 
         for (Leg leg : TripStructureUtils.getLegs(elements)) {
             switch (leg.getMode()) {
@@ -52,8 +57,15 @@ public class DrtPredictor extends CachedVariablePredictor<DrtVariables> {
 
                     // Travel time is the max travel time set based on alpha*tt + beta (not actual)
                     // same for wait time which just uses maximum setting
+
+
                     travelTime_min = route.getMaxTravelTime() / 60.0;
+                    route.getDirectRideTime();
                     waitingTime_min = route.getMaxWaitTime() / 60.0;
+
+                    if (useDelayFactor) {
+
+                    }
 
                     // Todo drt wait time and travel time update
 

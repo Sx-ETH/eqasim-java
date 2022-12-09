@@ -1,10 +1,8 @@
-package org.eqasim.switzerland.drt.wait_time;
+package org.eqasim.switzerland.drt.TravelTimes.wait_time;
 
 import com.google.common.base.Preconditions;
 import org.eqasim.core.simulation.mode_choice.AbstractEqasimExtension;
-import org.eqasim.switzerland.drt.wait_time.DrtWaitTimes;
-import org.eqasim.switzerland.drt.wait_time.WaitTimeTracker;
-import org.eqasim.switzerland.drt.wait_time.WayneCountyDrtZonalSystem;
+import org.eqasim.switzerland.drt.TravelTimes.detour_time.DrtDetourTimes;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.contrib.drt.analysis.zonal.DrtZonalSystemParams;
 import org.matsim.contrib.drt.run.DrtConfigGroup;
@@ -22,11 +20,13 @@ public class SwissDrtWaitTimeModule extends AbstractEqasimExtension {
     @Override
     protected void installEqasimExtension() {
 
-        addEventHandlerBinding().to(WaitTimeTracker.class);
+        addEventHandlerBinding().to(DrtTimeTracker.class);
 
-        bind(WaitTimeTracker.class).asEagerSingleton();
+        bind(DrtTimeTracker.class).asEagerSingleton();
         addControlerListenerBinding().to(DrtWaitTimes.class);
         bind(DrtWaitTimes.class).asEagerSingleton();
+        addControlerListenerBinding().to(DrtDetourTimes.class);
+        bind(DrtDetourTimes.class).asEagerSingleton();
 
 
         DrtZonalSystemParams params = this.drtConfig.getZonalSystemParams().orElseThrow();

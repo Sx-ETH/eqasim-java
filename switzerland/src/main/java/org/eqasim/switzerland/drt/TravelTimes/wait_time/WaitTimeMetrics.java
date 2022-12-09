@@ -1,4 +1,8 @@
-package org.eqasim.switzerland.drt.wait_time;
+package org.eqasim.switzerland.drt.TravelTimes.wait_time;
+
+import com.google.inject.Inject;
+import org.matsim.api.core.v01.Scenario;
+import org.matsim.core.router.TripRouter;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -8,10 +12,21 @@ import java.util.stream.IntStream;
 
 
 public class WaitTimeMetrics {
-    private static final Map<Integer, WaitTimeTracker> dailyWaitTimes = new HashMap<>();
+    private static final Map<Integer, DrtTimeTracker> dailyWaitTimes = new HashMap<>();
     private static Map<String, double[]> dailyAverageWaitTimes = new HashMap<>();
 
-    private static Map<String, Set<WaitTimeData>> createZonalStats(WaitTimeTracker waitTimes, WayneCountyDrtZonalSystem zones, Map<String, Set<WaitTimeData>> zonalWaitTimes) {
+    private static TripRouter tripRouter;
+
+
+    private static Scenario scenario;
+
+    @Inject
+    public WaitTimeMetrics(TripRouter tripRouter, Scenario scenario) {
+        this.tripRouter = tripRouter;
+        this.scenario = scenario;
+    }
+
+    private static Map<String, Set<WaitTimeData>> createZonalStats(DrtTimeTracker waitTimes, WayneCountyDrtZonalSystem zones, Map<String, Set<WaitTimeData>> zonalWaitTimes) {
         Set<DrtTripData> drtTrips = waitTimes.getDrtTrips();
 
         for (DrtTripData drtTrip : drtTrips) {
@@ -38,7 +53,7 @@ public class WaitTimeMetrics {
 
     }
 
-    public static Map<String, double[]> calculateZonalAverageWaitTimes(WaitTimeTracker waitTimes, WayneCountyDrtZonalSystem zones) {
+    public static Map<String, double[]> calculateZonalAverageWaitTimes(DrtTimeTracker waitTimes, WayneCountyDrtZonalSystem zones) {
         Map<String, Set<WaitTimeData>> zonalWaitTimes = createZonalStats(waitTimes, zones, new HashMap<>());
         Map<String, double[]> avgZonalWaitTimes = new HashMap<>();
         int timeBins = 100; //toDo justify the choice of this time bin now it is hourly and set at 100 to capture multiday trips
@@ -64,7 +79,7 @@ public class WaitTimeMetrics {
         return avgZonalWaitTimes;
     }
 
-    public static Map<String, double[]> calculateMovingZonalAverageWaitTimes(WaitTimeTracker waitTimes, WayneCountyDrtZonalSystem zones, int iteration, int movingWindow) {
+    public static Map<String, double[]> calculateMovingZonalAverageWaitTimes(DrtTimeTracker waitTimes, WayneCountyDrtZonalSystem zones, int iteration, int movingWindow) {
 
         Set<DrtTripData> newDrtTrips = waitTimes.getDrtTrips();
 
@@ -88,14 +103,14 @@ public class WaitTimeMetrics {
         dailyWaitTimes.put(iteration, waitTimes);
 
         //get all the wait times and combine per iteration
-        WaitTimeTracker updatedWaitTimes = new WaitTimeTracker();
+        DrtTimeTracker updatedWaitTimes = new DrtTimeTracker(tripRouter, scenario);  //ToDo confirm if this is injected correctly
         updatedWaitTimes.setDrtTrips(newDrtTrips);
 
         //Find total averages for the time period
         return calculateZonalAverageWaitTimes(updatedWaitTimes, zones);
     }
 
-    public static Map<String, double[]> calculateMethodOfSuccessiveAverageWaitTimes(WaitTimeTracker waitTimes, WayneCountyDrtZonalSystem zones, int iteration, double weight) {
+    public static Map<String, double[]> calculateMethodOfSuccessiveAverageWaitTimes(DrtTimeTracker waitTimes, WayneCountyDrtZonalSystem zones, int iteration, double weight) {
 
         //avgwaitTime = (1-phi)V_prev_iter + phi*V_iter where V are wait time averages of past or current iterations
         if (iteration == 0) {

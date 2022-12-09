@@ -1,4 +1,4 @@
-package org.eqasim.switzerland.drt.wait_time;
+package org.eqasim.switzerland.drt.TravelTimes.wait_time;
 
 
 public class WaitTimeData {

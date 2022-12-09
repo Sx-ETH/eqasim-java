@@ -1,4 +1,4 @@
-package org.eqasim.switzerland.drt.wait_time;
+package org.eqasim.switzerland.drt.TravelTimes.wait_time;
 
 
 import com.google.inject.Inject;
@@ -11,14 +11,14 @@ import java.util.Map;
 
 public class DrtWaitTimes implements IterationEndsListener {
 
-    private final WaitTimeTracker trackedWaitTimes;
+    private final DrtTimeTracker trackedTimes;
     private Map<String, double[]> avgWaitTimes;
     WayneCountyDrtZonalSystem zones;
 
     @Inject
-    public DrtWaitTimes(WaitTimeTracker trackedWaitTimes, WayneCountyDrtZonalSystem zones, Config config){
+    public DrtWaitTimes(DrtTimeTracker trackedTimes, WayneCountyDrtZonalSystem zones, Config config){
 
-        this.trackedWaitTimes = trackedWaitTimes;
+        this.trackedTimes = trackedTimes;
         this.avgWaitTimes = new HashMap<>();
         this.zones = zones;
     }
@@ -32,7 +32,7 @@ public class DrtWaitTimes implements IterationEndsListener {
         //this.avgWaitTimes = WaitTimeMetrics.calculateMovingZonalAverageWaitTimes(trackedWaitTimes, zones, event.getIteration(), 0);
 
         //test different weights to know the best
-        this.avgWaitTimes = WaitTimeMetrics.calculateMethodOfSuccessiveAverageWaitTimes(trackedWaitTimes, zones, event.getIteration(), 0.1);
+        this.avgWaitTimes = WaitTimeMetrics.calculateMethodOfSuccessiveAverageWaitTimes(trackedTimes, zones, event.getIteration(), 0.1);
     }
 
     public Map<String, double[]> getAvgWaitTimes() {
