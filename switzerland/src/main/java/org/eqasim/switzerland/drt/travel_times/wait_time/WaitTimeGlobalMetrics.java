@@ -1,4 +1,4 @@
-package org.eqasim.switzerland.drt.wait_time;
+package org.eqasim.switzerland.drt.travel_times.wait_time;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.eqasim.switzerland.drt.travel_times.DrtTripData;
 
 public class WaitTimeGlobalMetrics {
 	// Computes the waitTime average for all the drt trips in the previous iteration or iterations (depending on the mode)

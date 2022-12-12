@@ -1,4 +1,4 @@
-package org.eqasim.switzerland.drt.travel_times.wait_time;
+package org.eqasim.switzerland.drt.travel_times;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -48,6 +48,8 @@ import com.google.inject.name.Named;
  */
 
 public class WayneCountyDrtZonalSystem {
+
+	//toDo convert this to also use own zonal shapefile. Maybe hexgrid?
 
 	private final Map<Id<Link>, String> link2zone = new LinkedHashMap<>();
 	private final Network network;

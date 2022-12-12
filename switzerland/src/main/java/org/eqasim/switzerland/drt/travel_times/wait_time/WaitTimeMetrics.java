@@ -1,8 +1,9 @@
 package org.eqasim.switzerland.drt.travel_times.wait_time;
 
-import com.google.inject.Inject;
-import org.matsim.api.core.v01.Scenario;
-import org.matsim.core.router.TripRouter;
+import org.eqasim.switzerland.drt.travel_times.DrtTimeTracker;
+import org.eqasim.switzerland.drt.travel_times.DrtTimeUtils;
+import org.eqasim.switzerland.drt.travel_times.DrtTripData;
+import org.eqasim.switzerland.drt.travel_times.WayneCountyDrtZonalSystem;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -16,7 +17,7 @@ public class WaitTimeMetrics {
 	private static final Map<Integer, Map<String, double[]>> iterationsSuccessiveAvg = new HashMap<>();
 
 	private static Map<String, Set<WaitTimeData>> createZonalStats(Set<DrtTripData> drtTrips,
-			WayneCountyDrtZonalSystem zones, Map<String, Set<WaitTimeData>> zonalWaitTimes) {
+																   WayneCountyDrtZonalSystem zones, Map<String, Set<WaitTimeData>> zonalWaitTimes) {
 
 		for (DrtTripData drtTrip : drtTrips) {
 

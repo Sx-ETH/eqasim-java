@@ -2,5 +2,5 @@ package org.eqasim.switzerland.drt.travel_times;
 
 public class TravelTimeUpdates {
 
-    //make it so that drt detour time information and wait time information can be gotten from here used in the predictor.
+    //make it so that drt detour and wait time information can be gotten from here to use in the predictor.
 }

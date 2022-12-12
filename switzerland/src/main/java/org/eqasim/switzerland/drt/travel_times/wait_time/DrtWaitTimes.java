@@ -8,6 +8,9 @@ import java.util.stream.IntStream;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.eqasim.switzerland.drt.travel_times.DrtTimeTracker;
+import org.eqasim.switzerland.drt.travel_times.DrtTimeUtils;
+import org.eqasim.switzerland.drt.travel_times.WayneCountyDrtZonalSystem;
 import org.matsim.core.config.Config;
 import org.matsim.core.controler.events.IterationEndsEvent;
 import org.matsim.core.controler.listener.IterationEndsListener;
@@ -17,14 +20,14 @@ import com.google.inject.Inject;
 
 public class DrtWaitTimes implements IterationEndsListener {
 
-    private final DrtTimeTracker trackedTimes;
+    private final DrtTimeTracker trackedWaitTimes;
     private Map<String, double[]> avgWaitTimes;
     WayneCountyDrtZonalSystem zones;
 
     @Inject
-    public DrtWaitTimes(DrtTimeTracker trackedTimes, WayneCountyDrtZonalSystem zones, Config config){
+    public DrtWaitTimes(DrtTimeTracker trackedWaitTimes, WayneCountyDrtZonalSystem zones, Config config){
 
-        this.trackedTimes = trackedTimes;
+        this.trackedWaitTimes = trackedWaitTimes;
         this.avgWaitTimes = new HashMap<>();
         this.zones = zones;
     }
@@ -33,20 +36,20 @@ public class DrtWaitTimes implements IterationEndsListener {
 	public void notifyIterationEnds(IterationEndsEvent event) {
 		// generate wait times for use.
 		Map<String, double[]> avgWaitTimesZonal = WaitTimeMetrics
-				.calculateZonalAverageWaitTimes(trackedTimes.getDrtTrips(), zones);
+				.calculateZonalAverageWaitTimes(trackedWaitTimes.getDrtTrips(), zones);
 		String fileName = event.getServices().getControlerIO().getIterationFilename(event.getIteration(),
 				"DrtWaitTimesZonalAvg.csv");
 		write(fileName, avgWaitTimesZonal);
 
 		Map<String, double[]> movingAvgWaitTimesZonal = WaitTimeMetrics
-				.calculateMovingZonalAverageWaitTimes(trackedTimes.getDrtTrips(), zones, event.getIteration(), 2);
+				.calculateMovingZonalAverageWaitTimes(trackedWaitTimes.getDrtTrips(), zones, event.getIteration(), 2);
 		fileName = event.getServices().getControlerIO().getIterationFilename(event.getIteration(),
 				"DrtWaitTimesZonalMovingAvg.csv");
 
 		write(fileName, movingAvgWaitTimesZonal);
 
 		Map<String, double[]> successiveAvgWaitTimesZonal = WaitTimeMetrics.calculateMethodOfSuccessiveAverageWaitTimes(
-				trackedTimes.getDrtTrips(), zones, event.getIteration(), 0.5);
+				trackedWaitTimes.getDrtTrips(), zones, event.getIteration(), 0.5);
 
 		fileName = event.getServices().getControlerIO().getIterationFilename(event.getIteration(),
 				"DrtWaitTimesZonalSuccessiveAvg.csv");

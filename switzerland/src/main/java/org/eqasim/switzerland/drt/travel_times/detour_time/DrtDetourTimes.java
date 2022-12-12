@@ -2,8 +2,8 @@ package org.eqasim.switzerland.drt.travel_times.detour_time;
 
 
 import com.google.inject.Inject;
-import org.eqasim.switzerland.drt.travel_times.wait_time.DrtTimeTracker;
-import org.eqasim.switzerland.drt.travel_times.wait_time.DrtTripData;
+import org.eqasim.switzerland.drt.travel_times.DrtTimeTracker;
+import org.eqasim.switzerland.drt.travel_times.DrtTripData;
 import org.matsim.core.config.Config;
 import org.matsim.core.controler.events.IterationEndsEvent;
 import org.matsim.core.controler.listener.IterationEndsListener;

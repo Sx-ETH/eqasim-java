@@ -1,4 +1,4 @@
-package org.eqasim.switzerland.drt.travel_times.wait_time;
+package org.eqasim.switzerland.drt.travel_times;
 
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
@@ -24,8 +24,6 @@ public class DrtTripData {
     public double pickUpTime;
     public double waitTime;
 
-    public Map<Id<Request>, DrtRequestSubmittedEvent> requestEvent;
-
     public double estimatedUnsharedTime;
 
     public double routerUnsharedTime;
@@ -34,4 +32,17 @@ public class DrtTripData {
 
     public double totalTravelTime;
     public boolean rejected = false;
+
+    @Override
+    public String toString() {
+        String result = "startLinkId = " + startLinkId;
+        result += "\nstartTime = " + String.valueOf(startTime);
+        result += "\npickUpTime = " + String.valueOf(pickUpTime);
+        result += "\nwaitTime = " + String.valueOf(waitTime);
+        result += "\nunsharedTime = " + String.valueOf(routerUnsharedTime);
+        result += "\nestimatedUnsharedTime = " + String.valueOf(estimatedUnsharedTime);
+        result += "\ntotalTravelTime = " + String.valueOf(totalTravelTime);
+        result += "\nrejected = " + String.valueOf(rejected);
+        return result;
+    }
 }

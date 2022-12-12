@@ -4,7 +4,7 @@ import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import org.eqasim.core.components.config.EqasimConfigGroup;
 import org.eqasim.core.simulation.calibration.CalibrationConfigGroup;
 import org.eqasim.switzerland.SwitzerlandConfigurator;
-import org.eqasim.switzerland.drt.travel_times.wait_time.SwissDrtWaitTimeModule;
+import org.eqasim.switzerland.drt.travel_times.SwissDrtTravelTimeModule;
 import org.eqasim.switzerland.drt.mode_choice.SwissDrtModeAvailability;
 import org.eqasim.switzerland.drt.mode_choice.SwissDrtModeChoiceModule;
 import org.matsim.api.core.v01.Scenario;
@@ -144,7 +144,7 @@ public class SwissDrtConfigurator extends SwitzerlandConfigurator {
 
         //consider drt zones generation
         controller.addOverridingModule(new DrtModeZonalSystemModule(DrtConfigGroup.getSingleModeDrtConfig(config)));
-        controller.addOverridingModule(new SwissDrtWaitTimeModule(DrtConfigGroup.getSingleModeDrtConfig(config), scenario));
+        controller.addOverridingModule(new SwissDrtTravelTimeModule(DrtConfigGroup.getSingleModeDrtConfig(config), scenario));
 
         /*if (!config.qsim().getVehiclesSource().name().equals("defaultVehicle")) {
             controller.addOverridingModule(new AbstractModule() {

@@ -1,4 +1,4 @@
-package org.eqasim.switzerland.drt.wait_time;
+package org.eqasim.switzerland.drt.travel_times;
 
 public class DrtTimeUtils {
 	public static final double TIME_WINDOW_MIN = 60;

@@ -1,6 +1,6 @@
 package org.eqasim.switzerland.drt.travel_times.detour_time;
 
-import org.eqasim.switzerland.drt.travel_times.wait_time.DrtTripData;
+import org.eqasim.switzerland.drt.travel_times.DrtTripData;
 import org.matsim.core.config.Config;
 import org.matsim.core.utils.io.IOUtils;
 

@@ -1,8 +1,9 @@
-package org.eqasim.switzerland.drt.wait_time;
+package org.eqasim.switzerland.drt.travel_times.wait_time;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
 
+import org.eqasim.switzerland.drt.travel_times.DrtTimeTracker;
 import org.matsim.core.controler.events.IterationEndsEvent;
 import org.matsim.core.controler.listener.IterationEndsListener;
 import org.matsim.core.utils.io.IOUtils;
@@ -11,11 +12,11 @@ import com.google.inject.Inject;
 
 public class DrtWaitTimeGlobal implements IterationEndsListener {
 
-	private final WaitTimeTracker trackedWaitTimes;
+	private final DrtTimeTracker trackedWaitTimes;
 	private double avgWaitTime;
 
 	@Inject
-	public DrtWaitTimeGlobal(WaitTimeTracker trackedWaitTimes) {
+	public DrtWaitTimeGlobal(DrtTimeTracker trackedWaitTimes) {
 		this.trackedWaitTimes = trackedWaitTimes;
 	}
 
