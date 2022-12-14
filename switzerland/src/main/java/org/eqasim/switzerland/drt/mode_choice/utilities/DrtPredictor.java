@@ -93,7 +93,6 @@ public class DrtPredictor extends CachedVariablePredictor<DrtVariables> {
 		}
 
 		double euclideanDistance_km = PredictorUtils.calculateEuclideanDistance_km(trip);
-		log.warn("Drt Variables: " + person.getId().toString() + ": " + String.valueOf(travelTime_min) +  " " + String.valueOf(cost_MU) + " " + String.valueOf(euclideanDistance_km) + " " + String.valueOf(waitingTime_min) + " " + String.valueOf(accessEgressTime_min));
 
 		// todo add rejection penalty based on some probability of rejections
 
