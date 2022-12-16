@@ -2,6 +2,7 @@ package org.eqasim.switzerland.drt.travel_times.detour_time;
 
 
 import com.google.inject.Inject;
+import org.eqasim.switzerland.drt.SimulationParameter;
 import org.eqasim.switzerland.drt.travel_times.DrtTimeTracker;
 import org.eqasim.switzerland.drt.travel_times.DrtTripData;
 import org.matsim.core.config.Config;
@@ -17,22 +18,25 @@ public class DrtDetourTimes implements IterationEndsListener {
 
     private double globalDelayFactor = 0.0;
 
+    private final SimulationParameter simulationParams;
+
 
     Config config;
 
     @Inject
-    public DrtDetourTimes(DrtTimeTracker trackedTimes, Config config){
+    public DrtDetourTimes(DrtTimeTracker trackedTimes, SimulationParameter simulationParams, Config config){
 
         this.trackedTimes = trackedTimes;
+        this.simulationParams = simulationParams;
         this.config = config;
     }
 
     @Override
     public void notifyIterationEnds(IterationEndsEvent event) {
        //global delay factor for different methods
-        String method = "global"; //ToDo set the method via the config
-        double weight = 0.5; //ToDo set the weight in the config
-        int movingWindow = 5; //ToDo set in config
+        String method = simulationParams.getDelayCalcMethod();
+        double weight = simulationParams.getMsaWeight();
+        int movingWindow = simulationParams.getMovingWindow();
         Set<DrtTripData> drtTrips = this.trackedTimes.getDrtTrips();
         switch(method){
             case "global":

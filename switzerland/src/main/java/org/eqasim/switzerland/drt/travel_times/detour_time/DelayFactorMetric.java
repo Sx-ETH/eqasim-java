@@ -58,6 +58,7 @@ public class DelayFactorMetric {
             allDrtTrips.addAll(iterationsDrtTrips.get(i));
         }
 
+        //create a class that returns two variables - wait time and delay factor. For combining both wait time and delay time
         return calculateGlobalDelayFactor(allDrtTrips);
 
     }
@@ -82,10 +83,13 @@ public class DelayFactorMetric {
         double newAvg = (1 - weight) * previousAvg + weight * iterationAvg;
         iterationsSuccessiveAvg.put(iteration, newAvg);
 
+        //create iterationSuccessiveAvg for the two metrics
+        //return class created
         return newAvg;
 
     }
 
+   //add wait time stats to it
     public static void writeDelayStats(Set<DrtTripData> drtTrips, int iterationNumber, Config config) throws IOException {
         String delimiter = ",";
         String filename = "drt_DelayFactorStats.csv";

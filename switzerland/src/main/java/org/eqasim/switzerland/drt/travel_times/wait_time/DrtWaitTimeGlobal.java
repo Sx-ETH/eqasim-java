@@ -3,6 +3,7 @@ package org.eqasim.switzerland.drt.travel_times.wait_time;
 import java.io.BufferedWriter;
 import java.io.IOException;
 
+import org.eqasim.switzerland.drt.SimulationParameter;
 import org.eqasim.switzerland.drt.travel_times.DrtTimeTracker;
 import org.matsim.core.controler.events.IterationEndsEvent;
 import org.matsim.core.controler.listener.IterationEndsListener;
@@ -14,14 +15,21 @@ public class DrtWaitTimeGlobal implements IterationEndsListener {
 
 	private final DrtTimeTracker trackedWaitTimes;
 	private double avgWaitTime;
+	private final SimulationParameter simulationParams;
 
 	@Inject
-	public DrtWaitTimeGlobal(DrtTimeTracker trackedWaitTimes) {
+	public DrtWaitTimeGlobal(DrtTimeTracker trackedWaitTimes, SimulationParameter simulationParams) {
 		this.trackedWaitTimes = trackedWaitTimes;
+		this.simulationParams = simulationParams;
 	}
 
 	@Override
 	public void notifyIterationEnds(IterationEndsEvent event) {
+
+
+		String method = simulationParams.getDelayCalcMethod();
+		double weight = simulationParams.getMsaWeight();
+		int movingWindow = simulationParams.getMovingWindow();
 
 		double avgWaitTimeGlobal = WaitTimeGlobalMetrics.calculateAverageWaitTime(trackedWaitTimes.getDrtTrips());
 		String fileName = event.getServices().getControlerIO().getIterationFilename(event.getIteration(),
@@ -29,18 +37,17 @@ public class DrtWaitTimeGlobal implements IterationEndsListener {
 		write(fileName, avgWaitTimeGlobal);
 
 		double movingAvgWaitTimeGlobal = WaitTimeGlobalMetrics
-				.calculateMovingAverageWaitTime(trackedWaitTimes.getDrtTrips(), event.getIteration(), 2);
+				.calculateMovingAverageWaitTime(trackedWaitTimes.getDrtTrips(), event.getIteration(), movingWindow);
 		fileName = event.getServices().getControlerIO().getIterationFilename(event.getIteration(),
 				"DrtWaitTimeGlobalMovingAvg.csv");
 		write(fileName, movingAvgWaitTimeGlobal);
 
 		double successiveAvgWaitTimeGlobal = WaitTimeGlobalMetrics
-				.calculateMethodOfSuccessiveAverageWaitTime(trackedWaitTimes.getDrtTrips(), event.getIteration(), 0.5);
+				.calculateMethodOfSuccessiveAverageWaitTime(trackedWaitTimes.getDrtTrips(), event.getIteration(), weight);
 		fileName = event.getServices().getControlerIO().getIterationFilename(event.getIteration(),
 				"DrtWaitTimeGlobalSuccessiveAvg.csv");
 		write(fileName, successiveAvgWaitTimeGlobal);
 
-		String method = "global";
 		switch (method) {
 		case "global":
 			this.avgWaitTime = avgWaitTimeGlobal;
@@ -79,7 +86,7 @@ public class DrtWaitTimeGlobal implements IterationEndsListener {
 			return avgWaitTime;
 		}
 		else {
-			return 10.0 * 60;
+			return 10.0 * 60; //todo why a static value here?
 		}
 	}
 

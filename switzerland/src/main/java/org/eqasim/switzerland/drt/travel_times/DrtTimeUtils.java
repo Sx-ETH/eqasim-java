@@ -1,7 +1,7 @@
 package org.eqasim.switzerland.drt.travel_times;
 
 public class DrtTimeUtils {
-	public static final double TIME_WINDOW_MIN = 60;
+	public static final double TIME_WINDOW_MIN = 60; //todo
 
 	public static int getTimeBin(double time) {
 		return (int) Math.floor(time / (TIME_WINDOW_MIN * 60));
