@@ -5,6 +5,8 @@ import com.google.inject.Inject;
 import org.eqasim.core.simulation.mode_choice.utilities.UtilityEstimator;
 import org.eqasim.core.simulation.mode_choice.utilities.estimators.EstimatorUtils;
 import org.eqasim.switzerland.drt.mode_choice.parameters.SwissDrtModeParameters;
+import org.eqasim.switzerland.drt.mode_choice.utilities.predictors.DrtPredictor;
+import org.eqasim.switzerland.drt.mode_choice.utilities.variables.DrtVariables;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.contribs.discrete_mode_choice.model.DiscreteModeChoiceTrip;
@@ -12,6 +14,7 @@ import org.matsim.contribs.discrete_mode_choice.model.DiscreteModeChoiceTrip;
 import java.util.List;
 
 public class DrtUtilityEstimator implements UtilityEstimator {
+    static public final String NAME = "DrtEstimator";
 
     private final SwissDrtModeParameters parameters;
     private final DrtPredictor predictor;

@@ -1,4 +1,4 @@
-package org.eqasim.switzerland.drt.mode_choice.utilities;
+package org.eqasim.switzerland.drt.mode_choice.utilities.predictors;
 
 import java.util.List;
 
@@ -7,13 +7,9 @@ import org.apache.logging.log4j.Logger;
 import org.eqasim.core.simulation.mode_choice.cost.CostModel;
 import org.eqasim.core.simulation.mode_choice.utilities.predictors.CachedVariablePredictor;
 import org.eqasim.core.simulation.mode_choice.utilities.predictors.PredictorUtils;
-import org.eqasim.switzerland.drt.travel_times.DrtTimeUtils;
-import org.eqasim.switzerland.drt.travel_times.WayneCountyDrtZonalSystem;
-import org.eqasim.switzerland.drt.travel_times.wait_time.DrtWaitTimeGlobal;
-import org.eqasim.switzerland.drt.travel_times.wait_time.DrtWaitTimes;
-import org.matsim.api.core.v01.Id;
+import org.eqasim.switzerland.drt.mode_choice.utilities.variables.DrtVariables;
+import org.eqasim.switzerland.drt.travel_times.TravelTimeUpdates;
 import org.matsim.api.core.v01.TransportMode;
-import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.PlanElement;
@@ -27,18 +23,14 @@ import com.google.inject.name.Named;
 public class DrtPredictor extends CachedVariablePredictor<DrtVariables> {
 	private static final Logger log = LogManager.getLogger(DrtPredictor.class);
 	private CostModel costModel;
-	private WayneCountyDrtZonalSystem zones;
-	private final DrtWaitTimes drtWaitTimes;
-	private final DrtWaitTimeGlobal drtWaitTimeGlobal;
+
+	private final TravelTimeUpdates travelTimeUpdates;
 
 	@Inject
-	public DrtPredictor(@Named("drt") CostModel costModel, WayneCountyDrtZonalSystem zones, DrtWaitTimes drtWaitTimes,
-			DrtWaitTimeGlobal drtWaitTimeGlobal) {
+	public DrtPredictor(@Named("drt") CostModel costModel, TravelTimeUpdates travelTimeUpdates) {
 
 		this.costModel = costModel;
-		this.zones = zones;
-		this.drtWaitTimes = drtWaitTimes;
-		this.drtWaitTimeGlobal = drtWaitTimeGlobal;
+		this.travelTimeUpdates = travelTimeUpdates;
 	}
 
 	@Override
@@ -47,8 +39,6 @@ public class DrtPredictor extends CachedVariablePredictor<DrtVariables> {
 		double accessEgressTime_min = 0.0;
 		double cost_MU = 0.0;
 		double waitingTime_min = 0.0;
-		boolean useAverageWaitTime = true; // toDo cmd config should say to use avg wait time or not
-
 		for (Leg leg : TripStructureUtils.getLegs(elements)) {
 			switch (leg.getMode()) {
 			case TransportMode.walk:
@@ -57,32 +47,8 @@ public class DrtPredictor extends CachedVariablePredictor<DrtVariables> {
 			case "drt":
 				DrtRoute route = (DrtRoute) leg.getRoute();
 
-				// Travel time is the max travel time set based on alpha*tt + beta (not actual)
-				// same for wait time which just uses maximum setting
-				travelTime_min = route.getMaxTravelTime() / 60.0;
-				waitingTime_min = route.getMaxWaitTime() / 60.0;
-
-				// Todo drt wait time and travel time update
-
-				if (useAverageWaitTime) {
-					Id<Link> startLinkId = leg.getRoute().getStartLinkId();
-					String zone = this.zones.getZoneForLinkId(startLinkId);
-
-					if (drtWaitTimes.getAvgWaitTimes().get(zone) != null) {
-						int index = DrtTimeUtils.getTimeBin(leg.getDepartureTime().seconds());
-						try {
-							waitingTime_min = this.drtWaitTimes.getAvgWaitTimes().get(zone)[index] / 60;
-						} catch (IndexOutOfBoundsException e) {
-							log.warn(person.getId().toString() + " departs at " + leg.getDepartureTime().seconds());
-							waitingTime_min = this.drtWaitTimeGlobal.getAvgWaitTime() / 60.0;
-						}
-						if (Double.isNaN(waitingTime_min)) {
-							waitingTime_min = this.drtWaitTimeGlobal.getAvgWaitTime() / 60.0;
-						}
-					} else {
-						waitingTime_min = this.drtWaitTimeGlobal.getAvgWaitTime() / 60.0;
-					}
-				}
+				travelTime_min = travelTimeUpdates.getTravelTime(route);
+				waitingTime_min = travelTimeUpdates.getWaitTime(route);
 
 				cost_MU = costModel.calculateCost_MU(person, trip, elements);
 

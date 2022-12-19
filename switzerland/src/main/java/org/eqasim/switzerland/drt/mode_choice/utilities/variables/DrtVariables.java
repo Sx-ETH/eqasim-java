@@ -1,4 +1,4 @@
-package org.eqasim.switzerland.drt.mode_choice.utilities;
+package org.eqasim.switzerland.drt.mode_choice.utilities.variables;
 
 import org.eqasim.core.simulation.mode_choice.utilities.variables.BaseVariables;
 

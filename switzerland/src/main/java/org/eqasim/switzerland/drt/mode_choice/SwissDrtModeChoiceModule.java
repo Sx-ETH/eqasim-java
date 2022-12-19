@@ -11,8 +11,12 @@ import org.eqasim.core.simulation.mode_choice.cost.CostModel;
 import org.eqasim.switzerland.drt.mode_choice.cost.DrtCostModel;
 import org.eqasim.switzerland.drt.mode_choice.parameters.SwissDrtCostParameters;
 import org.eqasim.switzerland.drt.mode_choice.parameters.SwissDrtModeParameters;
-import org.eqasim.switzerland.drt.mode_choice.utilities.DrtPredictor;
+import org.eqasim.switzerland.drt.mode_choice.utilities.AstraDrtUtilityEstimator;
+import org.eqasim.switzerland.drt.mode_choice.utilities.predictors.AstraPersonPredictor;
+import org.eqasim.switzerland.drt.mode_choice.utilities.predictors.AstraTripPredictor;
+import org.eqasim.switzerland.drt.mode_choice.utilities.predictors.DrtPredictor;
 import org.eqasim.switzerland.drt.mode_choice.utilities.DrtUtilityEstimator;
+import org.eqasim.switzerland.drt.travel_times.TravelTimeUpdates;
 import org.eqasim.switzerland.mode_choice.parameters.SwissCostParameters;
 import org.eqasim.switzerland.mode_choice.parameters.SwissModeParameters;
 import org.matsim.core.config.CommandLine;
@@ -35,9 +39,13 @@ public class SwissDrtModeChoiceModule extends AbstractEqasimExtension {
         bindModeAvailability(SwissDrtModeAvailability.NAME).to(SwissDrtModeAvailability.class);
 
         // Configure choice alternative for DRT
-        bindUtilityEstimator("drt").to(DrtUtilityEstimator.class);
-        bindCostModel("drt").to(DrtCostModel.class);
+        //bindUtilityEstimator(DrtUtilityEstimator.NAME).to(DrtUtilityEstimator.class);
+        bindUtilityEstimator(AstraDrtUtilityEstimator.NAME).to(AstraDrtUtilityEstimator.class);
+        bindCostModel(DrtCostModel.NAME).to(DrtCostModel.class);
         bind(DrtPredictor.class);
+
+        bind(AstraPersonPredictor.class);
+        bind(AstraTripPredictor.class);
 
 
         // Override parameter bindings
@@ -50,6 +58,7 @@ public class SwissDrtModeChoiceModule extends AbstractEqasimExtension {
     public SwissDrtModeParameters provideSwissDrtModeParameters(EqasimConfigGroup config)
             throws IOException, CommandLine.ConfigurationException {
         SwissDrtModeParameters parameters = SwissDrtModeParameters.buildASTRA2016();
+        //SwissDrtModeParameters parameters = SwissDrtModeParameters.buildAstraFrom6Feb2020();
 
         if (config.getModeParametersPath() != null) {
             ParameterDefinition.applyFile(new File(config.getModeParametersPath()), parameters);
@@ -78,7 +87,7 @@ public class SwissDrtModeChoiceModule extends AbstractEqasimExtension {
         return new DrtCostModel(parameters);
     }
 
-    @Provides
+   @Provides
     @Named("drt")
     public CostModel provideCarCostModel(Map<String, Provider<CostModel>> factory, EqasimConfigGroup config) {
         return getCostModel(factory, config, "drt");
