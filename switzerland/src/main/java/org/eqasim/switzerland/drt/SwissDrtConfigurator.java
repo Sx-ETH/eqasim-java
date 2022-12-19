@@ -4,6 +4,8 @@ import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import org.eqasim.core.components.config.EqasimConfigGroup;
 import org.eqasim.core.simulation.calibration.CalibrationConfigGroup;
 import org.eqasim.switzerland.SwitzerlandConfigurator;
+import org.eqasim.switzerland.drt.mode_choice.cost.DrtCostModel;
+import org.eqasim.switzerland.drt.mode_choice.utilities.AstraDrtUtilityEstimator;
 import org.eqasim.switzerland.drt.travel_times.SwissDrtTravelTimeModule;
 import org.eqasim.switzerland.drt.mode_choice.SwissDrtModeAvailability;
 import org.eqasim.switzerland.drt.mode_choice.SwissDrtModeChoiceModule;
@@ -66,8 +68,8 @@ public class SwissDrtConfigurator extends SwitzerlandConfigurator {
         eqasimConfig.setAnalysisInterval(config.controler().getWriteEventsInterval());
 
         // Add Drt Estimators
-        eqasimConfig.setCostModel("drt", "drt");
-        eqasimConfig.setEstimator("drt", "drt");
+        eqasimConfig.setCostModel("drt", DrtCostModel.NAME);
+        eqasimConfig.setEstimator("drt", AstraDrtUtilityEstimator.NAME); //todo configure to use astra or not.
 
         DiscreteModeChoiceConfigGroup dmcConfig = DiscreteModeChoiceConfigGroup.getOrCreate(config);
 
