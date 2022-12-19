@@ -132,7 +132,7 @@ public class WayneCountyDrtZonalSystem {
 			}
 			writer.flush();
 			writer.close();
-			if (nWrites != this.link2zone.size()) {
+			if (nWrites < this.link2zone.size()) {
 				log.warn("There are less writes in the link2zone file than in the map, be careful when using it");
 				log.warn("nWrites: " + nWrites);
 			}
