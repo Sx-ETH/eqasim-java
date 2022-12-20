@@ -20,17 +20,17 @@ import com.google.inject.Inject;
 
 public class DrtWaitTimes implements IterationEndsListener {
 
-    private final DrtTimeTracker trackedWaitTimes;
-    private Map<String, double[]> avgWaitTimes;
-    WayneCountyDrtZonalSystem zones;
+	private final DrtTimeTracker trackedWaitTimes;
+	private Map<String, double[]> avgWaitTimes;
+	WayneCountyDrtZonalSystem zones;
 
-    @Inject
-    public DrtWaitTimes(DrtTimeTracker trackedWaitTimes, WayneCountyDrtZonalSystem zones, Config config){
+	@Inject
+	public DrtWaitTimes(DrtTimeTracker trackedWaitTimes, WayneCountyDrtZonalSystem zones, Config config) {
 
-        this.trackedWaitTimes = trackedWaitTimes;
-        this.avgWaitTimes = new HashMap<>();
-        this.zones = zones;
-    }
+		this.trackedWaitTimes = trackedWaitTimes;
+		this.avgWaitTimes = new HashMap<>();
+		this.zones = zones;
+	}
 
 	@Override
 	public void notifyIterationEnds(IterationEndsEvent event) {
