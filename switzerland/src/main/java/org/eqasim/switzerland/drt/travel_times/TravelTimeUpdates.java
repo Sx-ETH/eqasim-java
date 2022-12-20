@@ -21,7 +21,9 @@ public class TravelTimeUpdates {
     public void test(){
 
 
-        boolean useAverageWaitTime = true; // toDo cmd config should say to use avg wait time or not
+        boolean useAverageWaitTime = simulationParams.isUseAverageWaitTime();
+
+        //TravelTimeData globalWaitTime = drtWaitTimeGlobal.getAvgWaitTime();
 
 
         //receive avg, median, 90%
@@ -63,10 +65,10 @@ public class TravelTimeUpdates {
 
 
     public double getTravelTime(DrtRoute route) {
-                    return 0.0;
+        return 0.0;
     }
 
     public double getWaitTime(DrtRoute route) {
-                    return 0.0;
+        return 0.0;
     }
 }
