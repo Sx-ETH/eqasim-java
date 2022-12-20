@@ -18,14 +18,14 @@ import org.matsim.core.utils.io.IOUtils;
 
 import com.google.inject.Inject;
 
-public class DrtWaitTimes implements IterationEndsListener {
+public class DrtZonalWaitTimes implements IterationEndsListener {
 
 	private final DrtTimeTracker trackedWaitTimes;
 	private Map<String, double[]> avgWaitTimes;
 	WayneCountyDrtZonalSystem zones;
 
 	@Inject
-	public DrtWaitTimes(DrtTimeTracker trackedWaitTimes, WayneCountyDrtZonalSystem zones, Config config) {
+	public DrtZonalWaitTimes(DrtTimeTracker trackedWaitTimes, WayneCountyDrtZonalSystem zones, Config config) {
 
 		this.trackedWaitTimes = trackedWaitTimes;
 		this.avgWaitTimes = new HashMap<>();
@@ -35,20 +35,20 @@ public class DrtWaitTimes implements IterationEndsListener {
 	@Override
 	public void notifyIterationEnds(IterationEndsEvent event) {
 		// generate wait times for use.
-		Map<String, double[]> avgWaitTimesZonal = WaitTimeMetrics
+		Map<String, double[]> avgWaitTimesZonal = WaitTimeZonalMetrics
 				.calculateZonalAverageWaitTimes(trackedWaitTimes.getDrtTrips(), zones);
 		String fileName = event.getServices().getControlerIO().getIterationFilename(event.getIteration(),
 				"DrtWaitTimesZonalAvg.csv");
 		write(fileName, avgWaitTimesZonal);
 
-		Map<String, double[]> movingAvgWaitTimesZonal = WaitTimeMetrics
+		Map<String, double[]> movingAvgWaitTimesZonal = WaitTimeZonalMetrics
 				.calculateMovingZonalAverageWaitTimes(trackedWaitTimes.getDrtTrips(), zones, event.getIteration(), 2);
 		fileName = event.getServices().getControlerIO().getIterationFilename(event.getIteration(),
 				"DrtWaitTimesZonalMovingAvg.csv");
 
 		write(fileName, movingAvgWaitTimesZonal);
 
-		Map<String, double[]> successiveAvgWaitTimesZonal = WaitTimeMetrics.calculateMethodOfSuccessiveAverageWaitTimes(
+		Map<String, double[]> successiveAvgWaitTimesZonal = WaitTimeZonalMetrics.calculateMethodOfSuccessiveAverageWaitTimes(
 				trackedWaitTimes.getDrtTrips(), zones, event.getIteration(), 0.5);
 
 		fileName = event.getServices().getControlerIO().getIterationFilename(event.getIteration(),

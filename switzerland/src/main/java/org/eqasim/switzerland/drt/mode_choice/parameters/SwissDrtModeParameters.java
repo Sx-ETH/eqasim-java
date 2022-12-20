@@ -50,14 +50,24 @@ public class SwissDrtModeParameters extends SwissModeParameters {
     public static SwissDrtModeParameters buildASTRA2016() {
         SwissDrtModeParameters parameters = new SwissDrtModeParameters();
 
-        // DRT (adapted from public transport)
+
+        /*// DRT (adapted from public transport)
         parameters.drt.alpha_u = 0.162;
         parameters.drt.betaWaitingTime_u_min = -0.0802;
         parameters.drt.betaTravelTime_u_min = -0.0527;
         parameters.drt.betaAccessEgressTime_u_min = -0.0;
         parameters.astraDrt.betaAgeOver60 = 0.0;
         parameters.astraDrt.betaCity = 0.0;
-        parameters.astraDrt.betaWork = 0.0;
+        parameters.astraDrt.betaWork = 0.0;*/
+
+        // DRT from astra feb2016
+        parameters.drt.alpha_u = -0.061;
+        parameters.drt.betaWaitingTime_u_min = -0.093;
+        parameters.drt.betaTravelTime_u_min = -0.015;
+        parameters.drt.betaAccessEgressTime_u_min = -0.0;
+        parameters.astraDrt.betaAgeOver60 = -2.6588;
+        parameters.astraDrt.betaCity = 0.0;
+        parameters.astraDrt.betaWork = -1.938;
 
         //...
 
@@ -105,13 +115,13 @@ public class SwissDrtModeParameters extends SwissModeParameters {
         parameters.referenceHouseholdIncome_MU = 12260.0;
         
         // DRT
-        parameters.drt.alpha_u = 0.162;
-        parameters.drt.betaWaitingTime_u_min = -0.0802;
-        parameters.drt.betaTravelTime_u_min = -0.0527;
+        parameters.drt.alpha_u = -0.061;
+        parameters.drt.betaWaitingTime_u_min = -0.093;
+        parameters.drt.betaTravelTime_u_min = -0.015;
         parameters.drt.betaAccessEgressTime_u_min = -0.0;
-        parameters.astraDrt.betaAgeOver60 = 0.0;
+        parameters.astraDrt.betaAgeOver60 = -2.6588;
         parameters.astraDrt.betaCity = 0.0;
-        parameters.astraDrt.betaWork = 0.0;
+        parameters.astraDrt.betaWork = -1.938;
 
         // Public transport
         parameters.pt.alpha_u = 0.0;

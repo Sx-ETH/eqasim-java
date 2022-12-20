@@ -28,7 +28,7 @@ public class SimulationParameter {
 
     private double drtOperationTime = 24*3600; //todo add drt operation time
 
-    private final ArrayList<String> METHODS = new ArrayList<>(Arrays.asList("global", "successive_global", "moving_global", "moving_zonal", "successive_zonal"));
+    private final ArrayList<String> METHODS = new ArrayList<>(Arrays.asList("global", "successive_global", "moving_global", "moving_zonal", "successive_zonal","avg_zonal"));
 
     public SimulationParameter(Config config) {
         this.config = config;
@@ -115,16 +115,7 @@ public class SimulationParameter {
 
 
             } else {
-                switch(waitTimeMethod){
-                    case "moving_zonal":
-                        this.waitTimeMethod = "moving_zonal";
-                        break;
-                    case "successive_zonal":
-                        this.waitTimeMethod = "successive_zonal";
-                        break;
-                }
-
-                //activate zones
+                this.waitTimeMethod = waitTimeMethod; //returns zonal
 
             }
 
@@ -155,16 +146,8 @@ public class SimulationParameter {
 
                 }
             } else {
-                switch(delayMethod){
-                    case "moving_zonal":
-                        this.delayCalcMethod = "moving_zonal";
-                        break;
-                    case "successive_zonal":
-                        this.delayCalcMethod = "successive_zonal";
-                        break;
-                }
-
-                //activate zones
+                //it is zonal
+                this.delayCalcMethod = delayMethod;
 
             }
 

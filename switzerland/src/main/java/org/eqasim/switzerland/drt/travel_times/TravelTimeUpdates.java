@@ -15,7 +15,7 @@ public class TravelTimeUpdates implements IterationEndsListener {
 	private final SimulationParameter simulationParams;
 	private WayneCountyDrtZonalSystem zones;
 	private final DrtTimeTracker trackedTimes;
-	private TravelTimeData travelTimeData;
+	private TravelTimeData travelTimeData; //all global wait and delay stats are stored here
 	private Config config;
 
 	@Inject
@@ -27,55 +27,32 @@ public class TravelTimeUpdates implements IterationEndsListener {
 		this.config = config;
 	}
 
-	public void test() {
+	public double getTravelTime_Sec(DrtRoute route) {
+		//when no value has been calculated
+		if (simulationParams.isUseDelayFactor() && !Double.isNaN(travelTimeData.delayFactorStat.avg)){
+			//for now global //todo check for optimistic, pessimistic or average
+			return route.getDirectRideTime() * travelTimeData.delayFactorStat.avg;
 
-		boolean useAverageWaitTime = true; // toDo cmd config should say to use avg wait time or not
-
-		// receive avg, median, 90%
-		// select the min(avg, median, 90%) for optimistic scenario
-		// select the max(persimistic scenario)
-		// select the avg()
-		// select the median()
-
-		// make it so that drt detour and wait time information can be gotten from here
-		// to use in the predictor.
-		// Travel time is the max travel time set based on alpha*tt + beta (not actual)
-		// same for wait time which just uses maximum setting
-		// use global wait time for overall testing
-		// if global one is more
-		/*
-		 * travelTime_min = route.getMaxTravelTime() / 60.0; //route.getDirectRideTime()
-		 * * delayFactor waitingTime_min = route.getMaxWaitTime() / 60.0;
-		 * 
-		 * // Todo drt wait time and travel time update
-		 * 
-		 * if (useAverageWaitTime) { Id<Link> startLinkId =
-		 * leg.getRoute().getStartLinkId(); String zone =
-		 * this.zones.getZoneForLinkId(startLinkId);
-		 * 
-		 * if (drtWaitTimes.getAvgWaitTimes().get(zone) != null) { int index =
-		 * DrtTimeUtils.getTimeBin(leg.getDepartureTime().seconds()); try {
-		 * waitingTime_min = this.drtWaitTimes.getAvgWaitTimes().get(zone)[index] / 60;
-		 * } catch (IndexOutOfBoundsException e) { log.warn(person.getId().toString() +
-		 * " departs at " + leg.getDepartureTime().seconds()); waitingTime_min =
-		 * this.drtWaitTimeGlobal.getAvgWaitTime() / 60.0; } if
-		 * (Double.isNaN(waitingTime_min)) { waitingTime_min =
-		 * this.drtWaitTimeGlobal.getAvgWaitTime() / 60.0; } } else { waitingTime_min =
-		 * this.drtWaitTimeGlobal.getAvgWaitTime() / 60.0; } }
-		 */}
-
-	public double getTravelTime(DrtRoute route) {
-		return 0.0;
+			//toDofor zone
+		}
+		return route.getMaxTravelTime(); //toDo now alpha*time + beta, alpa and beta defined in drt config module
 	}
 
-	public double getWaitTime(DrtRoute route) {
-		return 0.0;
+	public double getWaitTime_Sec(DrtRoute route) {
+		if (simulationParams.isUseAverageWaitTime() && !Double.isNaN(travelTimeData.waitTimeStat.avg)) {
+			return travelTimeData.waitTimeStat.avg;
+		}
+		return route.getMaxWaitTime();
 	}
 
 	@Override
 	public void notifyIterationEnds(IterationEndsEvent event) {
 		// TODO: Same method for both calculations, should we allow it to be different?
-		String method = this.simulationParams.getDelayCalcMethod();
+		String delayMethod = this.simulationParams.getDelayCalcMethod();
+		String waitMethod = this.simulationParams.getWaitTimeMethod();
+		Boolean isGlobalMethod = !delayMethod.contains("zonal");
+		String method = isGlobalMethod ? waitMethod : null; //toDo define if null use zonal
+
 		double weight = this.simulationParams.getMsaWeight();
 		int movingWindow = this.simulationParams.getMovingWindow();
 		Set<DrtTripData> drtTrips = this.trackedTimes.getDrtTrips();
@@ -109,7 +86,7 @@ public class TravelTimeUpdates implements IterationEndsListener {
 			this.travelTimeData = successiveAvg;
 			break;
 		default:
-			throw new IllegalArgumentException("Method not implemented yet!");
+			throw new IllegalArgumentException("Method not implemented yet!"); //toDo catch the null
 		}
 
 		try {
@@ -119,4 +96,42 @@ public class TravelTimeUpdates implements IterationEndsListener {
 		}
 
 	}
+
+	public void zonalStuff() {
+
+		boolean useZonalAverageWaitTime = true; // toDo cmd config should say to use avg wait time or not
+
+		// receive avg, median, 90%
+		// select the min(avg, median, 90%) for optimistic scenario
+		// select the max(persimistic scenario)
+		// select the avg()
+		// select the median()
+
+		// make it so that drt detour and wait time information can be gotten from here
+		// to use in the predictor.
+		// Travel time is the max travel time set based on alpha*tt + beta (not actual)
+		// same for wait time which just uses maximum setting
+		// use global wait time for overall testing
+		// if global one is more
+		/*
+		 * travelTime_min = route.getMaxTravelTime() / 60.0; //route.getDirectRideTime()
+		 * * delayFactor waitingTime_min = route.getMaxWaitTime() / 60.0;
+		 *
+		 * // Todo drt wait time and travel time update
+		 *
+		 * if (useAverageWaitTime) { Id<Link> startLinkId =
+		 * leg.getRoute().getStartLinkId(); String zone =
+		 * this.zones.getZoneForLinkId(startLinkId);
+		 *
+		 * if (drtWaitTimes.getAvgWaitTimes().get(zone) != null) { int index =
+		 * DrtTimeUtils.getTimeBin(leg.getDepartureTime().seconds()); try {
+		 * waitingTime_min = this.drtWaitTimes.getAvgWaitTimes().get(zone)[index] / 60;
+		 * } catch (IndexOutOfBoundsException e) { log.warn(person.getId().toString() +
+		 * " departs at " + leg.getDepartureTime().seconds()); waitingTime_min =
+		 * this.drtWaitTimeGlobal.getAvgWaitTime() / 60.0; } if
+		 * (Double.isNaN(waitingTime_min)) { waitingTime_min =
+		 * this.drtWaitTimeGlobal.getAvgWaitTime() / 60.0; } } else { waitingTime_min =
+		 * this.drtWaitTimeGlobal.getAvgWaitTime() / 60.0; } }
+		 */}
+
 }

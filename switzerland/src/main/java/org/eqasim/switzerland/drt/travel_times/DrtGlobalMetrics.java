@@ -50,7 +50,9 @@ public class DrtGlobalMetrics {
 		// compute delay factor
 		// TODO: Is this really what we want? The avg of the delay factor is different
 		// than this -> not sure which one should we use
-		return sumTotalTravelTime / sumUnsharedTime;
+		return sumTotalTravelTime / sumUnsharedTime; //toDo would we have aggregation error?
+		// this method smoothens the delay factor, giving more weights to the longer trips, other method gives everyone equal factor
+
 	}
 
 	public static TravelTimeData calculateGlobalMetrics(Set<DrtTripData> drtTrips) {

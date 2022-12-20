@@ -47,8 +47,8 @@ public class DrtPredictor extends CachedVariablePredictor<DrtVariables> {
 			case "drt":
 				DrtRoute route = (DrtRoute) leg.getRoute();
 
-				travelTime_min = travelTimeUpdates.getTravelTime(route);
-				waitingTime_min = travelTimeUpdates.getWaitTime(route);
+				travelTime_min = travelTimeUpdates.getTravelTime_Sec(route) / 60.0;
+				waitingTime_min = travelTimeUpdates.getWaitTime_Sec(route) / 60.0;
 
 				cost_MU = costModel.calculateCost_MU(person, trip, elements);
 
