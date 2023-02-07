@@ -120,9 +120,12 @@ def add_north(ax):
     
     return ax
 
-def plot_zonal_avg(metrics, zones, column, lake_restriction, lakes_path, zurich_districts_path, add_map=True):
+def plot_zonal_avg(metrics, zones, column, lake_restriction, lakes_path, zurich_districts_path, add_map=True, in_subplot=False):
     sns.set_context("poster")
-    fig, ax = plt.subplots(1, 1, figsize=(13, 13))
+    if not in_subplot:
+        plt.figure(figsize=(13,13))
+    fig = plt.gcf()
+    ax = plt.gca()
 
     # allow to adjust colormap
     from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -154,10 +157,12 @@ def plot_zonal_avg(metrics, zones, column, lake_restriction, lakes_path, zurich_
         cx.add_basemap(ax, crs=temp.crs)
     ax.set_axis_off()
 
-def plot_column_by_trip_density_scatter(drt_legs_with_zone_id, zone_id_field, column):
+def plot_column_by_trip_density_scatter(drt_legs_with_zone_id, zone_id_field, column, limit_n_trips = None):
     sns.set_context('notebook')
     grouped_by_n_trips = drt_legs_with_zone_id.groupby(zone_id_field) \
                             .agg(columnAvg=(column, 'mean'), nTrips=('trip_id','size'))
+    if limit_n_trips:
+        grouped_by_n_trips = grouped_by_n_trips[grouped_by_n_trips.nTrips < limit_n_trips]
     x = grouped_by_n_trips.nTrips
     y = grouped_by_n_trips.columnAvg
     sns.regplot(x=x,y=y)
