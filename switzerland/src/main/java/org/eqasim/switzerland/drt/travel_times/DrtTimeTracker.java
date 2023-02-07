@@ -74,12 +74,14 @@ public class DrtTimeTracker implements PassengerPickedUpEventHandler, DrtRequest
             Link toLink = scenario.getNetwork().getLinks().get(drtTrip.endLinkId);
             Person person = scenario.getPopulation().getPersons().get(event.getPersonId());
 
+
+
             //update start and end coordinates for later use
             drtTrip.startCoord = fromLink.getCoord();
             drtTrip.endCoord = toLink.getCoord();
 
             //create route using trip router to get possible travel time for unshared trip in current iteration
-            List<? extends PlanElement>  routeElements = this.tripRouter.calcRoute("car", new LinkWrapperFacility(fromLink), new LinkWrapperFacility(toLink), drtTrip.startTime, person, null);
+            List<? extends PlanElement>  routeElements = this.tripRouter.calcRoute("car", new LinkWrapperFacility(fromLink), new LinkWrapperFacility(toLink), drtTrip.pickUpTime, person, null);
 
             for (Leg leg : TripStructureUtils.getLegs(routeElements)) {
                 if (leg.getMode().equals("car")){
