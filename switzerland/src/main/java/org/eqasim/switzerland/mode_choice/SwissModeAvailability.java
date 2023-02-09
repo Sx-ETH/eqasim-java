@@ -53,7 +53,7 @@ public class SwissModeAvailability implements ModeAvailability {
 		}
 
 		// Add special mode "outside" if applicable
-		Boolean isOutside = (Boolean) person.getAttributes().getAttribute("outside");
+		Boolean isOutside = (Boolean) person.getAttributes().getAttribute("isOutside");
 
 		if (isOutside != null && isOutside) {
 			modes.add("outside");
