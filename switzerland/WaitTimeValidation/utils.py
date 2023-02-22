@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 from shapely.geometry import Polygon
 import os
+from shapely.geometry import LineString, Point
+
 
 
 def create_grid_from_shapefile(shapefile, grid_size):
@@ -53,6 +55,42 @@ def create_grid_from_shapefile(shapefile, grid_size):
     grid = gpd.clip(grid, shape)
 
     return grid
+
+def get_even_spaced_points_from_shapefile(shapefile, space):
+    # Read the shapefile
+    shape = gpd.read_file(shapefile)
+
+    # Get the bounding box
+    xmin, ymin, xmax, ymax = shape.total_bounds
+    
+    points = np.mgrid[xmin:xmax:space, ymin:ymax:space].reshape(2,-1).T
+    l = []
+    for p in points:
+        l += [Point(p)]
+        
+
+    gpd_df = gpd.GeoDataFrame({'geometry':l})
+    gpd_df.crs = shape.crs
+
+    # Clip the grid to the shapefile
+    gpd_df = gpd.clip(gpd_df, shape)
+
+    return gpd_df
+
+def convert_drt_legs_to_gpd(it_drt_legs):
+    df = it_drt_legs.copy()
+    if 'startX' in df.columns:
+        df['origin_geometry'] = [Point(xy) for xy in zip(df.startX, df.startY)]
+        df['destination_geometry'] = [Point(xy) for xy in zip(df.endX, df.endY)]
+    else:
+        df['origin_geometry'] = [Point(xy) for xy in zip(df.fromX, df.fromY)]
+        df['destination_geometry'] = [Point(xy) for xy in zip(df.toX, df.toY)]
+    df['geometry'] = df['origin_geometry']
+    df = gpd.GeoDataFrame(df)
+    df.crs = "epsg:2056"
+    df["trip_id"] = [x for x in range(1, len(df)+1)]
+
+    return df
 
 
 def get_drt_legs(output_directory):

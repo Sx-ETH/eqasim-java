@@ -14,7 +14,7 @@ def get_lakes_gpd(lakes_path):
     return df_lakes
 
 def get_zurich_districts_gpd(zurich_districts_path):
-    df_zurich_districts = gpd.read_file(zurich_districts_path, encoding="latin1").to_crs("epsg:2056")
+    df_zurich_districts = gpd.read_file(zurich_districts_path, encoding='latin1').to_crs("epsg:2056")
     df_zurich_districts = df_zurich_districts.rename({"knr": "district_id", "kname": "district_name"}, axis=1)
     df_zurich_districts = df_zurich_districts[["district_id", "district_name", "geometry"]].sort_values("district_id").reset_index(drop=True)
 
