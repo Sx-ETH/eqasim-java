@@ -7,14 +7,14 @@ import java.util.Set;
 
 import org.eqasim.switzerland.drt.travel_times.DrtTimeUtils;
 import org.eqasim.switzerland.drt.travel_times.DrtTripData;
-import org.eqasim.switzerland.drt.travel_times.WayneCountyDrtZonalSystem;
+import org.eqasim.switzerland.drt.travel_times.SquareGridDrtZonalSystem;
 
 public class WaitTimeZonalMetrics {
 	private static final Map<Integer, Set<DrtTripData>> iterationsDrtTrips = new HashMap<>();
 	private static final Map<Integer, Map<String, double[]>> iterationsSuccessiveAvg = new HashMap<>();
 
 	private static Map<String, Set<WaitTimeData>> createZonalStats(Set<DrtTripData> drtTrips,
-			WayneCountyDrtZonalSystem zones, Map<String, Set<WaitTimeData>> zonalWaitTimes) {
+			SquareGridDrtZonalSystem zones, Map<String, Set<WaitTimeData>> zonalWaitTimes) {
 
 		for (DrtTripData drtTrip : drtTrips) {
 
@@ -43,7 +43,7 @@ public class WaitTimeZonalMetrics {
 	}
 
 	public static Map<String, double[]> calculateZonalAverageWaitTimes(Set<DrtTripData> drtTrips,
-			WayneCountyDrtZonalSystem zones) {
+			SquareGridDrtZonalSystem zones) {
 		Map<String, Set<WaitTimeData>> zonalWaitTimes = createZonalStats(drtTrips, zones, new HashMap<>());
 		Map<String, double[]> avgZonalWaitTimes = new HashMap<>();
 		int timeBins = DrtTimeUtils.getWaitingTimeBinCount(); // toDo justify the choice of this time bin now it is
@@ -72,7 +72,7 @@ public class WaitTimeZonalMetrics {
 	}
 
 	public static Map<String, double[]> calculateMovingZonalAverageWaitTimes(Set<DrtTripData> drtTrips,
-			WayneCountyDrtZonalSystem zones, int iteration, int movingWindow) {
+			SquareGridDrtZonalSystem zones, int iteration, int movingWindow) {
 
 		Set<DrtTripData> iterationDrtTrips = new HashSet<>();
 
@@ -97,7 +97,7 @@ public class WaitTimeZonalMetrics {
 	}
 
 	public static Map<String, double[]> calculateMethodOfSuccessiveAverageWaitTimes(Set<DrtTripData> drtTrips,
-			WayneCountyDrtZonalSystem zones, int iteration, double weight) {
+			SquareGridDrtZonalSystem zones, int iteration, double weight) {
 		Map<String, double[]> iterationAvg = calculateZonalAverageWaitTimes(drtTrips, zones);
 		Map<String, double[]> successiveItAvg = new HashMap<>();
 		int timeBins = DrtTimeUtils.getWaitingTimeBinCount();

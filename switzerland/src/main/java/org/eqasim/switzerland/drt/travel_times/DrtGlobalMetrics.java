@@ -56,7 +56,7 @@ public class DrtGlobalMetrics {
 //
 //	}
 
-	public static double[] collectWaitTimes(Set<DrtTripData> drtTrips) {
+	private static double[] collectWaitTimes(Set<DrtTripData> drtTrips) {
 		double[] l = new double[drtTrips.size()];
 
 		int i = 0;
@@ -67,7 +67,7 @@ public class DrtGlobalMetrics {
 		return l;
 	}
 
-	public static double[] collectDelayFactors(Set<DrtTripData> drtTrips) {
+	private static double[] collectDelayFactors(Set<DrtTripData> drtTrips) {
 		double[] l = new double[drtTrips.size()];
 		int i = 0;
 		for (DrtTripData drtTrip : drtTrips) {

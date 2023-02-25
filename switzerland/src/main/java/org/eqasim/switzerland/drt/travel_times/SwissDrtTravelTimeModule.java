@@ -32,13 +32,17 @@ public class SwissDrtTravelTimeModule extends AbstractEqasimExtension {
 		Preconditions.checkNotNull(params.getCellSize());
 		Double cellSize = params.getCellSize();
 		bind(Double.class).annotatedWith(Names.named("gridCellSize")).toInstance(cellSize);
-		bind(WayneCountyDrtZonalSystem.class).asEagerSingleton();
+		bind(SquareGridDrtZonalSystem.class).asEagerSingleton();
+		bind(HexGridDrtZonalSystem.class).asEagerSingleton();
 
 		addControlerListenerBinding().to(TravelTimeUpdates.class);
 		bind(TravelTimeUpdates.class).asEagerSingleton();
 
-		addControlerListenerBinding().to(WayneCountyDrtZonalSystemListener.class);
-		bind(WayneCountyDrtZonalSystemListener.class).asEagerSingleton();
+		addControlerListenerBinding().to(SquareGridDrtZonalSystemListener.class);
+		bind(SquareGridDrtZonalSystemListener.class).asEagerSingleton();
+		
+		addControlerListenerBinding().to(HexGridDrtZonalSystemListener.class);
+		bind(HexGridDrtZonalSystemListener.class).asEagerSingleton();
 
 	}
 }

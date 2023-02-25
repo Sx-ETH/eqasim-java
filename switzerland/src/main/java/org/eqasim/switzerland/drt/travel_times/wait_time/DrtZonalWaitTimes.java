@@ -10,7 +10,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eqasim.switzerland.drt.travel_times.DrtTimeTracker;
 import org.eqasim.switzerland.drt.travel_times.DrtTimeUtils;
-import org.eqasim.switzerland.drt.travel_times.WayneCountyDrtZonalSystem;
+import org.eqasim.switzerland.drt.travel_times.SquareGridDrtZonalSystem;
 import org.matsim.core.config.Config;
 import org.matsim.core.controler.events.IterationEndsEvent;
 import org.matsim.core.controler.listener.IterationEndsListener;
@@ -22,10 +22,10 @@ public class DrtZonalWaitTimes implements IterationEndsListener {
 
 	private final DrtTimeTracker trackedWaitTimes;
 	private Map<String, double[]> avgWaitTimes;
-	WayneCountyDrtZonalSystem zones;
+	SquareGridDrtZonalSystem zones;
 
 	@Inject
-	public DrtZonalWaitTimes(DrtTimeTracker trackedWaitTimes, WayneCountyDrtZonalSystem zones, Config config) {
+	public DrtZonalWaitTimes(DrtTimeTracker trackedWaitTimes, SquareGridDrtZonalSystem zones, Config config) {
 
 		this.trackedWaitTimes = trackedWaitTimes;
 		this.avgWaitTimes = new HashMap<>();

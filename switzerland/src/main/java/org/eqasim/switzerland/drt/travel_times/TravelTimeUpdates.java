@@ -13,13 +13,13 @@ import com.google.inject.Inject;
 
 public class TravelTimeUpdates implements IterationEndsListener {
 	private final SimulationParameter simulationParams;
-	private WayneCountyDrtZonalSystem zones;
+	private SquareGridDrtZonalSystem zones;
 	private final DrtTimeTracker trackedTimes;
 	private TravelTimeData travelTimeData; //all global wait and delay stats are stored here
 	private Config config;
 
 	@Inject
-	public TravelTimeUpdates(SimulationParameter simulationParams, WayneCountyDrtZonalSystem zones,
+	public TravelTimeUpdates(SimulationParameter simulationParams, SquareGridDrtZonalSystem zones,
 			DrtTimeTracker trackedTimes, Config config) {
 		this.simulationParams = simulationParams;
 		this.zones = zones;
