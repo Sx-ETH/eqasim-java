@@ -15,7 +15,7 @@ public class TravelTimeUpdates implements IterationEndsListener {
 	private final SimulationParameter simulationParams;
 	private SquareGridDrtZonalSystem zones;
 	private final DrtTimeTracker trackedTimes;
-	private TravelTimeData travelTimeData; //all global wait and delay stats are stored here
+	private TravelTimeData travelTimeData; // all global wait and delay stats are stored here
 	private Config config;
 
 	@Inject
@@ -28,19 +28,35 @@ public class TravelTimeUpdates implements IterationEndsListener {
 	}
 
 	public double getTravelTime_Sec(DrtRoute route) {
-		//when no value has been calculated
-		if (simulationParams.isUseDelayFactor() && !Double.isNaN(travelTimeData.delayFactorStat.avg)){
-			//for now global //todo check for optimistic, pessimistic or average
-			return route.getDirectRideTime() * travelTimeData.delayFactorStat.avg;
+		if (simulationParams.isUseDelayFactor()) {
+			if (simulationParams.getDelayFactorFeedback().equals("average")
+					&& !Double.isNaN(travelTimeData.delayFactorStat.avg)) {
+				return route.getDirectRideTime() * travelTimeData.delayFactorStat.avg;
+			}
 
-			//toDofor zone
+			if (simulationParams.getDelayFactorFeedback().equals("median")
+					&& !Double.isNaN(travelTimeData.delayFactorStat.median)) {
+				return route.getDirectRideTime() * travelTimeData.delayFactorStat.median;
+			}
+			if (simulationParams.getDelayFactorFeedback().equals("divisionOfSums")
+					&& !Double.isNaN(travelTimeData.delayFactorStat.avg)) {
+				return route.getDirectRideTime() * travelTimeData.delayFactorStat.avg;
+			}
+			// toDofor zone
 		}
-		return route.getMaxTravelTime(); //toDo now alpha*time + beta, alpa and beta defined in drt config module
+		return route.getMaxTravelTime(); // toDo now alpha*time + beta, alpa and beta defined in drt config module
 	}
 
 	public double getWaitTime_Sec(DrtRoute route) {
-		if (simulationParams.isUseAverageWaitTime() && !Double.isNaN(travelTimeData.waitTimeStat.avg)) {
-			return travelTimeData.waitTimeStat.avg;
+		if (simulationParams.isUseAverageWaitTime()) {
+			if (simulationParams.getWaitTimeFeedback().equals("average")
+					&& !Double.isNaN(travelTimeData.waitTimeStat.avg)) {
+				return travelTimeData.waitTimeStat.avg;
+			}
+			if (simulationParams.getWaitTimeFeedback().equals("median")
+					&& !Double.isNaN(travelTimeData.waitTimeStat.median)) {
+				return travelTimeData.waitTimeStat.median;
+			}
 		}
 		return route.getMaxWaitTime();
 	}
@@ -51,26 +67,27 @@ public class TravelTimeUpdates implements IterationEndsListener {
 		String delayMethod = this.simulationParams.getDelayCalcMethod();
 		String waitMethod = this.simulationParams.getWaitTimeMethod();
 		Boolean isGlobalMethod = !delayMethod.contains("zonal");
-		String method = isGlobalMethod ? waitMethod : null; //toDo define if null use zonal
+		String method = isGlobalMethod ? waitMethod : null; // toDo define if null use zonal
 
 		double weight = this.simulationParams.getMsaWeight();
 		int movingWindow = this.simulationParams.getMovingWindow();
 		Set<DrtTripData> drtTrips = this.trackedTimes.getDrtTrips();
 
 		// TODO: Only compute the needed one -> this is to test that it works correctly
-		TravelTimeData globalAvg = DrtGlobalMetrics.calculateGlobalMetrics(drtTrips);
+		TravelTimeData globalAvg = DrtGlobalMetrics.calculateGlobalMetrics(drtTrips,
+				this.simulationParams.getDelayFactorFeedback());
 		String fileName = event.getServices().getControlerIO().getIterationFilename(event.getIteration(),
 				"drt_travelTimeData_global.csv");
 		globalAvg.write(fileName);
 
 		TravelTimeData movingAvg = DrtGlobalMetrics.calculateGlobalMovingMetrics(drtTrips, event.getIteration(),
-				movingWindow);
+				movingWindow, this.simulationParams.getDelayFactorFeedback());
 		fileName = event.getServices().getControlerIO().getIterationFilename(event.getIteration(),
 				"drt_travelTimeData_moving.csv");
 		movingAvg.write(fileName);
 
 		TravelTimeData successiveAvg = DrtGlobalMetrics.calculateMethodOfSuccessiveAverageWaitTime(drtTrips,
-				event.getIteration(), weight);
+				event.getIteration(), weight, this.simulationParams.getDelayFactorFeedback());
 		fileName = event.getServices().getControlerIO().getIterationFilename(event.getIteration(),
 				"drt_travelTimeData_successive.csv");
 		successiveAvg.write(fileName);
@@ -86,7 +103,7 @@ public class TravelTimeUpdates implements IterationEndsListener {
 			this.travelTimeData = successiveAvg;
 			break;
 		default:
-			throw new IllegalArgumentException("Method not implemented yet!"); //toDo catch the null
+			throw new IllegalArgumentException("Method not implemented yet!"); // toDo catch the null
 		}
 
 		try {

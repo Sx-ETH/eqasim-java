@@ -168,6 +168,11 @@ public class CreateDrtVehicles {
         //generate vehicles randomly ToDo: generate by hub or by population density
         //vehicles = RandomPlacementGenerator(network);
         vehicles = populationDensityGenerator(getPopulationDensity(population, network));
+        
+        for (DvrpVehicleSpecification v : vehicles) {
+        	Link l = network.getLinks().get(v.getStartLinkId());
+        	System.out.println(String.valueOf(l.getCoord().getX()) + "," + String.valueOf(l.getCoord().getY()));
+        }
 
         new FleetWriter(vehicles.stream()).write(taxisFile);
 

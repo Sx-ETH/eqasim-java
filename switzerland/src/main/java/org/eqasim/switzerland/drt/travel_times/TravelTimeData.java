@@ -25,19 +25,29 @@ public class TravelTimeData {
 		}
 		this.tripNum = waitTimes.length;
 	}
+	
+	public TravelTimeData(double[] waitTimes, double delayFactorFromSums) {
+		this.waitTimeStat = new StatData(waitTimes);
+		this.delayFactorStat = new StatData(delayFactorFromSums);
+		this.tripNum = waitTimes.length;
+	}
 
 	// delay time data
 	class StatData {
-		public double avg;
-		public double median;
-		public double min;
-		public double p_5;
-		public double p_25;
-		public double p_75;
-		public double p_95;
-		public double max;
+		public double avg = Double.NaN;
+		public double median = Double.NaN;
+		public double min = Double.NaN;
+		public double p_5 = Double.NaN;
+		public double p_25 = Double.NaN;
+		public double p_75 = Double.NaN;
+		public double p_95 = Double.NaN;
+		public double max = Double.NaN;
 
 		public StatData() {
+		}
+		
+		public StatData(double avg) {
+			this.avg = avg;
 		}
 
 		public StatData(double[] stats) {

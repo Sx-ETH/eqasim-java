@@ -20,6 +20,8 @@ public class RunDrtSimulation {
                         "","","","",
                         "") //
                 .allowPrefixes("mode-choice-parameter", "cost-parameter") //
+                .allowOptions("output-path")
+                .allowOptions("delayFactorFeedback", "waitTimeFeedback")
                 .build();
 
 
@@ -33,6 +35,11 @@ public class RunDrtSimulation {
         Config config = ConfigUtils.loadConfig(config_path, configurator.getConfigGroups());
         configurator.configure(config);
         cmd.applyConfiguration(config);
+        
+        String output_path = cmd.getOption("output-path").isPresent() ? cmd.getOption("output-path").get()
+				: config.controler().getOutputDirectory();
+
+		config.controler().setOutputDirectory(output_path);
 
         config.controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.deleteDirectoryIfExists);
 

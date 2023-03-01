@@ -29,32 +29,27 @@ public class DrtGlobalMetrics {
 //		return average;
 //	}
 //
-//	public static double calculateAveragelDelayFactor(Set<DrtTripData> drtTrips) {
-//		double sumTotalTravelTime = 0.0;
-//		double sumUnsharedTime = 0.0;
-//		boolean useRouterUnsharedTime = true; // may remove later when decided on whether to use router or estimate
-//
-//		for (DrtTripData drtTrip : drtTrips) {
-//			sumTotalTravelTime += drtTrip.totalTravelTime;
-//			if (useRouterUnsharedTime) {
-//				sumUnsharedTime += drtTrip.routerUnsharedTime;
-//			} else {
-//				sumUnsharedTime += drtTrip.estimatedUnsharedTime;
-//			}
-//
-//		}
-//
-//		// what happens if no drt trip occurred in an iteration
-//		// division by 0 gives nan/inf and is returned
-//
-//		// compute delay factor
-//		// TODO: Is this really what we want? The avg of the delay factor is different
-//		// than this -> not sure which one should we use
-//		return sumTotalTravelTime / sumUnsharedTime; // toDo would we have aggregation error?
-//		// this method smoothens the delay factor, giving more weights to the longer
-//		// trips, other method gives everyone equal factor
-//
-//	}
+	private static double calculateAveragelDelayFactorFromSums(Set<DrtTripData> drtTrips) {
+		double sumTotalTravelTime = 0.0;
+		double sumUnsharedTime = 0.0;
+		boolean useRouterUnsharedTime = true; // may remove later when decided on whether to use router or estimate
+
+		for (DrtTripData drtTrip : drtTrips) {
+			sumTotalTravelTime += drtTrip.totalTravelTime;
+			if (useRouterUnsharedTime) {
+				sumUnsharedTime += drtTrip.routerUnsharedTime;
+			} else {
+				sumUnsharedTime += drtTrip.estimatedUnsharedTime;
+			}
+		}
+
+		// what happens if no drt trip occurred in an iteration
+		// division by 0 gives nan/inf and is returned
+
+		// compute delay factor
+		return sumTotalTravelTime / sumUnsharedTime;
+
+	}
 
 	private static double[] collectWaitTimes(Set<DrtTripData> drtTrips) {
 		double[] l = new double[drtTrips.size()];
@@ -81,17 +76,25 @@ public class DrtGlobalMetrics {
 		return l;
 	}
 
-	public static TravelTimeData calculateGlobalMetrics(Set<DrtTripData> drtTrips) {
+	public static TravelTimeData calculateGlobalMetrics(Set<DrtTripData> drtTrips, String delayFactorMethod) {
+		TravelTimeData travelTimeData;
+
 		double[] waitTimes = collectWaitTimes(drtTrips);
-		double[] delayFactors = collectDelayFactors(drtTrips);
-		TravelTimeData travelTimeData = new TravelTimeData(waitTimes, delayFactors);
+		if (delayFactorMethod.equals("divisionOfSums")) {
+			double avgDF = calculateAveragelDelayFactorFromSums(drtTrips);
+			travelTimeData = new TravelTimeData(waitTimes, avgDF);
+
+		} else {
+			double[] delayFactors = collectDelayFactors(drtTrips);
+			travelTimeData = new TravelTimeData(waitTimes, delayFactors);
+		}
 
 		return travelTimeData;
 
 	}
 
 	public static TravelTimeData calculateGlobalMovingMetrics(Set<DrtTripData> drtTrips, int iteration,
-			int movingWindow) {
+			int movingWindow, String delayFactorMethod) {
 		Set<DrtTripData> iterationDrtTrips = new HashSet<>();
 
 		// We have to add them to a new set because if not then it would be a reference
@@ -112,14 +115,14 @@ public class DrtGlobalMetrics {
 
 		}
 
-		return calculateGlobalMetrics(allDrtTrips);
+		return calculateGlobalMetrics(allDrtTrips, delayFactorMethod);
 
 	}
 
 	public static TravelTimeData calculateMethodOfSuccessiveAverageWaitTime(Set<DrtTripData> drtTrips, int iteration,
-			double weight) {
+			double weight, String delayFactorMethod) {
 
-		TravelTimeData iterationTimeData = calculateGlobalMetrics(drtTrips);
+		TravelTimeData iterationTimeData = calculateGlobalMetrics(drtTrips, delayFactorMethod);
 
 		if (iteration == 0) {
 			iterationsSuccessiveAvg.put(iteration, iterationTimeData);
