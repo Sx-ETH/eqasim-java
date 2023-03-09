@@ -109,7 +109,7 @@ public class SimulationParameter {
 		}
 		
 		if (cmd.hasOption("waitTimeFeedback")) {
-			setWaitTimeFeedback(cmd.getOption("delayFactorFeedback").get());
+			setWaitTimeFeedback(cmd.getOption("waitTimeFeedback").get());
 		}
 		else {
 			setWaitTimeFeedback("average");
