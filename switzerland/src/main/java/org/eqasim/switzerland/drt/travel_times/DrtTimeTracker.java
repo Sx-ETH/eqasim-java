@@ -66,7 +66,7 @@ public class DrtTimeTracker implements PassengerPickedUpEventHandler, DrtRequest
         if (event.getMode().equals("drt") && this.submittedRequest.containsKey(event.getRequestId())) {
             DrtTripData drtTrip = this.submittedRequest.get(event.getRequestId());
             drtTrip.totalTravelTime = event.getTime() - drtTrip.pickUpTime;
-
+            drtTrip.arrivalTime = event.getTime();
             //compute unshared rideTime from current route
 
             //use injected trip router

@@ -28,6 +28,7 @@ public class DrtTripData {
     public double unsharedDistance;
 
     public double totalTravelTime;
+    public double arrivalTime;
     public boolean rejected = false;
 
     @Override

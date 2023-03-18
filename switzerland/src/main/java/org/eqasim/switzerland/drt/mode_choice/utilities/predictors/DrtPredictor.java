@@ -8,6 +8,7 @@ import org.eqasim.core.simulation.mode_choice.cost.CostModel;
 import org.eqasim.core.simulation.mode_choice.utilities.predictors.CachedVariablePredictor;
 import org.eqasim.core.simulation.mode_choice.utilities.predictors.PredictorUtils;
 import org.eqasim.switzerland.drt.mode_choice.utilities.variables.DrtVariables;
+import org.eqasim.switzerland.drt.travel_times.DrtPredictions;
 import org.eqasim.switzerland.drt.travel_times.TravelTimeUpdates;
 import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.population.Leg;
@@ -25,12 +26,14 @@ public class DrtPredictor extends CachedVariablePredictor<DrtVariables> {
 	private CostModel costModel;
 
 	private final TravelTimeUpdates travelTimeUpdates;
+	private DrtPredictions drtPredictions;
 
 	@Inject
-	public DrtPredictor(@Named("drt") CostModel costModel, TravelTimeUpdates travelTimeUpdates) {
+	public DrtPredictor(@Named("drt") CostModel costModel, TravelTimeUpdates travelTimeUpdates, DrtPredictions drtPredictions) {
 
 		this.costModel = costModel;
 		this.travelTimeUpdates = travelTimeUpdates;
+		this.drtPredictions = drtPredictions;
 	}
 
 	@Override
@@ -59,6 +62,8 @@ public class DrtPredictor extends CachedVariablePredictor<DrtVariables> {
 		}
 
 		double euclideanDistance_km = PredictorUtils.calculateEuclideanDistance_km(trip);
+
+		this.drtPredictions.addTripPrediction(travelTime_min, accessEgressTime_min, cost_MU, waitingTime_min, euclideanDistance_km, person, trip);
 
 		// todo add rejection penalty based on some probability of rejections
 

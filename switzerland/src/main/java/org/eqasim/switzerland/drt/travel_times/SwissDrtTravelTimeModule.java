@@ -44,5 +44,8 @@ public class SwissDrtTravelTimeModule extends AbstractEqasimExtension {
 		addControlerListenerBinding().to(HexGridDrtZonalSystemListener.class);
 		bind(HexGridDrtZonalSystemListener.class).asEagerSingleton();
 
+		bind(DrtPredictions.class).asEagerSingleton();
+
+		binder().requestStaticInjection(DrtGlobalMetrics.class);
 	}
 }

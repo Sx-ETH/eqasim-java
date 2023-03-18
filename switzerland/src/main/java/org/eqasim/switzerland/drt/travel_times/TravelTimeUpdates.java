@@ -17,14 +17,16 @@ public class TravelTimeUpdates implements IterationEndsListener {
 	private final DrtTimeTracker trackedTimes;
 	private TravelTimeData travelTimeData; // all global wait and delay stats are stored here
 	private Config config;
+	private DrtPredictions drtPredictions;
 
 	@Inject
 	public TravelTimeUpdates(SimulationParameter simulationParams, SquareGridDrtZonalSystem zones,
-			DrtTimeTracker trackedTimes, Config config) {
+			DrtTimeTracker trackedTimes, Config config, DrtPredictions drtPredictions) {
 		this.simulationParams = simulationParams;
 		this.zones = zones;
 		this.trackedTimes = trackedTimes;
 		this.config = config;
+		this.drtPredictions = drtPredictions;
 	}
 
 	public double getTravelTime_Sec(DrtRoute route) {
@@ -111,6 +113,9 @@ public class TravelTimeUpdates implements IterationEndsListener {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+
+		this.drtPredictions.writeTripsPredictions(event.getIteration(), this.config);
+		this.drtPredictions.clearTripPredictions();
 
 	}
 

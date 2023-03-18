@@ -2,17 +2,26 @@ package org.eqasim.switzerland.drt.travel_times;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+import com.google.inject.Inject;
+import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.population.Leg;
+import org.matsim.api.core.v01.population.Person;
+import org.matsim.api.core.v01.population.Plan;
 import org.matsim.core.config.Config;
+import org.matsim.core.router.TripStructureUtils;
+import org.matsim.core.scoring.ExperiencedPlansService;
 import org.matsim.core.utils.io.IOUtils;
+
 
 public class DrtGlobalMetrics {
 	private static final Map<Integer, Set<DrtTripData>> iterationsDrtTrips = new HashMap<>();
 	private static final Map<Integer, TravelTimeData> iterationsSuccessiveAvg = new HashMap<>();
+
+	@Inject
+	private static ExperiencedPlansService experiencedPlansService;
+
 
 //	public static double calculateAverageWaitTime(Set<DrtTripData> drtTrips) {
 //		double average = 0.0;
@@ -29,7 +38,7 @@ public class DrtGlobalMetrics {
 //		return average;
 //	}
 //
-	private static double calculateAveragelDelayFactorFromSums(Set<DrtTripData> drtTrips) {
+	private static double calculateAverageDelayFactorFromSums(Set<DrtTripData> drtTrips) {
 		double sumTotalTravelTime = 0.0;
 		double sumUnsharedTime = 0.0;
 		boolean useRouterUnsharedTime = true; // may remove later when decided on whether to use router or estimate
@@ -81,7 +90,7 @@ public class DrtGlobalMetrics {
 
 		double[] waitTimes = collectWaitTimes(drtTrips);
 		if (delayFactorMethod.equals("divisionOfSums")) {
-			double avgDF = calculateAveragelDelayFactorFromSums(drtTrips);
+			double avgDF = calculateAverageDelayFactorFromSums(drtTrips);
 			travelTimeData = new TravelTimeData(waitTimes, avgDF);
 
 		} else {
@@ -137,6 +146,22 @@ public class DrtGlobalMetrics {
 
 	}
 
+	private static int getTripIndexFromDrtLeg(Id<Person> personId, double startTime){
+		Plan personPlan = experiencedPlansService.getExperiencedPlans().get(personId);
+		List<TripStructureUtils.Trip> trips = TripStructureUtils.getTrips(personPlan);
+		for (int i = 0; i < trips.size(); i++) {
+			TripStructureUtils.Trip trip = trips.get(i);
+			int tripIndex = i; // We start at 0 to be able to match it with the predictions
+			for (Leg leg : trip.getLegsOnly()) {
+				if (leg.getMode().equals("drt") && leg.getDepartureTime().seconds() == startTime) {
+					return tripIndex;
+				}
+			}
+		}
+		throw new RuntimeException("Could not find tripId for drt leg of person " + personId + " at time " + startTime);
+
+	}
+
 	public static void writeDrtTripsStats(Set<DrtTripData> drtTrips, int iterationNumber, Config config)
 			throws IOException {
 		String delimiter = ",";
@@ -144,13 +169,17 @@ public class DrtGlobalMetrics {
 		String outputDir = config.controler().getOutputDirectory() + "/ITERS/it." + iterationNumber + "/"
 				+ iterationNumber + "." + filename;
 		BufferedWriter bw = IOUtils.getBufferedWriter(outputDir);
-		bw.write("personId" + delimiter + "startTime" + delimiter + "totalTravelTime" + delimiter + "routerUnsharedTime"
+		bw.write("personId" + delimiter + "tripIndex" + delimiter + "startTime" + delimiter + "arrivalTime" + delimiter + "totalTravelTime" + delimiter + "routerUnsharedTime"
 				+ delimiter + "estimatedUnsharedTime" + delimiter + "delayFactor" + delimiter + "waitTime" + delimiter
 				+ "startX" + delimiter + "startY" + delimiter + "endX" + delimiter + "endY");
 
 		for (DrtTripData drtTrip : drtTrips) {
 			// print out to csv, the estimatedUnsharedTime from requestSubmissionEvent
 			// and compare with this computed one from the route
+
+			// We first find the id of the trip to be able to match it with the predictions
+			int tripIndex = getTripIndexFromDrtLeg(drtTrip.personId, drtTrip.startTime);
+
 			bw.newLine();
 
 			double delayFactor;
@@ -160,7 +189,7 @@ public class DrtGlobalMetrics {
 				delayFactor = drtTrip.totalTravelTime / drtTrip.estimatedUnsharedTime;
 			}
 
-			bw.write(drtTrip.personId + delimiter + drtTrip.startTime + delimiter + drtTrip.totalTravelTime + delimiter
+			bw.write(drtTrip.personId + delimiter + tripIndex + delimiter + drtTrip.startTime + delimiter + drtTrip.arrivalTime + delimiter + drtTrip.totalTravelTime + delimiter
 					+ drtTrip.routerUnsharedTime + delimiter + drtTrip.estimatedUnsharedTime + delimiter + delayFactor
 					+ delimiter + drtTrip.waitTime + delimiter + drtTrip.startCoord.getX() + delimiter
 					+ drtTrip.startCoord.getY() + delimiter + drtTrip.endCoord.getX() + delimiter
