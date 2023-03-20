@@ -1,6 +1,7 @@
 package org.eqasim.switzerland.drt.travel_times;
 
 import org.eqasim.core.simulation.mode_choice.AbstractEqasimExtension;
+import org.eqasim.switzerland.drt.mode_choice.DrtDistanceConstraint;
 import org.eqasim.switzerland.drt.travel_times.wait_time.DrtZonalWaitTimes;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.contrib.drt.analysis.zonal.DrtZonalSystemParams;
@@ -47,5 +48,6 @@ public class SwissDrtTravelTimeModule extends AbstractEqasimExtension {
 		bind(DrtPredictions.class).asEagerSingleton();
 
 		binder().requestStaticInjection(DrtGlobalMetrics.class);
+		bindTripConstraintFactory(DrtDistanceConstraint.NAME).to(DrtDistanceConstraint.Factory.class);
 	}
 }
