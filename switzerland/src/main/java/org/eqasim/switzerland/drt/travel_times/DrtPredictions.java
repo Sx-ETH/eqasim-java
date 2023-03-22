@@ -21,6 +21,7 @@ public class DrtPredictions {
         public Person person;
         public DiscreteModeChoiceTrip trip;
     }
+
     // List containing the predicted variables for each trip
     private List<DrtTripPrediction> tripPredictions;
 
@@ -51,21 +52,12 @@ public class DrtPredictions {
                 + iterationNumber + "." + filename;
         BufferedWriter writer = IOUtils.getBufferedWriter(outputDir);
         try {
-            writer.append("personId;tripIndex;originX;originY;destinationX;destinationY;departure_time;travelTime_min;accessEgressTime_min;cost_MU;waitingTime_min;travelDistance_km\n");
+            String header = "personId;tripIndex;travelTime_min;accessEgressTime_min;cost_MU;waitingTime_min;travelDistance_km\n";
+            writer.write(header);
             for (DrtTripPrediction prediction : this.tripPredictions) {
                 writer.append(prediction.person.getId().toString());
                 writer.append(";");
                 writer.append(Integer.toString(prediction.trip.getIndex()));
-                writer.append(";");
-                writer.append(Double.toString(prediction.trip.getOriginActivity().getCoord().getX()));
-                writer.append(";");
-                writer.append(Double.toString(prediction.trip.getOriginActivity().getCoord().getY()));
-                writer.append(";");
-                writer.append(Double.toString(prediction.trip.getDestinationActivity().getCoord().getX()));
-                writer.append(";");
-                writer.append(Double.toString(prediction.trip.getDestinationActivity().getCoord().getY()));
-                writer.append(";");
-                writer.append(Double.toString(prediction.trip.getDepartureTime()));
                 writer.append(";");
                 writer.append(Double.toString(prediction.travelTime_min));
                 writer.append(";");
@@ -85,7 +77,6 @@ public class DrtPredictions {
             e.printStackTrace();
         }
     }
-
 
 
 }
