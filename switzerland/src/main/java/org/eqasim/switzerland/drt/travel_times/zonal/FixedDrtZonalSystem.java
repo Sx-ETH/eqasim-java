@@ -1,4 +1,4 @@
-package org.eqasim.switzerland.drt.travel_times;
+package org.eqasim.switzerland.drt.travel_times.zonal;
 
 
 import java.util.Map;

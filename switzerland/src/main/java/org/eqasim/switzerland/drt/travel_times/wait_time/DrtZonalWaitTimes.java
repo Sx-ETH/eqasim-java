@@ -1,25 +1,14 @@
 package org.eqasim.switzerland.drt.travel_times.wait_time;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.IntStream;
-
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.eqasim.switzerland.drt.travel_times.DrtTimeTracker;
-import org.eqasim.switzerland.drt.travel_times.DrtTimeUtils;
-import org.eqasim.switzerland.drt.travel_times.SquareGridDrtZonalSystem;
-import org.matsim.core.config.Config;
 import org.matsim.core.controler.events.IterationEndsEvent;
 import org.matsim.core.controler.listener.IterationEndsListener;
-import org.matsim.core.utils.io.IOUtils;
-
-import com.google.inject.Inject;
 
 public class DrtZonalWaitTimes implements IterationEndsListener {
+	@Override
+	public void notifyIterationEnds(IterationEndsEvent event) {
 
+	}
+/*
 	private final DrtTimeTracker trackedWaitTimes;
 	private Map<String, double[]> avgWaitTimes;
 	SquareGridDrtZonalSystem zones;
@@ -108,4 +97,6 @@ public class DrtZonalWaitTimes implements IterationEndsListener {
 
 		return avgWaitTimes;
 	}
+
+ */
 }

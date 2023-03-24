@@ -1,15 +1,7 @@
 package org.eqasim.switzerland.drt.travel_times.wait_time;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import org.eqasim.switzerland.drt.travel_times.DrtTimeUtils;
-import org.eqasim.switzerland.drt.travel_times.DrtTripData;
-import org.eqasim.switzerland.drt.travel_times.SquareGridDrtZonalSystem;
-
 public class WaitTimeZonalMetrics {
+	/*
 	private static final Map<Integer, Set<DrtTripData>> iterationsDrtTrips = new HashMap<>();
 	private static final Map<Integer, Map<String, double[]>> iterationsSuccessiveAvg = new HashMap<>();
 
@@ -159,4 +151,6 @@ public class WaitTimeZonalMetrics {
 		// v_prev_iter = avgwaittime
 
 	}
+
+	 */
 }

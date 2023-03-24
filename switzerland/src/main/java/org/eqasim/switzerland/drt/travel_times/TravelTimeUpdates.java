@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Set;
 
 import org.eqasim.switzerland.drt.SimulationParameter;
+import org.eqasim.switzerland.drt.travel_times.zonal.SquareGridDrtZonalSystem;
 import org.matsim.contrib.drt.routing.DrtRoute;
 import org.matsim.core.config.Config;
 import org.matsim.core.controler.events.IterationEndsEvent;
