@@ -21,6 +21,7 @@ public class SwissDrtModeParameters extends SwissModeParameters {
 
         public double travelTimeThreshold_min = 0.0;
     }
+
     public AstraBaseModeParameters astraWalk = new AstraBaseModeParameters();
     public AstraBaseModeParameters astraBike = new AstraBaseModeParameters();
     public AstraBaseModeParameters astraCar = new AstraBaseModeParameters();
@@ -101,6 +102,7 @@ public class SwissDrtModeParameters extends SwissModeParameters {
 
         return parameters;
     }
+
     public static SwissDrtModeParameters buildAstraFrom6Feb2020() {
         SwissDrtModeParameters parameters = new SwissDrtModeParameters();
 
@@ -113,7 +115,7 @@ public class SwissDrtModeParameters extends SwissModeParameters {
 
         parameters.referenceEuclideanDistance_km = 39.0;
         parameters.referenceHouseholdIncome_MU = 12260.0;
-        
+
         // DRT
         parameters.drt.alpha_u = -0.061;
         parameters.drt.betaWaitingTime_u_min = -0.093;

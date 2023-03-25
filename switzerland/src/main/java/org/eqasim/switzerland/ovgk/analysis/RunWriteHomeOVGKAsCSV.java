@@ -1,10 +1,5 @@
 package org.eqasim.switzerland.ovgk.analysis;
 
-import java.io.BufferedWriter;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-
 import org.eqasim.switzerland.ovgk.OVGK;
 import org.eqasim.switzerland.ovgk.OVGKCalculator;
 import org.matsim.api.core.v01.Coord;
@@ -20,46 +15,51 @@ import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 
+import java.io.BufferedWriter;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+
 public class RunWriteHomeOVGKAsCSV {
-	static public void main(String[] args) throws ConfigurationException, IOException {
-		CommandLine cmd = new CommandLine.Builder(args) //
-				.requireOptions("population-path", "schedule-path", "output-path") //
-				.build();
+    static public void main(String[] args) throws ConfigurationException, IOException {
+        CommandLine cmd = new CommandLine.Builder(args) //
+                .requireOptions("population-path", "schedule-path", "output-path") //
+                .build();
 
-		Config config = ConfigUtils.createConfig();
-		Scenario scenario = ScenarioUtils.createScenario(config);
+        Config config = ConfigUtils.createConfig();
+        Scenario scenario = ScenarioUtils.createScenario(config);
 
-		new TransitScheduleReader(scenario).readFile(cmd.getOptionStrict("schedule-path"));
-		new PopulationReader(scenario).readFile(cmd.getOptionStrict("population-path"));
+        new TransitScheduleReader(scenario).readFile(cmd.getOptionStrict("schedule-path"));
+        new PopulationReader(scenario).readFile(cmd.getOptionStrict("population-path"));
 
-		OVGKCalculator calculator = new OVGKCalculator(scenario.getTransitSchedule());
+        OVGKCalculator calculator = new OVGKCalculator(scenario.getTransitSchedule());
 
-		BufferedWriter writer = new BufferedWriter(
-				new OutputStreamWriter(new FileOutputStream(cmd.getOptionStrict("output-path"))));
+        BufferedWriter writer = new BufferedWriter(
+                new OutputStreamWriter(new FileOutputStream(cmd.getOptionStrict("output-path"))));
 
-		writer.write(String.join(";", new String[] { "x", "y", "category" }) + "\n");
+        writer.write(String.join(";", new String[]{"x", "y", "category"}) + "\n");
 
-		for (Person person : scenario.getPopulation().getPersons().values()) {
-			for (PlanElement element : person.getSelectedPlan().getPlanElements()) {
-				if (element instanceof Activity) {
-					Activity activity = (Activity) element;
+        for (Person person : scenario.getPopulation().getPersons().values()) {
+            for (PlanElement element : person.getSelectedPlan().getPlanElements()) {
+                if (element instanceof Activity) {
+                    Activity activity = (Activity) element;
 
-					if (activity.getType().equals("home")) {
-						Coord coord = activity.getCoord();
-						OVGK ovgk = calculator.calculateOVGK(coord);
+                    if (activity.getType().equals("home")) {
+                        Coord coord = activity.getCoord();
+                        OVGK ovgk = calculator.calculateOVGK(coord);
 
-						writer.write(String.join(";", new String[] { //
-								String.valueOf(coord.getX()), //
-								String.valueOf(coord.getY()), //
-								String.valueOf(ovgk) //
-						}) + "\n");
+                        writer.write(String.join(";", new String[]{ //
+                                String.valueOf(coord.getX()), //
+                                String.valueOf(coord.getY()), //
+                                String.valueOf(ovgk) //
+                        }) + "\n");
 
-						break;
-					}
-				}
-			}
-		}
+                        break;
+                    }
+                }
+            }
+        }
 
-		writer.close();
-	}
+        writer.close();
+    }
 }

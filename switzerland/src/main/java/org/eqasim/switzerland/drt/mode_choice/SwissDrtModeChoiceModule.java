@@ -15,11 +15,10 @@ import org.eqasim.switzerland.drt.mode_choice.utilities.AstraDrtUtilityEstimator
 import org.eqasim.switzerland.drt.mode_choice.utilities.predictors.AstraPersonPredictor;
 import org.eqasim.switzerland.drt.mode_choice.utilities.predictors.AstraTripPredictor;
 import org.eqasim.switzerland.drt.mode_choice.utilities.predictors.DrtPredictor;
-import org.eqasim.switzerland.drt.mode_choice.utilities.DrtUtilityEstimator;
-import org.eqasim.switzerland.drt.travel_times.TravelTimeUpdates;
 import org.eqasim.switzerland.mode_choice.parameters.SwissCostParameters;
 import org.eqasim.switzerland.mode_choice.parameters.SwissModeParameters;
 import org.matsim.core.config.CommandLine;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
@@ -87,7 +86,7 @@ public class SwissDrtModeChoiceModule extends AbstractEqasimExtension {
         return new DrtCostModel(parameters);
     }
 
-   @Provides
+    @Provides
     @Named("drt")
     public CostModel provideCarCostModel(Map<String, Provider<CostModel>> factory, EqasimConfigGroup config) {
         return getCostModel(factory, config, "drt");

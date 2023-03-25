@@ -17,7 +17,7 @@ public class RunDrtSimulation {
         CommandLine cmd = new CommandLine.Builder(args) //
                 .requireOptions("config-path").allowOptions("drt-variables-estimator",
                         "drtRejectionsPenaltyProvider", "use-am",
-                        "","","","",
+                        "", "", "", "",
                         "") //
                 .allowPrefixes("mode-choice-parameter", "cost-parameter") //
                 .allowOptions("output-path")
@@ -25,9 +25,7 @@ public class RunDrtSimulation {
                 .build();
 
 
-
         String config_path = cmd.getOptionStrict("config-path");
-
 
 
         SwissDrtConfigurator configurator = new SwissDrtConfigurator();
@@ -35,11 +33,11 @@ public class RunDrtSimulation {
         Config config = ConfigUtils.loadConfig(config_path, configurator.getConfigGroups());
         configurator.configure(config);
         cmd.applyConfiguration(config);
-        
-        String output_path = cmd.getOption("output-path").isPresent() ? cmd.getOption("output-path").get()
-				: config.controler().getOutputDirectory();
 
-		config.controler().setOutputDirectory(output_path);
+        String output_path = cmd.getOption("output-path").isPresent() ? cmd.getOption("output-path").get()
+                : config.controler().getOutputDirectory();
+
+        config.controler().setOutputDirectory(output_path);
 
         config.controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.deleteDirectoryIfExists);
 
@@ -57,7 +55,7 @@ public class RunDrtSimulation {
 
 
         //does it adjust the scenario
-        for (Person person : scenario.getPopulation().getPersons().values()){
+        for (Person person : scenario.getPopulation().getPersons().values()) {
             person.getAttributes().getAttribute("householdIncome");
         }
 
@@ -74,7 +72,8 @@ public class RunDrtSimulation {
         controller.addOverridingModule(new AbstractModule() {
             @Override
             public void install() {
-                bind(SimulationParameter.class).toInstance(simulationParams); }
+                bind(SimulationParameter.class).toInstance(simulationParams);
+            }
         });
 
         controller.run();
