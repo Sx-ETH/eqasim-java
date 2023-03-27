@@ -15,13 +15,12 @@ import org.opengis.feature.simple.SimpleFeature;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Random;
 
 public class RunCreateDrtVehicles {
     public static void main(String[] args) throws CommandLine.ConfigurationException, IOException {
         CommandLine cmd = new CommandLine.Builder(args) //
                 .requireOptions("networkFile", "outputpath", "fleetSize", "operationStartTime", "operationEndTime", "seats")
-                .allowOptions("populationFile","name_suffix", "identifier","boundary-shapefile", "random-seed")//
+                .allowOptions("populationFile", "name_suffix", "identifier", "boundary-shapefile", "random-seed")//
                 .build();
 
         String nameSuffix = cmd.getOption("name_suffix").isPresent() ? cmd.getOption("name_suffix").get() : "drt_vehicles";
@@ -30,15 +29,15 @@ public class RunCreateDrtVehicles {
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 
         boolean isUseBoundary = cmd.getOption("boundary-shapefile").isPresent();
-         if(isUseBoundary){
-             String boundaryPolygon = cmd.getOption("boundary-shapefile").get();
-             ShapeFileReader shapeFileReader = new ShapeFileReader();
-             Collection<SimpleFeature> zurich_shp = shapeFileReader.readFileAndInitialize(boundaryPolygon);
-             //works for only one polygon since we get one polygon
-             MultiPolygon zurich = (MultiPolygon) ((SimpleFeatureImpl) zurich_shp.toArray()[0]).getAttribute(0);
+        if (isUseBoundary) {
+            String boundaryPolygon = cmd.getOption("boundary-shapefile").get();
+            ShapeFileReader shapeFileReader = new ShapeFileReader();
+            Collection<SimpleFeature> zurich_shp = shapeFileReader.readFileAndInitialize(boundaryPolygon);
+            //works for only one polygon since we get one polygon
+            MultiPolygon zurich = (MultiPolygon) ((SimpleFeatureImpl) zurich_shp.toArray()[0]).getAttribute(0);
             //todo for random generation since pop density only uses links of population within pop areas
-             //todo make generic still for all - hub, density, etc.
-         }
+            //todo make generic still for all - hub, density, etc.
+        }
 
 
         //read in the input files
@@ -46,7 +45,7 @@ public class RunCreateDrtVehicles {
         String populationfile = cmd.getOptionStrict("populationFile");
         int numberofVehicles = Integer.parseInt(cmd.getOptionStrict("fleetSize"));
         double operationStartTime = Double.parseDouble(cmd.getOptionStrict("operationStartTime")); //t0
-        double operationEndTime = Double.parseDouble(cmd.getOptionStrict("operationEndTime"));	//t1
+        double operationEndTime = Double.parseDouble(cmd.getOptionStrict("operationEndTime"));    //t1
         int seats = Integer.parseInt(cmd.getOptionStrict("seats"));
 
         //read network and population in
@@ -55,7 +54,7 @@ public class RunCreateDrtVehicles {
         new PopulationReader(scenario).readFile(populationfile);
         Population population = scenario.getPopulation();
 
-        String taxisFile = cmd.getOptionStrict("outputpath")+"/"+nameSuffix + "_"+numberofVehicles+"_"+seats+".xml";
+        String taxisFile = cmd.getOptionStrict("outputpath") + "/" + nameSuffix + "_" + numberofVehicles + "_" + seats + ".xml";
 
         CreateDrtVehicles createDrtVehicles = new CreateDrtVehicles(numberofVehicles, operationStartTime, operationEndTime, seats); //todo adjust to give one with random seed if option random seed given
 

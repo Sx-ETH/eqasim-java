@@ -4,11 +4,11 @@ import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import org.eqasim.core.components.config.EqasimConfigGroup;
 import org.eqasim.core.simulation.calibration.CalibrationConfigGroup;
 import org.eqasim.switzerland.SwitzerlandConfigurator;
+import org.eqasim.switzerland.drt.mode_choice.SwissDrtModeAvailability;
+import org.eqasim.switzerland.drt.mode_choice.SwissDrtModeChoiceModule;
 import org.eqasim.switzerland.drt.mode_choice.cost.DrtCostModel;
 import org.eqasim.switzerland.drt.mode_choice.utilities.AstraDrtUtilityEstimator;
 import org.eqasim.switzerland.drt.travel_times.SwissDrtTravelTimeModule;
-import org.eqasim.switzerland.drt.mode_choice.SwissDrtModeAvailability;
-import org.eqasim.switzerland.drt.mode_choice.SwissDrtModeChoiceModule;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.contrib.drt.analysis.zonal.DrtModeZonalSystemModule;
 import org.matsim.contrib.drt.analysis.zonal.DrtZonalSystemParams;
@@ -41,7 +41,7 @@ public class SwissDrtConfigurator extends SwitzerlandConfigurator {
 
     @Override
     public ConfigGroup[] getConfigGroups() {
-        return new ConfigGroup[] { //
+        return new ConfigGroup[]{ //
                 new SwissRailRaptorConfigGroup(), //
                 new EqasimConfigGroup(), //
                 new DiscreteModeChoiceConfigGroup(), //
@@ -86,14 +86,14 @@ public class SwissDrtConfigurator extends SwitzerlandConfigurator {
         config.qsim().setStartTime(0.0);
         config.qsim().setSimStarttimeInterpretation(QSimConfigGroup.StarttimeInterpretation.onlyUseStarttime);
 
-        if(config.getModules().get(MultiModeDrtConfigGroup.GROUP_NAME) == null) {
+        if (config.getModules().get(MultiModeDrtConfigGroup.GROUP_NAME) == null) {
             throw new IllegalStateException("MultiModeDrt module should be specified in the configuration");
         }
 
         MultiModeDrtConfigGroup multiModeDrtConfig;
         multiModeDrtConfig = (MultiModeDrtConfigGroup) config.getModules().get(MultiModeDrtConfigGroup.GROUP_NAME);
 
-        for(DrtConfigGroup drtConfigGroup : multiModeDrtConfig.getModalElements()) {
+        for (DrtConfigGroup drtConfigGroup : multiModeDrtConfig.getModalElements()) {
             drtConfigGroup.setNumberOfThreads(config.global().getNumberOfThreads());
         }
 
@@ -101,7 +101,7 @@ public class SwissDrtConfigurator extends SwitzerlandConfigurator {
 
     }
 
-    public static void configureDrt(Config config){
+    public static void configureDrt(Config config) {
         MultiModeDrtConfigGroup multiModeDrtConfig = MultiModeDrtConfigGroup.get(config);
         DrtConfigGroup drtConfig = DrtConfigGroup.getSingleModeDrtConfig(config);
         drtConfig.setMode("drt");

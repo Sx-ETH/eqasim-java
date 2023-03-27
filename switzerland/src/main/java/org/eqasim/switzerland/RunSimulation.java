@@ -12,28 +12,28 @@ import org.matsim.core.controler.Controler;
 import org.matsim.core.scenario.ScenarioUtils;
 
 public class RunSimulation {
-	static public void main(String[] args) throws ConfigurationException {
-		CommandLine cmd = new CommandLine.Builder(args) //
-				.requireOptions("config-path") //
-				.allowPrefixes("mode-parameter", "cost-parameter") //
-				.build();
+    static public void main(String[] args) throws ConfigurationException {
+        CommandLine cmd = new CommandLine.Builder(args) //
+                .requireOptions("config-path") //
+                .allowPrefixes("mode-parameter", "cost-parameter") //
+                .build();
 
-		SwitzerlandConfigurator configurator = new SwitzerlandConfigurator();
-		Config config = ConfigUtils.loadConfig(cmd.getOptionStrict("config-path"), configurator.getConfigGroups());
-		cmd.applyConfiguration(config);
+        SwitzerlandConfigurator configurator = new SwitzerlandConfigurator();
+        Config config = ConfigUtils.loadConfig(cmd.getOptionStrict("config-path"), configurator.getConfigGroups());
+        cmd.applyConfiguration(config);
 
-		Scenario scenario = ScenarioUtils.createScenario(config);
+        Scenario scenario = ScenarioUtils.createScenario(config);
 
-		configurator.configureScenario(scenario);
-		ScenarioUtils.loadScenario(scenario);
-		configurator.adjustScenario(scenario);
+        configurator.configureScenario(scenario);
+        ScenarioUtils.loadScenario(scenario);
+        configurator.adjustScenario(scenario);
 
-		Controler controller = new Controler(scenario);
-		configurator.configureController(controller);
-		controller.addOverridingModule(new EqasimAnalysisModule());
-		controller.addOverridingModule(new EqasimModeChoiceModule());
-		controller.addOverridingModule(new SwissModeChoiceModule(cmd));
+        Controler controller = new Controler(scenario);
+        configurator.configureController(controller);
+        controller.addOverridingModule(new EqasimAnalysisModule());
+        controller.addOverridingModule(new EqasimModeChoiceModule());
+        controller.addOverridingModule(new SwissModeChoiceModule(cmd));
 
-		controller.run();
-	}
+        controller.run();
+    }
 }

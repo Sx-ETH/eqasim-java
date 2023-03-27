@@ -1,37 +1,20 @@
 package org.eqasim.switzerland.drt;
 
-import java.util.HashSet;
-import java.util.Random;
-import java.util.Set;
-
 import org.eqasim.core.components.config.EqasimConfigGroup;
 import org.eqasim.core.components.transit.EqasimTransitQSimModule;
-import org.eqasim.core.simulation.EqasimConfigurator;
-import org.eqasim.core.simulation.calibration.CalibrationConfigGroup;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.contribs.discrete_mode_choice.modules.DiscreteModeChoiceModule;
-import org.matsim.contribs.discrete_mode_choice.modules.config.DiscreteModeChoiceConfigGroup;
 import org.matsim.core.config.CommandLine;
 import org.matsim.core.config.Config;
-import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.groups.StrategyConfigGroup.StrategySettings;
 import org.matsim.core.controler.Controler;
 import org.matsim.households.Household;
-/*
-import abmt2022.project.mode_choice.AstraModeAvailability;
-import abmt2022.project.mode_choice.InfiniteHeadwayConstraint;
-import abmt2022.project.mode_choice.estimators.AstraBikeUtilityEstimator;
-import abmt2022.project.mode_choice.estimators.AstraCarUtilityEstimator;
-import abmt2022.project.mode_choice.estimators.AstraPtUtilityEstimator;
-import abmt2022.project.mode_choice.estimators.AstraWalkUtilityEstimator;*/
-import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 
 public class AstraConfigurator {
-	private AstraConfigurator() {
-	}
+    private AstraConfigurator() {
+    }
 
 /*	static public ConfigGroup[] getConfigGroups() {
 		return new ConfigGroup[] { //
@@ -43,19 +26,19 @@ public class AstraConfigurator {
 		};
 	}*/
 
-	static public void configure(Config config) {
-		EqasimConfigGroup eqasimConfig = EqasimConfigGroup.get(config);
-		
-		config.qsim().setNumberOfThreads(Math.min(12, Runtime.getRuntime().availableProcessors()));
-		config.global().setNumberOfThreads(Runtime.getRuntime().availableProcessors());
+    static public void configure(Config config) {
+        EqasimConfigGroup eqasimConfig = EqasimConfigGroup.get(config);
 
-		for (StrategySettings strategy : config.strategy().getStrategySettings()) {
-			if (strategy.getStrategyName().equals(DiscreteModeChoiceModule.STRATEGY_NAME)) {
-				strategy.setWeight(0.05);
-			} else {
-				strategy.setWeight(0.95);
-			}
-		}
+        config.qsim().setNumberOfThreads(Math.min(12, Runtime.getRuntime().availableProcessors()));
+        config.global().setNumberOfThreads(Runtime.getRuntime().availableProcessors());
+
+        for (StrategySettings strategy : config.strategy().getStrategySettings()) {
+            if (strategy.getStrategyName().equals(DiscreteModeChoiceModule.STRATEGY_NAME)) {
+                strategy.setWeight(0.05);
+            } else {
+                strategy.setWeight(0.95);
+            }
+        }
 
 		/*// General eqasim
 		eqasimConfig.setTripAnalysisInterval(config.controler().getWriteEventsInterval());
@@ -74,20 +57,20 @@ public class AstraConfigurator {
 		dmcConfig.setTripConstraints(tripConstraints);
 
 		dmcConfig.setModeAvailability(AstraModeAvailability.NAME);		*/
-	}	
+    }
 
-	public static void adjustScenario(Scenario scenario) {
-		for (Household household : scenario.getHouseholds().getHouseholds().values()) {
-			for (Id<Person> memberId : household.getMemberIds()) {
-				Person person = scenario.getPopulation().getPersons().get(memberId);
+    public static void adjustScenario(Scenario scenario) {
+        for (Household household : scenario.getHouseholds().getHouseholds().values()) {
+            for (Id<Person> memberId : household.getMemberIds()) {
+                Person person = scenario.getPopulation().getPersons().get(memberId);
 
-				if (person != null) {
-					person.getAttributes().putAttribute("householdIncome", household.getIncome().getIncome());
-				}
-			}
-		}		
-		//adjustBikeAvailability(scenario);
-	}
+                if (person != null) {
+                    person.getAttributes().putAttribute("householdIncome", household.getIncome().getIncome());
+                }
+            }
+        }
+        //adjustBikeAvailability(scenario);
+    }
 
 	/*static private void adjustBikeAvailability(Scenario scenario) {
 		Random random = new Random(scenario.getConfig().global().getRandomSeed());
@@ -104,10 +87,10 @@ public class AstraConfigurator {
 		}
 	}*/
 
-	static public void configureController(Controler controller, CommandLine commandLine) {		
+    static public void configureController(Controler controller, CommandLine commandLine) {
 
-		controller.configureQSimComponents(configurator -> {
-			EqasimTransitQSimModule.configure(configurator, controller.getConfig());
-		});
-	}
+        controller.configureQSimComponents(configurator -> {
+            EqasimTransitQSimModule.configure(configurator, controller.getConfig());
+        });
+    }
 }

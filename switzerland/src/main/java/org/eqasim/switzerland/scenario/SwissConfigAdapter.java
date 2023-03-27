@@ -18,7 +18,7 @@ public class SwissConfigAdapter {
                 .allowOptions("activity-list") //
                 .build();
 
-        if(cmd.hasOption("activity-list")) {
+        if (cmd.hasOption("activity-list")) {
             setCustomActivities(cmd.getOption("activity-list").get());
         }
 
@@ -28,7 +28,7 @@ public class SwissConfigAdapter {
         new ConfigWriter(config).write(cmd.getOptionStrict("output-path"));
     }
 
-    protected static void setCustomActivities (String activityList) {
+    protected static void setCustomActivities(String activityList) {
         hasCustomActivities = true;
         activityTypes = Arrays.asList(activityList.split("\\s*,\\s*"));
     }
