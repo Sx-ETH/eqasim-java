@@ -19,11 +19,10 @@ public class HexGridDrtZonalSystem extends GridDrtZonalSystem {
     private static final Logger log = Logger.getLogger(HexGridDrtZonalSystem.class);
 
     @Inject
-    private HexGridDrtZonalSystem(Network network, @Named("gridCellSize") Double hexRadius) {
+    public HexGridDrtZonalSystem(Network network, @Named("gridCellSize") Double hexRadius) {
         log.info("Start creating the hexagon grid");
 
         this.network = network;
-
         double hexApothem = hexRadius * Math.sqrt(3) / 2.0;
 
         double[] boundingbox = NetworkUtils.getBoundingBox(network.getNodes().values());
@@ -33,7 +32,7 @@ public class HexGridDrtZonalSystem extends GridDrtZonalSystem {
         PreparedGeometryFactory preparedGeometryFactory = new PreparedGeometryFactory();
         this.quadtree = new QuadTree<>(boundingbox[0], boundingbox[1], boundingbox[2], boundingbox[3]);
 
-        zones = new HashMap<>();
+        this.zones = new HashMap<>();
         int cell = 0;
 
         double centroidX = boundingbox[0];
@@ -45,7 +44,7 @@ public class HexGridDrtZonalSystem extends GridDrtZonalSystem {
                 Coordinate[] ca = createHexCoordsFromCentroid(centroidX, centroidY, hexRadius);
                 Polygon polygon = new Polygon(gf.createLinearRing(ca), null, gf);
 
-                zones.put(cell + "", preparedGeometryFactory.create(polygon));
+                this.zones.put(cell + "", preparedGeometryFactory.create(polygon));
                 centroidX += hexRadius * 3;
             }
             centroidX = boundingbox[0];
@@ -62,7 +61,7 @@ public class HexGridDrtZonalSystem extends GridDrtZonalSystem {
                 Coordinate[] ca = createHexCoordsFromCentroid(centroidX, centroidY, hexRadius);
                 Polygon polygon = new Polygon(gf.createLinearRing(ca), null, gf);
 
-                zones.put(cell + "", preparedGeometryFactory.create(polygon));
+                this.zones.put(cell + "", preparedGeometryFactory.create(polygon));
                 centroidX += hexRadius * 3;
             }
             centroidX = boundingbox[0] + 1.5 * hexRadius;
@@ -74,7 +73,7 @@ public class HexGridDrtZonalSystem extends GridDrtZonalSystem {
             double x = zone.getValue().getGeometry().getCentroid().getX();
             double y = zone.getValue().getGeometry().getCentroid().getY();
 
-            quadtree.put(x, y, zone);
+            this.quadtree.put(x, y, zone);
 
         }
         log.info("Finished creating the hexagon grid");

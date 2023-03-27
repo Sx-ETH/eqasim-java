@@ -11,10 +11,6 @@ import org.matsim.core.utils.collections.QuadTree;
 
 import java.util.Map.Entry;
 
-/**
- * @author kaghog created on 13.04.2021
- * @project wayne_county
- */
 
 public class SquareGridDrtZonalSystem extends GridDrtZonalSystem {
     private static final Logger log = Logger.getLogger(SquareGridDrtZonalSystem.class);
@@ -23,7 +19,7 @@ public class SquareGridDrtZonalSystem extends GridDrtZonalSystem {
     public SquareGridDrtZonalSystem(Network network, @Named("gridCellSize") Double cellSize) {
         log.info("Start creating the square grid");
         this.network = network;
-        zones = DrtGridUtils.createGridFromNetwork(network, cellSize);
+        this.zones = DrtGridUtils.createGridFromNetwork(network, cellSize);
 
         // build a quadtree for the zones in the network with their centroid
         double[] bounds = NetworkUtils.getBoundingBox(network.getNodes().values());
@@ -37,7 +33,7 @@ public class SquareGridDrtZonalSystem extends GridDrtZonalSystem {
 
             // if(x < minX || x > maxX || y > maxY || y < minY)
             if (!(x < bounds[0] || y < bounds[1] || x > bounds[2] || y > bounds[3])) {
-                quadtree.put(x, y, zone);
+                this.quadtree.put(x, y, zone);
             }
         }
         log.info("Finished creating the square grid");
