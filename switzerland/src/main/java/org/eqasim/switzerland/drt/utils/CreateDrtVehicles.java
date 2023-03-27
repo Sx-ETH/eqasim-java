@@ -66,11 +66,11 @@ public class CreateDrtVehicles {
         allLinks.addAll(network.getLinks().keySet());
 
         //create vehicles
-        for (int i = 0; i< numberofVehicles;i++){
+        for (int i = 0; i < numberofVehicles; i++) {
             Link startLink;
             do {
                 Id<Link> linkId = allLinks.get(random.nextInt(allLinks.size()));
-                startLink =  network.getLinks().get(linkId);
+                startLink = network.getLinks().get(linkId);
             }
             while (!startLink.getAllowedModes().contains(TransportMode.car));
             //for multi-modal networks: Only links where cars can ride should be used.
@@ -96,7 +96,7 @@ public class CreateDrtVehicles {
         //create vehicles
         Link startLink = null;
         //Link startLink = cumulativeDensity.entrySet().iterator().next().getKey(); //initializing with the first link
-        for (int i = 0; i< numberofVehicles;i++){
+        for (int i = 0; i < numberofVehicles; i++) {
 
             double r = random.nextDouble();
             do {
@@ -122,21 +122,21 @@ public class CreateDrtVehicles {
 
     }
 
-    public Map<Link, Double> getPopulationDensity (Population population, Network network){
+    public Map<Link, Double> getPopulationDensity(Population population, Network network) {
         Map<Link, Double> density = new HashMap<>();
         Map<Link, Double> cumulativeDensity = new HashMap<>();
         double totalActivities = 0.0;
 
         //get the cummulative sum for all links that home activities were performed
 
-        for (Person person: population.getPersons().values()){
+        for (Person person : population.getPersons().values()) {
             Activity act = (Activity) person.getSelectedPlan().getPlanElements().get(0);
 
             //ensure that the activities are not outside the service area
-            if (act.getType().equals("outside")){
+            if (act.getType().equals("outside")) {
                 continue;
             }
-            Link link =  network.getLinks().get(act.getLinkId());
+            Link link = network.getLinks().get(act.getLinkId());
 
             if (density.containsKey(link)) {
                 density.put(link, density.get(link) + 1.0);
@@ -144,7 +144,7 @@ public class CreateDrtVehicles {
                 density.put(link, 1.0);
             }
 
-            if (!linkList.contains(link)){
+            if (!linkList.contains(link)) {
                 linkList.add(link);
             }
             totalActivities += 1.0;
@@ -168,6 +168,11 @@ public class CreateDrtVehicles {
         //generate vehicles randomly ToDo: generate by hub or by population density
         //vehicles = RandomPlacementGenerator(network);
         vehicles = populationDensityGenerator(getPopulationDensity(population, network));
+
+        for (DvrpVehicleSpecification v : vehicles) {
+            Link l = network.getLinks().get(v.getStartLinkId());
+            System.out.println(String.valueOf(l.getCoord().getX()) + "," + String.valueOf(l.getCoord().getY()));
+        }
 
         new FleetWriter(vehicles.stream()).write(taxisFile);
 

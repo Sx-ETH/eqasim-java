@@ -76,11 +76,10 @@ public class AstraDrtUtilityEstimator implements UtilityEstimator {
         utility += estimateWaitingTimeUtility(drtVariables);
         utility += estimateAccessEgressTimeUtility(drtVariables);
         utility += estimateMonetaryCostUtility(drtVariables, personVariables);
-        utility += estimateWorkAgeconstants(personVariables,tripVariables);
+        utility += estimateWorkAgeconstants(personVariables, tripVariables);
 
         return utility;
     }
-
 
 
 }
