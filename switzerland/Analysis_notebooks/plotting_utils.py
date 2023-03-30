@@ -15,7 +15,6 @@ import shapely
 import utils
 
 
-
 def get_lakes_gpd(lakes_path):
     df_lakes = gpd.read_file(lakes_path, geometry="geometry").to_crs("epsg:2056")
     return df_lakes
@@ -166,8 +165,13 @@ def plot_zonal_avg(metrics, zones, column, lake_restriction, lakes_path, zurich_
     ax.set_axis_off()
 
     
-# Plots the wait time by districts
 def plot_districts_wait_time(it_drt_trips_stats, lake_path, zurich_districts_path):
+    """
+    Plots the wait time by districts
+    it_drt_trips_stats: dataframe with drt trips stats from one iteration
+    lake_path: path to the lake shapefile in Zurich
+    zurich_districts_path: path to the zurich districts shapefile
+    """
     it_drt_trips_stats_gpd = utils.convert_drt_legs_to_gpd(it_drt_trips_stats)
     df_districts = get_zurich_districts_gpd(zurich_districts_path)
     imputed_from_legs = impute(it_drt_trips_stats_gpd, df_districts, "trip_id", "district_id",fix_by_distance=False).drop("geometry", axis=1)
@@ -179,8 +183,16 @@ def plot_districts_wait_time(it_drt_trips_stats, lake_path, zurich_districts_pat
                               'waitTime', shapely.ops.unary_union([geo for geo in df_districts["geometry"]]),
                              lake_path, zurich_districts_path, add_map=True)
 
-# Plots the wait time in different grid sizes
 def plot_multigrid_wait_time(grid_sizes, it_drt_trips_stats, zurich_shp_path, lake_path, zurich_districts_path, map_limit=None):
+    """
+    Plots the wait time in different grid sizes
+    grid_sizes: list of grid sizes
+    it_drt_trips_stats: dataframe with drt trips stats from one iteration
+    zurich_shp_path: path to the shapefile of zurich
+    lake_path: path to the shapefile of the lakes in zurich
+    zurich_districts_path: path to the shapefile of the districts in zurich
+    map_limit: if not None shapely polygon to limit the map
+    """
     it_drt_trips_stats_gpd = utils.convert_drt_legs_to_gpd(it_drt_trips_stats)
     zurich_shp = gpd.read_file(zurich_shp_path)
     n_sizes = len(grid_sizes)
@@ -202,18 +214,23 @@ def plot_multigrid_wait_time(grid_sizes, it_drt_trips_stats, zurich_shp_path, la
         sns.set_context('notebook')
         grouped_by_n_trips = imputed.groupby('grid_id') \
                                 .agg(columnAvg=('waitTime', 'mean'), nTrips=('trip_id','size'))
-        #if limit_n_trips:
-        #    grouped_by_n_trips = grouped_by_n_trips[grouped_by_n_trips.nTrips < limit_n_trips]
+        
         x = grouped_by_n_trips.nTrips
         y = grouped_by_n_trips.columnAvg / 60
         sns.regplot(x=x,y=y)
         plt.ylabel('Waiting time (min)')
         
-        #plotting_utils.plot_column_by_trip_density_scatter(imputed_from_trips_stats, 'district_id', 'waitTime')
     plt.tight_layout()
     plt.show()
 
 def plot_column_by_trip_density_scatter(drt_legs_with_zone_id, zone_id_field, column, limit_n_trips = None):
+    """
+    Plots the average of a column by the number of trips in a zone
+    drt_legs_with_zone_id: a dataframe with the drt legs and a column with the zone id
+    zone_id_field: the name of the column with the zone id
+    column: the name of the column to plot
+    limit_n_trips: if not None, only plots the zones with less than limit_n_trips
+    """
     sns.set_context('notebook')
     grouped_by_n_trips = drt_legs_with_zone_id.groupby(zone_id_field) \
                             .agg(columnAvg=(column, 'mean'), nTrips=('trip_id','size'))
@@ -223,22 +240,29 @@ def plot_column_by_trip_density_scatter(drt_legs_with_zone_id, zone_id_field, co
     y = grouped_by_n_trips.columnAvg
     sns.regplot(x=x,y=y)
 
-# Plot the delayFactor heatmap binning by origin and destination (district-level)
-# Because if we do it on grid level we would have to few data points and a too big matrix    
-def plot_OD_delayFactor_heatmaps(it_drt_trips_stats, zurich_districts_path):
+  
+def plot_OD_delayFactor_heatmaps(it_drt_trips_stats, zones, zones_id_field, filter_router_zeros=False):
+    """
+    Plot the delayFactor heatmap binning by origin and destination
+    it_drt_trips_stats: dataframe with drt trips stats from one iteration
+    zones: dataframe with the zones
+    zones_id_field: the name of the column with the zone id
+    filter_router_zeros: if True, filters the trips with router delayFactor = 0
+    """
     it_drt_trips_stats_gpd = utils.convert_drt_legs_to_gpd(it_drt_trips_stats)
-    df_districts = get_zurich_districts_gpd(zurich_districts_path)
-    imputed_from_trips_stats = impute(it_drt_trips_stats_gpd, df_districts, "trip_id", "district_id",fix_by_distance=False).drop("geometry", axis=1)
+    #df_districts = get_zurich_districts_gpd(zurich_districts_path)
+    imputed_from_trips_stats = impute(it_drt_trips_stats_gpd, zones, "trip_id", zones_id_field, fix_by_distance=False).drop("geometry", axis=1)
     imputed_from_trips_stats['geometry'] = imputed_from_trips_stats['destination_geometry']
-    imputed_from_trips_stats = imputed_from_trips_stats.rename(columns={'district_id': 'origin_district_id'})
+    imputed_from_trips_stats = imputed_from_trips_stats.rename(columns={zones_id_field: 'origin_zone_id'})
     imputed_from_trips_stats = gpd.GeoDataFrame(imputed_from_trips_stats)
     imputed_from_trips_stats.crs = "epsg:2056"
-    imputed_from_trips_stats = impute(imputed_from_trips_stats, df_districts, "trip_id", "district_id",fix_by_distance=False).drop("geometry", axis=1)
-    imputed_from_trips_stats = imputed_from_trips_stats.rename(columns={'district_id': 'destination_district_id'})
+    imputed_from_trips_stats = impute(imputed_from_trips_stats, zones, "trip_id", zones_id_field, fix_by_distance=False).drop("geometry", axis=1)
+    imputed_from_trips_stats = imputed_from_trips_stats.rename(columns={zones_id_field: 'destination_zone_id'})
     
+    if filter_router_zeros:
+        imputed_from_trips_stats = imputed_from_trips_stats[imputed_from_trips_stats.routerUnsharedTime != 0].copy()
     
-    filtered_imputed = imputed_from_trips_stats[imputed_from_trips_stats.routerUnsharedTime != 0].copy()
-    group_by = filtered_imputed.groupby(['origin_district_id', 'destination_district_id'])
+    group_by = imputed_from_trips_stats.groupby(['origin_zone_id', 'destination_zone_id'])
     average_df_router = group_by.delayFactor.mean().unstack()
     average_df_estimated = group_by.delayFactorEstimatedDRT.mean().unstack()
     computed_df_router = (group_by.totalTravelTime.sum() / group_by.routerUnsharedTime.sum()).unstack()
@@ -253,7 +277,7 @@ def plot_OD_delayFactor_heatmaps(it_drt_trips_stats, zurich_districts_path):
         ax = plt.subplot(2,2,idx)
         im = ax.matshow(data.values)
 
-    # Show all ticks and label them with the respective list entries
+        # Show all ticks and label them with the respective list entries
         #display(data)
         plt.xticks(np.arange(len(data.columns)), labels=data.columns.values.astype('int'))
         plt.yticks(np.arange(len(data.index)), labels=data.index.values.astype('int'))
@@ -275,8 +299,12 @@ def show_occupancy_profile(folder, iteration=-1):
         iteration = len(os.listdir(folder + '/ITERS')) - 1
     return Image(folder + '/ITERS/it.' + str(iteration) + '/' + str(iteration) + '.occupancy_time_profiles_Line_drt.png')
 
-# Plots the euclidean distance distribution of the DRT trips, and displays a description of the stats
 def plot_euclidean_distance_ditribution(data, iteration=-1):
+    """
+    Plots the euclidean distance distribution of the DRT trips, and displays a description of the stats
+    data: dictionary with the output dataframes (must contain drt_trips_stats)
+    iteration: iteration to plot, -1 for the last one
+    """
     it_drt_trips_stats = data['drt_trips_stats'][iteration]
     euclidean_distance = np.sqrt((it_drt_trips_stats.startX -it_drt_trips_stats.endX)**2 + (it_drt_trips_stats.startY -it_drt_trips_stats.endY)**2)
     display(euclidean_distance.describe(percentiles=[.25,.50,.75,.90,.95,.99]).to_frame().transpose())
@@ -284,6 +312,8 @@ def plot_euclidean_distance_ditribution(data, iteration=-1):
     plt.xlabel('Euclidean distance (km)')
     plt.ylabel('Number of DRT trips')
     plt.show()
+    #stats.probplot(euclidean_distance, dist=dist, plot=plt, sparams=kwargs)
+    #plt.show()
 
     
 def avg_by_time_bin(drt_trips_stats, column, start_time=6, end_time=24, bin_duration_min=30):
@@ -322,82 +352,57 @@ def avg_by_euclidean_distance_bin(drt_trips_stats, column, min_distance=0, max_d
     return grouped
 
 
-def plot_delay_factor(data, start_time, end_time, bin_duration_min, min_distance, max_distance, bin_distance_m, iteration=-1, plot_estimated=True):
+
+def plot_delay_factor(data, start_time, end_time, bin_duration_min, min_distance, max_distance, bin_distance_m, iteration=-1, plot_estimated=True, plot_using_sum=True, filter_router_zeros=False):
+    """
+    Plots the delay factor for the DRT trips
+    data: dictionary with the output dataframes (must contain drt_trips_stats)
+    start_time: start time of the time bin (in hours)
+    end_time: end time of the time bin (in hours)
+    bin_duration_min: duration of the time bin (in minutes)
+    min_distance: minimum euclidean distance of the distance bin (in meters)
+    max_distance: maximum euclidean distance of the distance bin (in meters)
+    bin_distance_m: duration of the distance bin (in meters)
+    iteration: iteration to plot, -1 for the last one
+    plot_estimated: if True, plots the delay factor using the estimated unshared time done by the DRT module (default: True)
+    plot_using_sum: if True, plots the delay factor using the sum of the travel times of the legs and the sum of the predicted times(default: True)
+    filter_router_zeros: if True, filters out the trips with routerUnsharedTime = 0 (default: False)
+    """
     it_drt_trip_stats = data['drt_trips_stats'][iteration].copy(deep=True)
-    filtered_without_router_zeros = it_drt_trip_stats[it_drt_trip_stats.routerUnsharedTime != 0]
-    delayFactor_avg = avg_by_time_bin(filtered_without_router_zeros, 'delayFactor', start_time=start_time, 
+    add_title = ''
+    if filter_router_zeros:
+        it_drt_trip_stats = it_drt_trip_stats[it_drt_trip_stats.routerUnsharedTime != 0]
+        add_title = ' \n(filtering the trips with 0 predicted time by the router)'
+    delayFactor_avg = avg_by_time_bin(it_drt_trip_stats, 'delayFactor', start_time=start_time, 
                                      end_time=end_time, bin_duration_min=bin_duration_min)
-    delayFactorEstimatedDRT_avg = avg_by_time_bin(filtered_without_router_zeros, 'delayFactorEstimatedDRT', start_time=start_time, 
-                                     end_time=end_time, bin_duration_min=bin_duration_min)
-    delayFactorComputedRouter_avg = avg_by_time_bin(filtered_without_router_zeros, 'compute_total_delay_factor_router', start_time=start_time, 
-                                     end_time=end_time, bin_duration_min=bin_duration_min)
-    delayFactorComputedEstimatedDRT_avg = avg_by_time_bin(filtered_without_router_zeros, 'compute_total_delay_factor_estimated', start_time=start_time, 
-                                     end_time=end_time, bin_duration_min=bin_duration_min)
-    plt.figure(figsize=(15,15))
-    
-    plt.subplot(2,2,1)
-    xticks = [z*3600 for z in range(start_time, end_time+1, 2)]
-    xticks_labels = [str(z) + 'h' for z in range(start_time, end_time+1, 2)]
-    
-    plt.plot(delayFactor_avg.index.values, delayFactor_avg.values, 'ro-', label='Avg of delay factor using router')
-    plt.plot(delayFactorComputedRouter_avg.index.values, delayFactorComputedRouter_avg.values, 'ro--', label='Computed from sum delay factor using router')
-
-    if plot_estimated:
-        plt.plot(delayFactorEstimatedDRT_avg.index.values, delayFactorEstimatedDRT_avg.values, 'bo-', label='Avg of delay factor using estimated from DRT')
-        plt.plot(delayFactorComputedEstimatedDRT_avg.index.values, delayFactorComputedEstimatedDRT_avg.values, 'bo--', label='Computed from sum delay factor using estimated from DRT')
-    plt.legend()
-    plt.xlim(start_time*3600,end_time*3600)
-    plt.xticks(xticks, xticks_labels)
-    plt.title('Delay Factor by departure time\n (filtering the trips with 0 predicted time by the router)')
-    plt.ylabel('Delay Factor')
-    plt.xlabel('Time of the day')
-
-    
-    plt.subplot(2,2,3)
-    
     delayFactorEstimatedDRT_avg = avg_by_time_bin(it_drt_trip_stats, 'delayFactorEstimatedDRT', start_time=start_time, 
                                      end_time=end_time, bin_duration_min=bin_duration_min)
     delayFactorComputedRouter_avg = avg_by_time_bin(it_drt_trip_stats, 'compute_total_delay_factor_router', start_time=start_time, 
                                      end_time=end_time, bin_duration_min=bin_duration_min)
     delayFactorComputedEstimatedDRT_avg = avg_by_time_bin(it_drt_trip_stats, 'compute_total_delay_factor_estimated', start_time=start_time, 
                                      end_time=end_time, bin_duration_min=bin_duration_min)
+    plt.figure(figsize=(15,7.5))
     
-    plt.plot(delayFactorComputedRouter_avg.index.values, delayFactorComputedRouter_avg.values, 'ro--', label='Computed from sum delay factor using router')
-    if plot_estimated:
-        plt.plot(delayFactorEstimatedDRT_avg.index.values, delayFactorEstimatedDRT_avg.values, 'bo-', label='Avg of delay factor using estimated from DRT')
-        plt.plot(delayFactorComputedEstimatedDRT_avg.index.values, delayFactorComputedEstimatedDRT_avg.values, 'bo--', label='Computed from sum delay factor using estimated from DRT')
+    plt.subplot(1,2,1)
+    xticks = [z*3600 for z in range(start_time, end_time+1, 2)]
+    xticks_labels = [str(z) + 'h' for z in range(start_time, end_time+1, 2)]
+    
+    plt.plot(delayFactor_avg.index.values, delayFactor_avg.values, ls='-', marker='o', color='#1f77b4', label='Avg of delay factor using router')
+    if plot_using_sum:
+        plt.plot(delayFactorComputedRouter_avg.index.values, delayFactorComputedRouter_avg.values, ls='--', marker='o', color='#1f77b4', label='Computed from sum delay factor using router')
 
+    if plot_estimated:
+        plt.plot(delayFactorEstimatedDRT_avg.index.values, delayFactorEstimatedDRT_avg.values, ls='-', marker='o', color='#ff7f0e', label='Avg of delay factor using estimated from DRT')
+        if plot_using_sum:
+            plt.plot(delayFactorComputedEstimatedDRT_avg.index.values, delayFactorComputedEstimatedDRT_avg.values, ls='--', marker='o', color='#ff7f0e', label='Computed from sum delay factor using estimated from DRT')
     plt.legend()
     plt.xlim(start_time*3600,end_time*3600)
     plt.xticks(xticks, xticks_labels)
-    plt.title('Delay Factor by departure time\n (without filtering)')
+    plt.title('Delay Factor by departure time' + add_title)
     plt.ylabel('Delay Factor')
     plt.xlabel('Time of the day')
-
     
-    
-    plt.subplot(2,2,2)
-    
-    delayFactor_avg = avg_by_euclidean_distance_bin(filtered_without_router_zeros, 'delayFactor', min_distance=min_distance, 
-                                     max_distance=max_distance, bin_distance_m=bin_distance_m)
-    delayFactorEstimatedDRT_avg = avg_by_euclidean_distance_bin(filtered_without_router_zeros, 'delayFactorEstimatedDRT', min_distance=min_distance, 
-                                     max_distance=max_distance, bin_distance_m=bin_distance_m)
-    delayFactorComputedRouter_avg = avg_by_euclidean_distance_bin(filtered_without_router_zeros, 'compute_total_delay_factor_router', min_distance=min_distance, 
-                                     max_distance=max_distance, bin_distance_m=bin_distance_m)
-    delayFactorComputedEstimatedDRT_avg = avg_by_euclidean_distance_bin(filtered_without_router_zeros, 'compute_total_delay_factor_estimated',min_distance=min_distance, 
-                                     max_distance=max_distance, bin_distance_m=bin_distance_m)
-    plt.plot(np.array(delayFactor_avg.index.values)/1000, delayFactor_avg.values, 'ro-', label='Avg of delay factor using router')
-    plt.plot(np.array(delayFactorComputedRouter_avg.index.values)/1000, delayFactorComputedRouter_avg.values, 'ro--', label='Computed from sum delay factor using router')
-    if plot_estimated:
-        plt.plot(np.array(delayFactorEstimatedDRT_avg.index.values)/1000, delayFactorEstimatedDRT_avg.values, 'bo-', label='Avg of delay factor using estimated from DRT')
-        plt.plot(np.array(delayFactorComputedEstimatedDRT_avg.index.values)/1000, delayFactorComputedEstimatedDRT_avg.values, 'bo--', label='Computed from sum delay factor using estimated from DRT')
-
-    plt.legend()
-    plt.title('Delay Factor by euclidean distance\n (filtering the trips with 0 predicted time by the router)')
-    plt.xlabel('Euclidean distance (km)')
-    plt.ylabel('Delay Factor')
-    
-    plt.subplot(2,2,4)
+    plt.subplot(1,2,2)
     
     delayFactor_avg = avg_by_euclidean_distance_bin(it_drt_trip_stats, 'delayFactor', min_distance=min_distance, 
                                      max_distance=max_distance, bin_distance_m=bin_distance_m)
@@ -407,25 +412,40 @@ def plot_delay_factor(data, start_time, end_time, bin_duration_min, min_distance
                                      max_distance=max_distance, bin_distance_m=bin_distance_m)
     delayFactorComputedEstimatedDRT_avg = avg_by_euclidean_distance_bin(it_drt_trip_stats, 'compute_total_delay_factor_estimated',min_distance=min_distance, 
                                      max_distance=max_distance, bin_distance_m=bin_distance_m)
-    
-    plt.plot(np.array(delayFactorComputedRouter_avg.index.values)/1000, delayFactorComputedRouter_avg.values, 'ro--', label='Computed from sum delay factor using router')
+    plt.plot(np.array(delayFactor_avg.index.values)/1000, delayFactor_avg.values, ls='-', marker='o', color='#1f77b4', label='Avg of delay factor using router')
+    if plot_using_sum:
+        plt.plot(np.array(delayFactorComputedRouter_avg.index.values)/1000, delayFactorComputedRouter_avg.values, ls='--', marker='o', color='#1f77b4', label='Computed from sum delay factor using router')
     if plot_estimated:
-        # TODO: Ask if we should plot this one (here we can see that only trips with low distance have 0 prediction)
-        plt.plot(np.array(delayFactorEstimatedDRT_avg.index.values)/1000, delayFactorEstimatedDRT_avg.values, 'bo-', label='Avg of delay factor using estimated from DRT')
-        plt.plot(np.array(delayFactorComputedEstimatedDRT_avg.index.values)/1000, delayFactorComputedEstimatedDRT_avg.values, 'bo--', label='Computed from sum delay factor using estimated from DRT')
+        plt.plot(np.array(delayFactorEstimatedDRT_avg.index.values)/1000, delayFactorEstimatedDRT_avg.values, ls='-', marker='o', color='#ff7f0e', label='Avg of delay factor using estimated from DRT')
+        if plot_using_sum:
+            plt.plot(np.array(delayFactorComputedEstimatedDRT_avg.index.values)/1000, delayFactorComputedEstimatedDRT_avg.values, ls='--', marker='o', color='#ff7f0e', label='Computed from sum delay factor using estimated from DRT')
 
-    
     plt.legend()
-    plt.title('Delay Factor by euclidean distance\n (without filtering)')
+    plt.title('Delay Factor by euclidean distance' + add_title)
     plt.xlabel('Euclidean distance (km)')
     plt.ylabel('Delay Factor')
+    
     plt.tight_layout()
     plt.show()
     
 
-def plot_df_multiple_time_bins(data, start_time, end_time, bin_durations_min, iteration=-1):
+def plot_df_multiple_time_bins(data, start_time, end_time, bin_durations_min, iteration=-1, plot_estimated=True, plot_using_sum=True, filter_router_zeros=False):
+    """
+    Plot the delay factor for multiple time bins
+    data: dictionary with the output dataframes (must contain drt_trips_stats)
+    start_time: start time of the time bin (in hours)
+    end_time: end time of the time bin (in hours)
+    bin_durations_min: durations of the time bin (in minutes)
+    iteration: iteration to plot, -1 for the last one
+    plot_estimated: if True, plots the delay factor using the estimated unshared time done by the DRT module (default: True)
+    plot_using_sum: if True, plots the delay factor using the sum of the travel times of the legs and the sum of the predicted times(default: True)
+    filter_router_zeros: if True, filters out the trips with routerUnsharedTime = 0 (default: False)
+    """
     it_drt_trip_stats = data['drt_trips_stats'][iteration]
-    filtered_without_router_zeros = it_drt_trip_stats[it_drt_trip_stats.routerUnsharedTime != 0]
+    add_title = ''
+    if filter_router_zeros:
+        it_drt_trip_stats = it_drt_trip_stats[it_drt_trip_stats.routerUnsharedTime != 0]
+        add_title = ' \n(filtering the trips with 0 predicted time by the router)'
     n_rows = (len(bin_durations_min) - 1) // 2 + 1
     plt.figure(figsize=(15, n_rows * 7.5))
     
@@ -433,55 +453,75 @@ def plot_df_multiple_time_bins(data, start_time, end_time, bin_durations_min, it
     xticks_labels = [str(z) + 'h' for z in range(start_time, end_time+1, 2)]
     
     for idx,time_bin in enumerate(bin_durations_min, start=1):
-        delayFactor_avg = avg_by_time_bin(filtered_without_router_zeros, 'delayFactor', start_time=start_time, 
+        delayFactor_avg = avg_by_time_bin(it_drt_trip_stats, 'delayFactor', start_time=start_time, 
                                      end_time=end_time, bin_duration_min=time_bin)
-        delayFactorEstimatedDRT_avg = avg_by_time_bin(filtered_without_router_zeros, 'delayFactorEstimatedDRT', start_time=start_time, 
+        delayFactorEstimatedDRT_avg = avg_by_time_bin(it_drt_trip_stats, 'delayFactorEstimatedDRT', start_time=start_time, 
                                          end_time=end_time, bin_duration_min=time_bin)
-        delayFactorComputedRouter_avg = avg_by_time_bin(filtered_without_router_zeros, 'compute_total_delay_factor_router', start_time=start_time, 
+        delayFactorComputedRouter_avg = avg_by_time_bin(it_drt_trip_stats, 'compute_total_delay_factor_router', start_time=start_time, 
                                          end_time=end_time, bin_duration_min=time_bin)
-        delayFactorComputedEstimatedDRT_avg = avg_by_time_bin(filtered_without_router_zeros, 'compute_total_delay_factor_estimated', start_time=start_time, 
+        delayFactorComputedEstimatedDRT_avg = avg_by_time_bin(it_drt_trip_stats, 'compute_total_delay_factor_estimated', start_time=start_time, 
                                          end_time=end_time, bin_duration_min=time_bin)
     
         plt.subplot(n_rows,2,idx)
-        plt.plot(delayFactor_avg.index.values, delayFactor_avg.values, 'ro-', label='Avg of delay factor using router')
-        plt.plot(delayFactorEstimatedDRT_avg.index.values, delayFactorEstimatedDRT_avg.values, 'bo-', label='Avg of delay factor using estimated from DRT')
-        plt.plot(delayFactorComputedRouter_avg.index.values, delayFactorComputedRouter_avg.values, 'ro--', label='Computed from sum delay factor using router')
-        plt.plot(delayFactorComputedEstimatedDRT_avg.index.values, delayFactorComputedEstimatedDRT_avg.values, 'bo--', label='Computed from sum delay factor using estimated from DRT')
-
-        #plt.plot(delayFactor_avg.index.values, delayFactor_avg.values, 'o-', label=str(time_bin) + 'min')
+        plt.plot(delayFactor_avg.index.values, delayFactor_avg.values, ls='-', marker='o', color='#1f77b4', label='Avg of delay factor using router')
+        if plot_using_sum:
+            plt.plot(delayFactorComputedRouter_avg.index.values, delayFactorComputedRouter_avg.values, ls='--', marker='o', color='#1f77b4', label='Computed from sum delay factor using router')
+        if plot_estimated:
+            plt.plot(delayFactorEstimatedDRT_avg.index.values, delayFactorEstimatedDRT_avg.values, ls='-', marker='o', color='#ff7f0e', label='Avg of delay factor using estimated from DRT')
+            if plot_using_sum:
+                plt.plot(delayFactorComputedEstimatedDRT_avg.index.values, delayFactorComputedEstimatedDRT_avg.values, ls='--', marker='o', color='#ff7f0e', label='Computed from sum delay factor using estimated from DRT')
+        
         plt.legend()
         plt.xlim(start_time*3600,end_time*3600)
         plt.xticks(xticks, xticks_labels)
-        plt.title('Delay Factor by departure time\n (filtering the trips with 0 predicted time by the router)\nTime bin = ' + str(time_bin) + ' min')
+        plt.title('Delay Factor by departure time' + add_title + '\nTime bin = ' + str(time_bin) + ' min')
         plt.ylabel('Delay Factor')
         plt.xlabel('Time of the day')
     
     plt.tight_layout()
     plt.show()
         
-def plot_df_multiple_distance_bins(data,  min_distance, max_distance, bin_distances_m, iteration=-1):
+def plot_df_multiple_distance_bins(data,  min_distance, max_distance, bin_distances_m, iteration=-1, plot_estimated=True, plot_using_sum=True, filter_router_zeros=False):
+    """
+    Plot the delay factor for multiple distance bins
+    data: dictionary with the output dataframes (must contain drt_trips_stats)
+    min_distance: minimum distance of the distance bin (in meters)
+    max_distance: maximum distance of the distance bin (in meters)
+    bin_distances_m: distances of the distance bin (in meters)
+    iteration: iteration to plot, -1 for the last one
+    plot_estimated: if True, plots the delay factor using the estimated unshared time done by the DRT module (default: True)
+    plot_using_sum: if True, plots the delay factor using the sum of the travel times of the legs and the sum of the predicted times(default: True)
+    filter_router_zeros: if True, filters out the trips with routerUnsharedTime = 0 (default: False)
+    """
     it_drt_trip_stats = data['drt_trips_stats'][iteration]
-    filtered_without_router_zeros = it_drt_trip_stats[it_drt_trip_stats.routerUnsharedTime != 0]
+    add_title = ''
+    if filter_router_zeros:
+        it_drt_trip_stats = it_drt_trip_stats[it_drt_trip_stats.routerUnsharedTime != 0]
+        add_title = ' \n(filtering the trips with 0 predicted time by the router)'
     n_rows = (len(bin_distances_m) - 1) // 2 + 1
     plt.figure(figsize=(15, n_rows * 7.5))
     
     for idx,distance_bin in enumerate(bin_distances_m, start=1):
-        delayFactor_avg = avg_by_euclidean_distance_bin(filtered_without_router_zeros, 'delayFactor', min_distance=min_distance, 
+        delayFactor_avg = avg_by_euclidean_distance_bin(it_drt_trip_stats, 'delayFactor', min_distance=min_distance, 
                                      max_distance=max_distance, bin_distance_m=distance_bin)
-        delayFactorEstimatedDRT_avg = avg_by_euclidean_distance_bin(filtered_without_router_zeros, 'delayFactorEstimatedDRT', min_distance=min_distance, 
+        delayFactorEstimatedDRT_avg = avg_by_euclidean_distance_bin(it_drt_trip_stats, 'delayFactorEstimatedDRT', min_distance=min_distance, 
                                          max_distance=max_distance, bin_distance_m=distance_bin)
-        delayFactorComputedRouter_avg = avg_by_euclidean_distance_bin(filtered_without_router_zeros, 'compute_total_delay_factor_router', min_distance=min_distance, 
+        delayFactorComputedRouter_avg = avg_by_euclidean_distance_bin(it_drt_trip_stats, 'compute_total_delay_factor_router', min_distance=min_distance, 
                                          max_distance=max_distance, bin_distance_m=distance_bin)
-        delayFactorComputedEstimatedDRT_avg = avg_by_euclidean_distance_bin(filtered_without_router_zeros, 'compute_total_delay_factor_estimated',min_distance=min_distance, 
+        delayFactorComputedEstimatedDRT_avg = avg_by_euclidean_distance_bin(it_drt_trip_stats, 'compute_total_delay_factor_estimated',min_distance=min_distance, 
                                          max_distance=max_distance, bin_distance_m=distance_bin)
         plt.subplot(n_rows,2,idx)
+
+        plt.plot(np.array(delayFactor_avg.index.values)/1000, delayFactor_avg.values, ls='-', marker='o', color='#1f77b4', label='Avg of delay factor using router')
+        if plot_using_sum:
+            plt.plot(np.array(delayFactorComputedRouter_avg.index.values)/1000, delayFactorComputedRouter_avg.values, ls='--', marker='o', color='#1f77b4', label='Computed from sum delay factor using router')
+        if plot_estimated:
+            plt.plot(np.array(delayFactorEstimatedDRT_avg.index.values)/1000, delayFactorEstimatedDRT_avg.values, ls='-', marker='o', color='#ff7f0e', label='Avg of delay factor using estimated from DRT')
+            if plot_using_sum:
+                plt.plot(np.array(delayFactorComputedEstimatedDRT_avg.index.values)/1000, delayFactorComputedEstimatedDRT_avg.values, ls='--', marker='o', color='#ff7f0e', label='Computed from sum delay factor using estimated from DRT')
         
-        plt.plot(np.array(delayFactor_avg.index.values)/1000, delayFactor_avg.values, 'ro-', label='Avg of delay factor using router')
-        plt.plot(np.array(delayFactorEstimatedDRT_avg.index.values)/1000, delayFactorEstimatedDRT_avg.values, 'bo-', label='Avg of delay factor using estimated from DRT')
-        plt.plot(np.array(delayFactorComputedRouter_avg.index.values)/1000, delayFactorComputedRouter_avg.values, 'ro--', label='Computed from sum delay factor using router')
-        plt.plot(np.array(delayFactorComputedEstimatedDRT_avg.index.values)/1000, delayFactorComputedEstimatedDRT_avg.values, 'bo--', label='Computed from sum delay factor using estimated from DRT')
         plt.legend()
-        plt.title('Delay Factor by euclidean distance\n (filtering the trips with 0 predicted time by the router)\nDistance bin = ' + str(distance_bin) + 'm')
+        plt.title('Delay Factor by euclidean distance' + add_title + '\nDistance bin = ' + str(distance_bin) + 'm')
         plt.xlabel('Euclidean distance (km)')
         plt.ylabel('Delay Factor')
     
@@ -489,19 +529,34 @@ def plot_df_multiple_distance_bins(data,  min_distance, max_distance, bin_distan
     plt.show()
 
     
-def plot_waiting_time(data, start_time, end_time, bin_duration_min, min_distance, max_distance, bin_distance_m, iteration=-1):
+def plot_waiting_time(data, start_time, end_time, bin_duration_min, min_distance, max_distance, bin_distance_m, iteration=-1, filter_router_zeros=False):
+    """
+    Plot the waiting time for a given time bin and a given distance bin
+    data: dictionary with the output dataframes (must contain drt_trips_stats)
+    start_time: start time of the time bin (in hours)
+    end_time: end time of the time bin (in hours)
+    bin_duration_min: duration of the time bin (in minutes)
+    min_distance: minimum distance of the distance bin (in meters)
+    max_distance: maximum distance of the distance bin (in meters)
+    bin_distance_m: distances of the distance bin (in meters)
+    iteration: iteration to plot, -1 for the last one
+    filter_router_zeros: if True, filters out the trips with routerUnsharedTime = 0 (default: False)
+    """
     it_drt_trip_stats = data['drt_trips_stats'][iteration]
-    filtered_without_router_zeros = it_drt_trip_stats[it_drt_trip_stats.routerUnsharedTime != 0]
+    add_title = ''
+    if filter_router_zeros:
+        it_drt_trip_stats = it_drt_trip_stats[it_drt_trip_stats.routerUnsharedTime != 0]
+        add_title = ' \n(filtering the trips with 0 predicted time by the router)'
     
-    waitTime_avg = avg_by_time_bin(filtered_without_router_zeros, 'waitTime', start_time=start_time, 
+    waitTime_avg = avg_by_time_bin(it_drt_trip_stats, 'waitTime', start_time=start_time, 
                                      end_time=end_time, bin_duration_min=bin_duration_min)
     
-    waitTime_median = median_by_time_bin(filtered_without_router_zeros, 'waitTime', start_time=start_time, 
+    waitTime_median = median_by_time_bin(it_drt_trip_stats, 'waitTime', start_time=start_time, 
                                      end_time=end_time, bin_duration_min=bin_duration_min)
     
-    plt.figure(figsize=(15,15))
+    plt.figure(figsize=(15,7.5))
     
-    plt.subplot(2,2,1)
+    plt.subplot(1,2,1)
     xticks = [z*3600 for z in range(start_time, end_time+1, 2)]
     xticks_labels = [str(z) + 'h' for z in range(start_time, end_time+1, 2)]
     
@@ -509,24 +564,7 @@ def plot_waiting_time(data, start_time, end_time, bin_duration_min, min_distance
     plt.plot(waitTime_median.index.values, waitTime_median.values/60, 'o-', label='Median of wait time')
     plt.xlim(start_time*3600,end_time*3600)
     plt.xticks(xticks, xticks_labels)
-    plt.title('Wait time by departure time\n (filtering the trips with 0 predicted time by the router)')
-    plt.ylabel('Wait time (min)')
-    plt.xlabel('Time of the day')
-    ax = plt.gca()
-    ax.axhline(y=filtered_without_router_zeros.waitTime.mean()/60, color="black", label='Mean of all times')
-    ax.axhline(y=filtered_without_router_zeros.waitTime.median()/60, color="black",ls = '--', label='Median of all times')
-    plt.legend()
-    
-    plt.subplot(2,2,3)
-    waitTime_avg = avg_by_time_bin(it_drt_trip_stats, 'waitTime', start_time=start_time, 
-                                     end_time=end_time, bin_duration_min=bin_duration_min)
-    waitTime_median = median_by_time_bin(it_drt_trip_stats, 'waitTime', start_time=start_time, 
-                                     end_time=end_time, bin_duration_min=bin_duration_min)
-    plt.plot(waitTime_avg.index.values, waitTime_avg.values/60, 'o-', label='Avg of wait time')
-    plt.plot(waitTime_median.index.values, waitTime_median.values/60, 'o-', label='Median of wait time')
-    plt.xlim(start_time*3600,end_time*3600)
-    plt.xticks(xticks, xticks_labels)
-    plt.title('Wait time by departure time\n (without filtering)')
+    plt.title('Wait time by departure time' + add_title)
     plt.ylabel('Wait time (min)')
     plt.xlabel('Time of the day')
     ax = plt.gca()
@@ -534,27 +572,32 @@ def plot_waiting_time(data, start_time, end_time, bin_duration_min, min_distance
     ax.axhline(y=it_drt_trip_stats.waitTime.median()/60, color="black",ls = '--', label='Median of all times')
     plt.legend()
     
-    plt.subplot(2,2,2)
-    waitTime_avg = avg_by_euclidean_distance_bin(filtered_without_router_zeros, 'waitTime', min_distance=min_distance, 
-                                     max_distance=max_distance, bin_distance_m=bin_distance_m)
-    plt.plot(np.array(waitTime_avg.index.values) / 1000, waitTime_avg.values/60, 'o-', label='Avg of wait time')
-    plt.title('Wait time by euclidean distance\n (filtering the trips with 0 predicted time by the router)')
-    plt.xlabel('Euclidean distance (km)')
-    plt.legend()
-    plt.subplot(2,2,4)
+    plt.subplot(1,2,2)
     waitTime_avg = avg_by_euclidean_distance_bin(it_drt_trip_stats, 'waitTime', min_distance=min_distance, 
                                      max_distance=max_distance, bin_distance_m=bin_distance_m)
     plt.plot(np.array(waitTime_avg.index.values) / 1000, waitTime_avg.values/60, 'o-', label='Avg of wait time')
-    plt.title('Wait time by euclidean distance\n (without filtering)')
-    plt.ylabel('Wait time (min)')
+    plt.title('Wait time by euclidean distance' + add_title)
     plt.xlabel('Euclidean distance (km)')
+    plt.ylabel('Wait time (min)')
     plt.legend()
     
     plt.show()
  
-def plot_waiting_time_multiple_time_bins(data, start_time, end_time, bin_durations_min, iteration=-1):
+def plot_waiting_time_multiple_time_bins(data, start_time, end_time, bin_durations_min, iteration=-1, filter_router_zeros=False):
+    """
+    Plot the waiting time for multiple time bins
+    data: dictionary with the output dataframes (must contain drt_trips_stats)
+    start_time: start time of the time bin (in hours)
+    end_time: end time of the time bin (in hours)
+    bin_durations_min: list of durations of the time bins (in minutes)
+    iteration: iteration to plot, -1 for the last one
+    filter_router_zeros: if True, filters out the trips with routerUnsharedTime = 0 (default: False)
+    """
     it_drt_trip_stats = data['drt_trips_stats'][iteration]
-    filtered_without_router_zeros = it_drt_trip_stats[it_drt_trip_stats.routerUnsharedTime != 0]
+    add_title = ''
+    if filter_router_zeros:
+        it_drt_trip_stats = it_drt_trip_stats[it_drt_trip_stats.routerUnsharedTime != 0]
+        add_title = ' \n(filtering the trips with 0 predicted time by the router)'
     n_rows = (len(bin_durations_min) - 1) // 2 + 1
     plt.figure(figsize=(15, n_rows * 7.5))
     
@@ -562,32 +605,50 @@ def plot_waiting_time_multiple_time_bins(data, start_time, end_time, bin_duratio
     xticks_labels = [str(z) + 'h' for z in range(start_time, end_time+1, 2)]
     
     for idx,time_bin in enumerate(bin_durations_min, start=1):
-        waitTime_avg = avg_by_time_bin(filtered_without_router_zeros, 'waitTime', start_time=start_time, 
+        waitTime_avg = avg_by_time_bin(it_drt_trip_stats, 'waitTime', start_time=start_time, 
+                                     end_time=end_time, bin_duration_min=time_bin)
+        waitTime_median = median_by_time_bin(it_drt_trip_stats, 'waitTime', start_time=start_time, 
                                      end_time=end_time, bin_duration_min=time_bin)
         
         plt.subplot(n_rows,2,idx)
-        plt.plot(waitTime_avg.index.values, waitTime_avg.values/60, 'o-', label='Avg of wait time')        
+        plt.plot(waitTime_avg.index.values, waitTime_avg.values/60, 'o-', label='Avg of wait time')
+        plt.plot(waitTime_median.index.values, waitTime_median.values/60, 'o-', label='Median of wait time')
         plt.xlim(start_time*3600,end_time*3600)
         plt.xticks(xticks, xticks_labels)
-        plt.title('Wait time by departure time\n (filtering the trips with 0 predicted time by the router)\nTime bin = ' + str(time_bin) + ' min')
+        plt.title('Wait time by departure time' + add_title + '\nTime bin = ' + str(time_bin) + ' min')
         plt.ylabel('Wait time (min)')
         plt.xlabel('Time of the day')
+        ax = plt.gca()
+        ax.axhline(y=it_drt_trip_stats.waitTime.mean()/60, color="black", label='Mean of all times')
+        ax.axhline(y=it_drt_trip_stats.waitTime.median()/60, color="black",ls = '--', label='Median of all times')
     
     plt.tight_layout()
     plt.show()
 
-def plot_waiting_time_multiple_distance_bins(data,  min_distance, max_distance, bin_distances_m, iteration=-1):
+def plot_waiting_time_multiple_distance_bins(data,  min_distance, max_distance, bin_distances_m, iteration=-1, filter_router_zeros=False):
+    """
+    Plot the waiting time for multiple distance bins
+    data: dictionary with the output dataframes (must contain drt_trips_stats)
+    min_distance: minimum distance of the distance bin (in meters)
+    max_distance: maximum distance of the distance bin (in meters)
+    bin_distances_m: list of distances of the distance bins (in meters)
+    iteration: iteration to plot, -1 for the last one
+    filter_router_zeros: if True, filters out the trips with routerUnsharedTime = 0 (default: False)
+    """
     it_drt_trip_stats = data['drt_trips_stats'][iteration]
-    filtered_without_router_zeros = it_drt_trip_stats[it_drt_trip_stats.routerUnsharedTime != 0]
+    add_title = ''
+    if filter_router_zeros:
+        it_drt_trip_stats = it_drt_trip_stats[it_drt_trip_stats.routerUnsharedTime != 0]
+        add_title = ' \n(filtering the trips with 0 predicted time by the router)'
     n_rows = (len(bin_distances_m) - 1) // 2 + 1
     plt.figure(figsize=(15, n_rows * 7.5))
     
     for idx,distance_bin in enumerate(bin_distances_m, start=1):
         plt.subplot(n_rows,2,idx)
-        waitTime_avg = avg_by_euclidean_distance_bin(filtered_without_router_zeros, 'waitTime', min_distance=min_distance, 
+        waitTime_avg = avg_by_euclidean_distance_bin(it_drt_trip_stats, 'waitTime', min_distance=min_distance, 
                                      max_distance=max_distance, bin_distance_m=distance_bin)
         plt.plot(np.array(waitTime_avg.index.values) / 1000, waitTime_avg.values/60, 'o-', label='Avg of wait time')
-        plt.title('Wait time by euclidean distance\n (filtering the trips with 0 predicted time by the router)\nDistance bin = ' + str(distance_bin) + 'm')
+        plt.title('Wait time by euclidean distance' + add_title + '\nDistance bin = ' + str(distance_bin) + 'm')
         plt.xlabel('Euclidean distance (km)')
     
     plt.tight_layout()
