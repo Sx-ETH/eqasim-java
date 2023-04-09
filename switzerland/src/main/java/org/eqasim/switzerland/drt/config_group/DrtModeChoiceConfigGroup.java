@@ -1,7 +1,6 @@
-package org.eqasim.switzerland.drt;
+package org.eqasim.switzerland.drt.config_group;
 
 import org.matsim.contrib.util.ReflectiveConfigGroupWithConfigurableParameterSets;
-import org.matsim.core.config.ReflectiveConfigGroup;
 
 import javax.annotation.Nullable;
 
@@ -11,15 +10,23 @@ public class DrtModeChoiceConfigGroup extends ReflectiveConfigGroupWithConfigura
     public static final String IS_USE_WAITTIME = "isUseWaitTime";
 
     public static final String IS_USE_DELAYFACTOR = "isUseDelayFactor";
-    public static final String IS_USE_WAIT_DELAY_METRICS = "isUseWaitandDelayMetrics";
+    public static final String FEEDBACK_METHOD = "feedbackMethod";
+
+    public static final String WRITE_DETAILED_STATS = "writeDetailedStats";
 
     @Nullable
     DrtMetricSmootheningParamSet drtMetricSmootheningSettings;
+
+    @Nullable
+    DrtMetricCalculationSettings drtMetricCalculationSettings;
 
     public DrtModeChoiceConfigGroup() {
         super(GROUP_NAME);
         addDefinition(DrtMetricSmootheningParamSet.SET_NAME, DrtMetricSmootheningParamSet::new, () -> drtMetricSmootheningSettings,
                 params -> drtMetricSmootheningSettings = (DrtMetricSmootheningParamSet) params);
+        addDefinition(DrtMetricCalculationSettings.SET_NAME, DrtMetricCalculationSettings::new, () -> drtMetricCalculationSettings,
+                params -> drtMetricCalculationSettings = (DrtMetricCalculationSettings) params);
+
     }
 
     //add default values
@@ -48,19 +55,34 @@ public class DrtModeChoiceConfigGroup extends ReflectiveConfigGroupWithConfigura
         this.isUseDelayFactor = isUseDelayFactor;
     }
 
-    @StringGetter(IS_USE_WAIT_DELAY_METRICS)
-    public boolean isUseWaitandDelayMetrics() {
+    @StringGetter(FEEDBACK_METHOD)
+    public boolean getFeedBackMethod() {
         return isUseWaitandDelayMetrics;
     }
 
-    @StringSetter(IS_USE_WAIT_DELAY_METRICS)
-    public void isUseWaitandDelayMetrics(boolean isUseWaitandDelayMetrics) {
+    @StringSetter(FEEDBACK_METHOD)
+    public void writeDetailedStats(boolean isUseWaitandDelayMetrics) {
+        isUseWaitandDelayMetrics = isUseWaitandDelayMetrics;
+    }
+
+    @StringGetter(WRITE_DETAILED_STATS)
+    public boolean writeDetailedStats() {
+        return isUseWaitandDelayMetrics;
+    }
+
+    @StringSetter(WRITE_DETAILED_STATS)
+    public void setWriteDetailedStats(boolean isUseWaitandDelayMetrics) {
         isUseWaitandDelayMetrics = isUseWaitandDelayMetrics;
     }
 
     @Nullable
     public DrtMetricSmootheningParamSet getDrtMetricSmootheningParamSet() {
         return drtMetricSmootheningSettings;
+    }
+
+    @Nullable
+    public DrtMetricCalculationSettings getDrtMetricCalculationParamSet() {
+        return drtMetricCalculationSettings;
     }
 
 

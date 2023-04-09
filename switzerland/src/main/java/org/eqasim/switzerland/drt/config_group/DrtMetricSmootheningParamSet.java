@@ -1,4 +1,4 @@
-package org.eqasim.switzerland.drt;
+package org.eqasim.switzerland.drt.config_group;
 
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
