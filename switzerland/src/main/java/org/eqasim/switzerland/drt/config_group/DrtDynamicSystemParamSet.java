@@ -1,6 +1,5 @@
 package org.eqasim.switzerland.drt.config_group;
 
-import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import org.matsim.contrib.util.ReflectiveConfigGroupWithConfigurableParameterSets;
 
@@ -16,7 +15,6 @@ public class DrtDynamicSystemParamSet extends ReflectiveConfigGroupWithConfigura
     @PositiveOrZero
     private int kvalue = 0;
 
-    @Positive
     private String type = "KNN_CP";
     public DrtDynamicSystemParamSet() {
         super(SET_NAME);

@@ -4,7 +4,7 @@ import org.matsim.contrib.util.ReflectiveConfigGroupWithConfigurableParameterSet
 
 import javax.annotation.Nullable;
 
-public class DrtMetricCalculationSettings extends ReflectiveConfigGroupWithConfigurableParameterSets {
+public class DrtMetricCalculationParamSet extends ReflectiveConfigGroupWithConfigurableParameterSets {
     public static final String SET_NAME = "drtMetricCalculationSettings";
 
     public static final String METHOD = "method";
@@ -16,8 +16,9 @@ public class DrtMetricCalculationSettings extends ReflectiveConfigGroupWithConfi
 
     @Nullable
     DrtDynamicSystemParamSet drtDynamicSystem;
+    @Nullable
     DrtZonalSystemParamSet drtZonalSystem;
-    public DrtMetricCalculationSettings() {
+    public DrtMetricCalculationParamSet() {
         super(SET_NAME);
         addDefinition(DrtDynamicSystemParamSet.SET_NAME, DrtDynamicSystemParamSet::new, () -> drtDynamicSystem,
                 params -> drtDynamicSystem = (DrtDynamicSystemParamSet) params);

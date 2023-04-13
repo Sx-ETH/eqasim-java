@@ -18,14 +18,14 @@ public class DrtModeChoiceConfigGroup extends ReflectiveConfigGroupWithConfigura
     DrtMetricSmootheningParamSet drtMetricSmootheningSettings;
 
     @Nullable
-    DrtMetricCalculationSettings drtMetricCalculationSettings;
+    DrtMetricCalculationParamSet drtMetricCalculationParamSet;
 
     public DrtModeChoiceConfigGroup() {
         super(GROUP_NAME);
         addDefinition(DrtMetricSmootheningParamSet.SET_NAME, DrtMetricSmootheningParamSet::new, () -> drtMetricSmootheningSettings,
                 params -> drtMetricSmootheningSettings = (DrtMetricSmootheningParamSet) params);
-        addDefinition(DrtMetricCalculationSettings.SET_NAME, DrtMetricCalculationSettings::new, () -> drtMetricCalculationSettings,
-                params -> drtMetricCalculationSettings = (DrtMetricCalculationSettings) params);
+        addDefinition(DrtMetricCalculationParamSet.SET_NAME, DrtMetricCalculationParamSet::new, () -> drtMetricCalculationParamSet,
+                params -> drtMetricCalculationParamSet = (DrtMetricCalculationParamSet) params);
 
     }
 
@@ -83,8 +83,8 @@ public class DrtModeChoiceConfigGroup extends ReflectiveConfigGroupWithConfigura
     }
 
     @Nullable
-    public DrtMetricCalculationSettings getDrtMetricCalculationParamSet() {
-        return drtMetricCalculationSettings;
+    public DrtMetricCalculationParamSet getDrtMetricCalculationParamSet() {
+        return drtMetricCalculationParamSet;
     }
 
 

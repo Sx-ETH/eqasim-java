@@ -18,9 +18,10 @@ public class DrtModeChioceConfigModule extends AbstractEqasimExtension {
         //check if it is null  and if not null check if it has a child (the parameterset under it
         //if it does initiate all that needs to make the algorithm work
 
-        DrtMetricCalculationSettings drtMetrics = drtDmcConfig.getDrtMetricCalculationParamSet();
+        DrtMetricCalculationParamSet drtMetrics = drtDmcConfig.getDrtMetricCalculationParamSet();
         if(drtMetrics != null){
-            //bind(DrtMetricCalculationSettings.class).asEagerSingleton();
+            bind(DrtMetricCalculationParamSet.class).asEagerSingleton();
+            bind(DrtMetricSmootheningParamSet.class).asEagerSingleton();
             //do we want to bind the controller listener and time trackers here?
             //since they would try to load these settings and if null may not work...
 
