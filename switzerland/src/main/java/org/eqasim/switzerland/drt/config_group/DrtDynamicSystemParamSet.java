@@ -9,14 +9,36 @@ public class DrtDynamicSystemParamSet extends ReflectiveConfigGroupWithConfigura
     public static final String SET_NAME = "dynamicSystem";
 
     //different knn options
-    public static final String type = "KNN_CP";
+    public static final String TYPE = "type";
+
+    public static final String K_VALUE = "kvalue";
 
     @PositiveOrZero
-    public static final int kvalue = 0;
+    private int kvalue = 0;
 
     @Positive
-    public static final int movingWindow = 5;
+    private String type = "KNN_CP";
     public DrtDynamicSystemParamSet() {
         super(SET_NAME);
+    }
+
+    @StringGetter(TYPE)
+    public String getType() {
+        return this.type;
+    }
+
+    @StringSetter(TYPE)
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    @StringGetter(K_VALUE)
+    public int getKvalue() {
+        return this.kvalue;
+    }
+
+    @StringSetter(K_VALUE)
+    public void setKvalue(int kvalue) {
+        this.kvalue = kvalue;
     }
 }

@@ -5,7 +5,7 @@ import org.matsim.contrib.util.ReflectiveConfigGroupWithConfigurableParameterSet
 import javax.annotation.Nullable;
 
 public class DrtMetricCalculationSettings extends ReflectiveConfigGroupWithConfigurableParameterSets {
-    public static final String SET_NAME = "drtMetricCalculation";
+    public static final String SET_NAME = "drtMetricCalculationSettings";
 
     public static final String METHOD = "method";
 
@@ -36,13 +36,21 @@ public class DrtMetricCalculationSettings extends ReflectiveConfigGroupWithConfi
 
     //getters and setters
     @StringGetter(METHOD)
-    public String method() {
+    public String getMethod() {
         return this.method;
     }
-
+    @StringSetter(METHOD)
+    public void setMethod(String method) {
+        this.method = method;
+    }
     @StringGetter(SPATIAL_TYPE)
     public String getSpatialType() {
         return this.spatialType;
+    }
+
+    @StringSetter(SPATIAL_TYPE)
+    public void setSpatialType(String spatialType) {
+        this.spatialType = spatialType;
     }
 
     @StringGetter(TIME_BIN_MINUTE)
@@ -50,9 +58,19 @@ public class DrtMetricCalculationSettings extends ReflectiveConfigGroupWithConfi
         return this.timeBinMin;
     }
 
+    @StringSetter(TIME_BIN_MINUTE)
+    public void setTimeBinMin(double timeBinMin) {
+        this.timeBinMin = timeBinMin;
+    }
+
     @StringGetter(DISTANCE_BIN_M)
     public double getDistanceBinMetres() {
         return this.distanceBin_m;
+    }
+
+    @StringSetter(DISTANCE_BIN_M)
+    public void setDistanceBin_m(double distanceBin_m) {
+        this.distanceBin_m = distanceBin_m;
     }
 
     @Nullable
@@ -61,7 +79,7 @@ public class DrtMetricCalculationSettings extends ReflectiveConfigGroupWithConfi
     }
 
     @Nullable
-    public DrtZonalSystemParamSet getDrtZonalystemParamSet() {
+    public DrtZonalSystemParamSet getDrtZonalSystemParamSet() {
         return drtZonalSystem;
     }
 

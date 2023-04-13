@@ -30,19 +30,21 @@ public class DrtModeChoiceConfigGroup extends ReflectiveConfigGroupWithConfigura
     }
 
     //add default values
-    private boolean isUseWaitTime = false;
-    private boolean isUseDelayFactor = false;
-    private boolean isUseWaitandDelayMetrics = false;
+    private boolean isUseWaitTime = true;
+    private boolean isUseDelayFactor = true;
 
+    private boolean writeDetailedStats = true;
+
+    private String feedbackMethod = "average";
     //getters and setters
     @StringGetter(IS_USE_WAITTIME)
     public boolean isUseWaitTime() {
         return this.isUseWaitTime;
     }
 
-    @StringSetter(IS_USE_DELAYFACTOR)
-    public void isUseWaitTime(boolean isUseDelayFactor) {
-        this.isUseDelayFactor = isUseDelayFactor;
+    @StringSetter(IS_USE_WAITTIME)
+    public void isUseWaitTime(boolean isUseWaitTime) {
+        this.isUseWaitTime = isUseWaitTime;
     }
 
     @StringGetter(IS_USE_DELAYFACTOR)
@@ -56,23 +58,23 @@ public class DrtModeChoiceConfigGroup extends ReflectiveConfigGroupWithConfigura
     }
 
     @StringGetter(FEEDBACK_METHOD)
-    public boolean getFeedBackMethod() {
-        return isUseWaitandDelayMetrics;
+    public String getFeedBackMethod() {
+        return this.feedbackMethod;
     }
 
     @StringSetter(FEEDBACK_METHOD)
-    public void writeDetailedStats(boolean isUseWaitandDelayMetrics) {
-        isUseWaitandDelayMetrics = isUseWaitandDelayMetrics;
+    public void setFeedBackMethod(String feedbackMethod) {
+        this.feedbackMethod = feedbackMethod;
     }
 
     @StringGetter(WRITE_DETAILED_STATS)
     public boolean writeDetailedStats() {
-        return isUseWaitandDelayMetrics;
+        return this.writeDetailedStats;
     }
 
     @StringSetter(WRITE_DETAILED_STATS)
-    public void setWriteDetailedStats(boolean isUseWaitandDelayMetrics) {
-        isUseWaitandDelayMetrics = isUseWaitandDelayMetrics;
+    public void setWriteDetailedStats(boolean writeDetailedStats) {
+        this.writeDetailedStats = writeDetailedStats;
     }
 
     @Nullable
