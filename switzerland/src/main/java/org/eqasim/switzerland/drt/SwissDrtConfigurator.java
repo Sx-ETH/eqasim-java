@@ -4,6 +4,7 @@ import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import org.eqasim.core.components.config.EqasimConfigGroup;
 import org.eqasim.core.simulation.calibration.CalibrationConfigGroup;
 import org.eqasim.switzerland.SwitzerlandConfigurator;
+import org.eqasim.switzerland.drt.config_group.*;
 import org.eqasim.switzerland.drt.mode_choice.SwissDrtModeAvailability;
 import org.eqasim.switzerland.drt.mode_choice.SwissDrtModeChoiceModule;
 import org.eqasim.switzerland.drt.mode_choice.cost.DrtCostModel;
@@ -47,7 +48,8 @@ public class SwissDrtConfigurator extends SwitzerlandConfigurator {
                 new DiscreteModeChoiceConfigGroup(), //
                 new CalibrationConfigGroup(), //
                 new DvrpConfigGroup(), //
-                new MultiModeDrtConfigGroup()
+                new MultiModeDrtConfigGroup(), //
+                new DrtModeChoiceConfigGroup()
 
         };
     }
@@ -99,6 +101,29 @@ public class SwissDrtConfigurator extends SwitzerlandConfigurator {
 
         DrtConfigs.adjustMultiModeDrtConfig(MultiModeDrtConfigGroup.get(config), config.planCalcScore(), config.plansCalcRoute());
 
+    }
+
+    public static void configureDrtTimeMetrics(Config config) {
+        DrtModeChoiceConfigGroup drtDmcConfig = (DrtModeChoiceConfigGroup) config.getModules().get(DrtModeChoiceConfigGroup.GROUP_NAME);
+        drtDmcConfig.setFeedBackMethod("average");
+
+        //...
+        if (drtDmcConfig.getDrtMetricCalculationParamSet() == null){
+            DrtMetricCalculationParamSet calculationParamSet = new DrtMetricCalculationParamSet();
+            calculationParamSet.addParameterSet(new DrtZonalSystemParamSet());
+            calculationParamSet.addParameterSet(new DrtDynamicSystemParamSet());
+            drtDmcConfig.addParameterSet(calculationParamSet);
+        }
+
+        if (drtDmcConfig.getDrtMetricSmootheningParamSet() == null){
+            DrtMetricSmootheningParamSet smootheningParamSet = new DrtMetricSmootheningParamSet();
+            drtDmcConfig.addParameterSet(smootheningParamSet);
+        }
+
+        //can then set up other metrics here if needed or set them up within the if statements
+
+        //drtDmcConfig.getDrtMetricCalculationParamSet().setDistanceBin_m(500);
+        //..and so on
     }
 
     public static void configureDrt(Config config) {

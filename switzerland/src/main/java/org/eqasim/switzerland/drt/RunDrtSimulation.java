@@ -33,6 +33,7 @@ public class RunDrtSimulation {
         Config config = ConfigUtils.loadConfig(config_path, configurator.getConfigGroups());
         configurator.configure(config);
         cmd.applyConfiguration(config);
+        configurator.configureDrtTimeMetrics(config);
 
         String output_path = cmd.getOption("output-path").isPresent() ? cmd.getOption("output-path").get()
                 : config.controler().getOutputDirectory();
