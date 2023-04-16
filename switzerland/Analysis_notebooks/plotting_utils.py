@@ -152,7 +152,7 @@ def plot_zonal_avg(metrics, zones, column, lake_restriction, lakes_path, zurich_
                                cax=cax
                                ),
               alpha= 0.7 if add_map else 1.0, 
-              cmap='OrRd', 
+              cmap='plasma', 
               edgecolor="grey",
               )
     ax = zurich_overlay(ax,lakes_path, zurich_districts_path, lake_restriction,number_districts=True, district_col="district_id")
