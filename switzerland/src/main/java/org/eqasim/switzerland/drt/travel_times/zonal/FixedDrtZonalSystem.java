@@ -40,7 +40,7 @@ public abstract class FixedDrtZonalSystem {
             simpleFeatureBuilder.setCRS(MGC.getCRS(targetCoordinateSystem));
         } catch (IllegalArgumentException e) {
             log.warn("Coordinate reference system \"" + targetCoordinateSystem
-                    + "\" is unknown. Please set a crs in config global. Will try to create drt_hexZones.shp anyway");
+                    + "\" is unknown. Please set a crs in config global. Will try to create shapefile anyway");
         }
 
         simpleFeatureBuilder.setName("drtAnalysisZones");

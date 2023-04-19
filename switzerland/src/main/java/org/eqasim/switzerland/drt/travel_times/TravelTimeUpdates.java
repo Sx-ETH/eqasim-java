@@ -12,6 +12,7 @@ import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
 import org.matsim.contrib.drt.routing.DrtRoute;
 import org.matsim.core.config.Config;
+import org.matsim.core.config.groups.GlobalConfigGroup;
 import org.matsim.core.config.groups.QSimConfigGroup;
 import org.matsim.core.controler.events.IterationEndsEvent;
 import org.matsim.core.controler.events.ShutdownEvent;
@@ -160,6 +161,16 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
                 outputPath = event.getServices().getControlerIO().getIterationFilename(event.getIteration(),
                         "drt_globalStats.csv");
                 writeGlobalStats(this.globalWaitingTime, this.globalDelayFactor, outputPath);
+                if (this.zonalAndTimeBinWaitingTime != null) {
+                    outputPath = event.getServices().getControlerIO().getIterationFilename(event.getIteration(),
+                            "drt_zonalAndTimeBinWaitingTime.csv");
+                    writeZonalAndTimeBinWaitingTime(this.zonalAndTimeBinWaitingTime, outputPath);
+                }
+                if (this.distanceAndTimeBinDelayFactor != null) {
+                    outputPath = event.getServices().getControlerIO().getIterationFilename(event.getIteration(),
+                            "drt_distanceAndTimeBinDelayFactor.csv");
+                    writeDistanceAndTimeBinDelayFactor(this.distanceAndTimeBinDelayFactor, outputPath);
+                }
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -180,6 +191,42 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
         bw.write("globalWaitingTime" + separator + globalWaitingTime.getCSVLine(separator));
         bw.newLine();
         bw.write("globalDelayFactor" + separator + globalDelayFactor.getCSVLine(separator));
+        bw.flush();
+        bw.close();
+    }
+
+    private static void writeZonalAndTimeBinWaitingTime(Map<String, DataStats[]> zonalAndTimeBinWaitingTime, String outputPath) throws IOException {
+        BufferedWriter bw = IOUtils.getBufferedWriter(outputPath);
+        String separator = ";";
+        String header = DataStats.getCSVHeader(separator);
+        header = "zone" + separator + "timeBin" + separator + header;
+        bw.write(header);
+        bw.newLine();
+        for (String zone : zonalAndTimeBinWaitingTime.keySet()) {
+            DataStats[] timeBinWaitingTime = zonalAndTimeBinWaitingTime.get(zone);
+            for (int i = 0; i < timeBinWaitingTime.length; i++) {
+                bw.write(zone + separator + i + separator + timeBinWaitingTime[i].getCSVLine(separator));
+                bw.newLine();
+            }
+        }
+        bw.flush();
+        bw.close();
+    }
+
+    private static void writeDistanceAndTimeBinDelayFactor(Map<Integer, DataStats[]> distanceAndTimeBinDelayFactor, String outputPath) throws IOException {
+        BufferedWriter bw = IOUtils.getBufferedWriter(outputPath);
+        String separator = ";";
+        String header = DataStats.getCSVHeader(separator);
+        header = "distanceBin" + separator + "timeBin" + separator + header;
+        bw.write(header);
+        bw.newLine();
+        for (Integer distanceBin : distanceAndTimeBinDelayFactor.keySet()) {
+            DataStats[] timeBinDelayFactor = distanceAndTimeBinDelayFactor.get(distanceBin);
+            for (int i = 0; i < timeBinDelayFactor.length; i++) {
+                bw.write(distanceBin + separator + i + separator + timeBinDelayFactor[i].getCSVLine(separator));
+                bw.newLine();
+            }
+        }
         bw.flush();
         bw.close();
     }
@@ -277,8 +324,7 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
         String fileName = event.getServices().getControlerIO().getOutputFilename("drt_link2FixedZones.csv");
         zones.writeLink2Zone(fileName);
 
-        // TODO: How to get the CRS from the network/config? For now, we hardcode
-        String crs = "EPSG:2056";
+        String crs = ((GlobalConfigGroup) config.getModules().get(GlobalConfigGroup.GROUP_NAME)).getCoordinateSystem();
 
         fileName = event.getServices().getControlerIO().getOutputFilename("drt_FixedZones.shp");
 
