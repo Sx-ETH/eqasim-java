@@ -84,24 +84,6 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
                 throw new RuntimeException("Not implemented yet.");
             }
         }
-        /*
-        if (simulationParams.isUseDelayFactor()) {
-            if (simulationParams.getDelayFactorFeedback().equals("average")
-                    && !Double.isNaN(travelTimeData.delayFactorStat.avg)) {
-                return route.getDirectRideTime() * travelTimeData.delayFactorStat.avg;
-            }
-
-            if (simulationParams.getDelayFactorFeedback().equals("median")
-                    && !Double.isNaN(travelTimeData.delayFactorStat.median)) {
-                return route.getDirectRideTime() * travelTimeData.delayFactorStat.median;
-            }
-            if (simulationParams.getDelayFactorFeedback().equals("divisionOfSums")
-                    && !Double.isNaN(travelTimeData.delayFactorStat.avg)) {
-                return route.getDirectRideTime() * travelTimeData.delayFactorStat.avg;
-            }
-            // toDofor zone
-        }
-         */
         return route.getMaxTravelTime(); // toDo now alpha*time + beta, alpha and beta defined in drt config module
     }
 
@@ -131,18 +113,6 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
                 throw new RuntimeException("Not implemented yet.");
             }
         }
-        /*
-        if (simulationParams.isUseAverageWaitTime()) {
-            if (simulationParams.getWaitTimeFeedback().equals("average")
-                    && !Double.isNaN(travelTimeData.waitTimeStat.avg)) {
-                return travelTimeData.waitTimeStat.avg;
-            }
-            if (simulationParams.getWaitTimeFeedback().equals("median")
-                    && !Double.isNaN(travelTimeData.waitTimeStat.median)) {
-                return travelTimeData.waitTimeStat.median;
-            }
-        }
-         */
         return route.getMaxWaitTime();
     }
 
@@ -182,53 +152,6 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
         } else if (drtDmcConfig.getDrtMetricCalculationParamSet().getSpatialType().equals("dynamic")) {
             throw new RuntimeException("Not implemented yet");
         }
-
-        System.out.println(drtDmcConfig.getFeedBackMethod());
-        /*
-        // TODO: Same method for both calculations, should we allow it to be different?
-        String delayMethod = this.simulationParams.getDelayCalcMethod();
-        String waitMethod = this.simulationParams.getWaitTimeMethod();
-        Boolean isGlobalMethod = !delayMethod.contains("zonal");
-        String method = isGlobalMethod ? waitMethod : null; // toDo define if null use zonal
-
-        double weight = this.simulationParams.getMsaWeight();
-        int movingWindow = this.simulationParams.getMovingWindow();
-        Set<DrtTripData> drtTrips = this.trackedTimes.getDrtTrips();
-
-        // TODO: Only compute the needed one -> this is to test that it works correctly
-        TravelTimeData globalAvg = DrtGlobalMetrics.calculateGlobalMetrics(drtTrips,
-                this.simulationParams.getDelayFactorFeedback());
-        String fileName = event.getServices().getControlerIO().getIterationFilename(event.getIteration(),
-                "drt_travelTimeData_global.csv");
-        globalAvg.write(fileName);
-
-        TravelTimeData movingAvg = DrtGlobalMetrics.calculateGlobalMovingMetrics(drtTrips, event.getIteration(),
-                movingWindow, this.simulationParams.getDelayFactorFeedback());
-        fileName = event.getServices().getControlerIO().getIterationFilename(event.getIteration(),
-                "drt_travelTimeData_moving.csv");
-        movingAvg.write(fileName);
-
-        TravelTimeData successiveAvg = DrtGlobalMetrics.calculateMethodOfSuccessiveAverageWaitTime(drtTrips,
-                event.getIteration(), weight, this.simulationParams.getDelayFactorFeedback());
-        fileName = event.getServices().getControlerIO().getIterationFilename(event.getIteration(),
-                "drt_travelTimeData_successive.csv");
-        successiveAvg.write(fileName);
-
-        switch (method) {
-            case "global":
-                this.travelTimeData = globalAvg;
-                break;
-            case "moving":
-                this.travelTimeData = movingAvg;
-                break;
-            case "successive":
-                this.travelTimeData = successiveAvg;
-                break;
-            default:
-                throw new IllegalArgumentException("Method not implemented yet!"); // toDo catch the null
-        }
-
-         */
         if (drtDmcConfig.writeDetailedStats()) {
             try {
                 String outputPath = event.getServices().getControlerIO().getIterationFilename(event.getIteration(),
