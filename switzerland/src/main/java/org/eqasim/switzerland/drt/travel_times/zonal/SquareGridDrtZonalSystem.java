@@ -1,7 +1,5 @@
 package org.eqasim.switzerland.drt.travel_times.zonal;
 
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
 import org.apache.log4j.Logger;
 import org.locationtech.jts.geom.prep.PreparedGeometry;
 import org.matsim.api.core.v01.network.Network;
@@ -15,8 +13,7 @@ import java.util.Map.Entry;
 public class SquareGridDrtZonalSystem extends GridDrtZonalSystem {
     private static final Logger log = Logger.getLogger(SquareGridDrtZonalSystem.class);
 
-    @Inject
-    public SquareGridDrtZonalSystem(Network network, @Named("gridCellSize") Double cellSize) {
+    public SquareGridDrtZonalSystem(Network network, double cellSize) {
         log.info("Start creating the square grid");
         this.network = network;
         this.zones = DrtGridUtils.createGridFromNetwork(network, cellSize);

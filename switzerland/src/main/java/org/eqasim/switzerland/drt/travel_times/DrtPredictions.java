@@ -18,6 +18,8 @@ public class DrtPredictions {
         public double cost_MU;
         public double waitingTime_min;
         public double travelDistance_km;
+        public double maxTravelTime_min;
+        public double directRideTime_min;
         public Person person;
         public DiscreteModeChoiceTrip trip;
     }
@@ -30,13 +32,17 @@ public class DrtPredictions {
         this.tripPredictions = new ArrayList<DrtTripPrediction>();
     }
 
-    public void addTripPrediction(double travelTime_min, double accessEgressTime_min, double cost_MU, double waitingTime_min, double travelDistance_km, Person person, DiscreteModeChoiceTrip trip) {
+    public void addTripPrediction(double travelTime_min, double accessEgressTime_min, double cost_MU, double waitingTime_min,
+                                  double maxTravelTime_min, double directRideTime_min, double travelDistance_km,
+                                  Person person, DiscreteModeChoiceTrip trip) {
         DrtTripPrediction prediction = new DrtTripPrediction();
         prediction.travelTime_min = travelTime_min;
         prediction.accessEgressTime_min = accessEgressTime_min;
         prediction.cost_MU = cost_MU;
         prediction.waitingTime_min = waitingTime_min;
         prediction.travelDistance_km = travelDistance_km;
+        prediction.maxTravelTime_min = maxTravelTime_min;
+        prediction.directRideTime_min = directRideTime_min;
         prediction.person = person;
         prediction.trip = trip;
         this.tripPredictions.add(prediction);
@@ -52,7 +58,7 @@ public class DrtPredictions {
                 + iterationNumber + "." + filename;
         BufferedWriter writer = IOUtils.getBufferedWriter(outputDir);
         try {
-            String header = "personId;tripIndex;travelTime_min;accessEgressTime_min;cost_MU;waitingTime_min;travelDistance_km\n";
+            String header = "personId;tripIndex;travelTime_min;accessEgressTime_min;cost_MU;waitingTime_min;travelDistance_km;maxTravelTime_min;directRideTime_min\n";
             writer.write(header);
             for (DrtTripPrediction prediction : this.tripPredictions) {
                 writer.append(prediction.person.getId().toString());
@@ -68,6 +74,10 @@ public class DrtPredictions {
                 writer.append(Double.toString(prediction.waitingTime_min));
                 writer.append(";");
                 writer.append(Double.toString(prediction.travelDistance_km));
+                writer.append(";");
+                writer.append(Double.toString(prediction.maxTravelTime_min));
+                writer.append(";");
+                writer.append(Double.toString(prediction.directRideTime_min));
                 writer.append("\n");
             }
             writer.flush();

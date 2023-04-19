@@ -41,6 +41,8 @@ public class DrtPredictor extends CachedVariablePredictor<DrtVariables> {
         double accessEgressTime_min = 0.0;
         double cost_MU = 0.0;
         double waitingTime_min = 0.0;
+        double maxTravelTime_min = 0.0;
+        double directRideTime_min = 0.0;
         for (Leg leg : TripStructureUtils.getLegs(elements)) {
             switch (leg.getMode()) {
                 case TransportMode.walk:
@@ -49,10 +51,13 @@ public class DrtPredictor extends CachedVariablePredictor<DrtVariables> {
                 case "drt":
                     DrtRoute route = (DrtRoute) leg.getRoute();
 
-                    travelTime_min = travelTimeUpdates.getTravelTime_Sec(route) / 60.0;
-                    waitingTime_min = travelTimeUpdates.getWaitTime_Sec(route) / 60.0;
+                    travelTime_min = travelTimeUpdates.getTravelTime_sec(route, leg.getDepartureTime().seconds()) / 60.0;
+                    waitingTime_min = travelTimeUpdates.getWaitTime_sec(route, leg.getDepartureTime().seconds()) / 60.0;
 
                     cost_MU = costModel.calculateCost_MU(person, trip, elements);
+
+                    maxTravelTime_min = route.getMaxTravelTime() / 60.0;
+                    directRideTime_min = route.getDirectRideTime() / 60.0;
 
                     break;
                 default:
@@ -62,7 +67,8 @@ public class DrtPredictor extends CachedVariablePredictor<DrtVariables> {
 
         double euclideanDistance_km = PredictorUtils.calculateEuclideanDistance_km(trip);
 
-        this.drtPredictions.addTripPrediction(travelTime_min, accessEgressTime_min, cost_MU, waitingTime_min, euclideanDistance_km, person, trip);
+        this.drtPredictions.addTripPrediction(travelTime_min, accessEgressTime_min, cost_MU, waitingTime_min,
+                euclideanDistance_km, maxTravelTime_min, directRideTime_min, person, trip);
 
         // todo add rejection penalty based on some probability of rejections
 
