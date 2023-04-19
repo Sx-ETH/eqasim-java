@@ -33,7 +33,7 @@ public class DrtPredictions {
     }
 
     public void addTripPrediction(double travelTime_min, double accessEgressTime_min, double cost_MU, double waitingTime_min,
-                                  double maxTravelTime_min, double directRideTime_min, double travelDistance_km,
+                                  double travelDistance_km, double maxTravelTime_min, double directRideTime_min,
                                   Person person, DiscreteModeChoiceTrip trip) {
         DrtTripPrediction prediction = new DrtTripPrediction();
         prediction.travelTime_min = travelTime_min;
