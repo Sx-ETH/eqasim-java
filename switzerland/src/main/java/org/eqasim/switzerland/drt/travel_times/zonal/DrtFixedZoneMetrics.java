@@ -1,7 +1,10 @@
 package org.eqasim.switzerland.drt.travel_times.zonal;
 
 
-import org.eqasim.switzerland.drt.travel_times.*;
+import org.eqasim.switzerland.drt.travel_times.DataStats;
+import org.eqasim.switzerland.drt.travel_times.DrtDistanceBinUtils;
+import org.eqasim.switzerland.drt.travel_times.DrtTimeUtils;
+import org.eqasim.switzerland.drt.travel_times.DrtTripData;
 import org.matsim.core.utils.geometry.CoordUtils;
 
 import java.util.HashMap;
@@ -10,8 +13,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class DrtFixedZoneMetrics {
-    private static final Map<Integer, Set<DrtTripData>> iterationsDrtTrips = new HashMap<>();
-    private static final Map<Integer, TravelTimeData> iterationsSuccessiveAvg = new HashMap<>();
+    //private static final Map<Integer, Set<DrtTripData>> iterationsDrtTrips = new HashMap<>();
+    //private static final Map<Integer, TravelTimeData> iterationsSuccessiveAvg = new HashMap<>();
 
     private static Map<String, Set<DrtTripData>[]> assignDrtTripsToZonesAndTimeBin(Set<DrtTripData> drtTrips, FixedDrtZonalSystem zones, int timeBinSize_min) {
         DrtTimeUtils timeUtils = new DrtTimeUtils(timeBinSize_min);
@@ -86,29 +89,6 @@ public class DrtFixedZoneMetrics {
         }
         return l;
     }
-    /*
-    private static double calculateAverageDelayFactorFromSums(Set<DrtTripData> drtTrips) {
-        double sumTotalTravelTime = 0.0;
-        double sumUnsharedTime = 0.0;
-        boolean useRouterUnsharedTime = true; // may remove later when decided on whether to use router or estimate
-
-        for (DrtTripData drtTrip : drtTrips) {
-            sumTotalTravelTime += drtTrip.totalTravelTime;
-            if (useRouterUnsharedTime) {
-                sumUnsharedTime += drtTrip.routerUnsharedTime;
-            } else {
-                sumUnsharedTime += drtTrip.estimatedUnsharedTime;
-            }
-        }
-
-        // what happens if no drt trip occurred in an iteration
-        // division by 0 gives nan/inf and is returned
-
-        // compute delay factor
-        return sumTotalTravelTime / sumUnsharedTime;
-
-    }
-     */
 
     public static Map<String, DataStats[]> calculateZonalAndTimeBinWaitingTime(Set<DrtTripData> drtTripData, FixedDrtZonalSystem zones, int timeBinSize_min) {
         Map<String, DataStats[]> zonalAndTimeBinWaitTime = new HashMap<>();
@@ -153,31 +133,4 @@ public class DrtFixedZoneMetrics {
         double[] delayFactors = collectDelayFactors(drtTripData);
         return new DataStats(delayFactors);
     }
-    /*
-    public static Map<String, TravelTimeData[]> calculateZonalAndTimeBinMetrics(Set<DrtTripData> drtTrips, String delayFactorMethod, FixedDrtZonalSystem zones, int timeBinSize_min) {
-        Map<String, TravelTimeData[]> zonalAndTimeBinMetrics = new HashMap<>();
-        Map<String, Set<DrtTripData>[]> assignedDrtTrips = assignDrtTripsToZonesAndTimeBin(drtTrips, zones, timeBinSize_min);
-
-        for (String zone : assignedDrtTrips.keySet()) {
-            Set<DrtTripData>[] drtTripsByTimeBin = assignedDrtTrips.get(zone);
-            TravelTimeData[] zonalAndTimeBinMetricsByZone = new TravelTimeData[drtTripsByTimeBin.length];
-            for (int i = 0; i < drtTripsByTimeBin.length; i++) {
-                Set<DrtTripData> drtTripsByTimeBin_i = drtTripsByTimeBin[i];
-                double[] waitTimes = collectWaitTimes(drtTripsByTimeBin_i);
-                TravelTimeData travelTimeData;
-                if (delayFactorMethod.equals("divisionOfSums")) {
-                    double avgDF = calculateAverageDelayFactorFromSums(drtTrips);
-                    travelTimeData = new TravelTimeData(waitTimes, avgDF);
-
-                } else {
-                    double[] delayFactors = collectDelayFactors(drtTripsByTimeBin_i);
-                    travelTimeData = new TravelTimeData(waitTimes, delayFactors);
-                }
-                zonalAndTimeBinMetricsByZone[i] = travelTimeData;
-            }
-            zonalAndTimeBinMetrics.put(zone, zonalAndTimeBinMetricsByZone);
-        }
-        return zonalAndTimeBinMetrics;
-    }
-    */
 }
