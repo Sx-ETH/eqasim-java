@@ -153,19 +153,11 @@ public class QuadTree<T> implements Serializable {
             return;
         }
 
-        //calcualte the distance between target point and node's center point
-        Point nodeCenter = new Vector2D(node.getBounds().centerX, node.getBounds().centerY);
-        double distance = nodeCenter.distance(query);
-        //double distance = node.getBounds().calcDistance(((Vector2D)query).getX(), ((Vector2D)query).getY());
         Vector2D queryCoords = ((Vector2D)query);
-        T nodeValue = node.get(queryCoords.getX(), queryCoords.getY(), new MutableDouble(Double.POSITIVE_INFINITY));
-        if (maxHeap.size() < k) {
-            //node.get cna be used to get value but I have no way of accessing it
-            maxHeap.offer(new AbstractMap.SimpleEntry<>(distance, nodeValue));
-        } else if (distance < maxHeap.peek().getKey()) {
-            maxHeap.poll();
-            maxHeap.offer(new AbstractMap.SimpleEntry<>(distance, nodeValue));
-        } else {
+        //Ensure that the node being visited has a minimum
+        // distance smaller than the largest distance in the maxHeap
+        double nodeMinDist = node.bounds.calcDistance(queryCoords.getX(), queryCoords.getY());
+        if (maxHeap.size() == k && nodeMinDist > maxHeap.peek().getKey()){
             return;
         }
 
@@ -180,6 +172,8 @@ public class QuadTree<T> implements Serializable {
 
                 double leafDistance = leafCoords.distance(query);
 
+                //keep track of all the closest one that has been seen so far but should be able to access
+                //the farthest one. Get rid of the one at top that is farther away
                 if (maxHeap.size() < k) {
                     maxHeap.offer(new AbstractMap.SimpleEntry<>(leafDistance, leaf.value));
                 } else if (leafDistance < maxHeap.peek().getKey()) {
