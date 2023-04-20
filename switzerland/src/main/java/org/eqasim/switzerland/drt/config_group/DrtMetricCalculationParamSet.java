@@ -18,6 +18,7 @@ public class DrtMetricCalculationParamSet extends ReflectiveConfigGroupWithConfi
     DrtDynamicSystemParamSet drtDynamicSystem;
     @Nullable
     DrtZonalSystemParamSet drtZonalSystem;
+
     public DrtMetricCalculationParamSet() {
         super(SET_NAME);
         addDefinition(DrtDynamicSystemParamSet.SET_NAME, DrtDynamicSystemParamSet::new, () -> drtDynamicSystem,
@@ -32,18 +33,20 @@ public class DrtMetricCalculationParamSet extends ReflectiveConfigGroupWithConfi
     private String method = "SpatioTemporal";
 
     private String spatialType = "zonalSystem";
-    private double timeBinMin = 30;
-    private double distanceBin_m = 1500;
+    private int timeBinMin = 30;
+    private int distanceBin_m = 1500;
 
     //getters and setters
     @StringGetter(METHOD)
     public String getMethod() {
         return this.method;
     }
+
     @StringSetter(METHOD)
     public void setMethod(String method) {
         this.method = method;
     }
+
     @StringGetter(SPATIAL_TYPE)
     public String getSpatialType() {
         return this.spatialType;
@@ -55,22 +58,22 @@ public class DrtMetricCalculationParamSet extends ReflectiveConfigGroupWithConfi
     }
 
     @StringGetter(TIME_BIN_MINUTE)
-    public double getTimeBinMin() {
+    public int getTimeBinMin() {
         return this.timeBinMin;
     }
 
     @StringSetter(TIME_BIN_MINUTE)
-    public void setTimeBinMin(double timeBinMin) {
+    public void setTimeBinMin(int timeBinMin) {
         this.timeBinMin = timeBinMin;
     }
 
     @StringGetter(DISTANCE_BIN_M)
-    public double getDistanceBinMetres() {
+    public int getDistanceBinMetres() {
         return this.distanceBin_m;
     }
 
     @StringSetter(DISTANCE_BIN_M)
-    public void setDistanceBin_m(double distanceBin_m) {
+    public void setDistanceBin_m(int distanceBin_m) {
         this.distanceBin_m = distanceBin_m;
     }
 
@@ -83,8 +86,6 @@ public class DrtMetricCalculationParamSet extends ReflectiveConfigGroupWithConfi
     public DrtZonalSystemParamSet getDrtZonalSystemParamSet() {
         return drtZonalSystem;
     }
-
-
 
 
 }

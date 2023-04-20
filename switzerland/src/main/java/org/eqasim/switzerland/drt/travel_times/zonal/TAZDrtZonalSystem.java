@@ -52,5 +52,10 @@ public class TAZDrtZonalSystem extends FixedDrtZonalSystem {
         return null;
     }
 
+    @Override
+    public Collection<SimpleFeature> getSimpleFeatures(String crs) {
+        return this.features;
+    }
+
 
 }
