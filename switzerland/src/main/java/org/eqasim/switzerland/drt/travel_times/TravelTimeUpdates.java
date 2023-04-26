@@ -233,7 +233,7 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
                 if (smootheningParamSet.getSmootheningType() == DrtMetricSmootheningParamSet.SmootheningType.IterationBased) {
                     delayFactor = getDelayFactorFromDistanceAndTimeBinIteration(distanceBin, timeBin, feedback);
                 } else if (smootheningParamSet.getSmootheningType() == DrtMetricSmootheningParamSet.SmootheningType.MovingAverage) {
-                    int startIteration = iterationZonalAndTimeBinWaitingTime.size() - smootheningParamSet.getMovingWindow();
+                    int startIteration = iterationDistanceAndTimeBinDelayFactor.size() - smootheningParamSet.getMovingWindow();
                     if (startIteration < 0) {
                         startIteration = 0;
                     }
