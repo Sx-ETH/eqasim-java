@@ -1,6 +1,8 @@
 package org.eqasim.switzerland.drt.travel_times;
 
 import com.google.inject.Inject;
+import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.contribs.discrete_mode_choice.model.DiscreteModeChoiceTrip;
 import org.matsim.core.config.Config;
@@ -17,9 +19,11 @@ public class DrtPredictions {
         public double accessEgressTime_min;
         public double cost_MU;
         public double waitingTime_min;
-        public double travelDistance_km;
+        public double euclideanDistance_km;
         public double maxTravelTime_min;
         public double directRideTime_min;
+        public Id<Link> startLinkId;
+        public double startTime;
         public Person person;
         public DiscreteModeChoiceTrip trip;
     }
@@ -33,16 +37,18 @@ public class DrtPredictions {
     }
 
     public void addTripPrediction(double travelTime_min, double accessEgressTime_min, double cost_MU, double waitingTime_min,
-                                  double travelDistance_km, double maxTravelTime_min, double directRideTime_min,
-                                  Person person, DiscreteModeChoiceTrip trip) {
+                                  double euclideanDistance_km, double maxTravelTime_min, double directRideTime_min, Id<Link> startLinkId,
+                                  double startTime, Person person, DiscreteModeChoiceTrip trip) {
         DrtTripPrediction prediction = new DrtTripPrediction();
         prediction.travelTime_min = travelTime_min;
         prediction.accessEgressTime_min = accessEgressTime_min;
         prediction.cost_MU = cost_MU;
         prediction.waitingTime_min = waitingTime_min;
-        prediction.travelDistance_km = travelDistance_km;
+        prediction.euclideanDistance_km = euclideanDistance_km;
         prediction.maxTravelTime_min = maxTravelTime_min;
         prediction.directRideTime_min = directRideTime_min;
+        prediction.startLinkId = startLinkId;
+        prediction.startTime = startTime;
         prediction.person = person;
         prediction.trip = trip;
         this.tripPredictions.add(prediction);
@@ -58,12 +64,16 @@ public class DrtPredictions {
                 + iterationNumber + "." + filename;
         BufferedWriter writer = IOUtils.getBufferedWriter(outputDir);
         try {
-            String header = "personId;tripIndex;travelTime_min;accessEgressTime_min;cost_MU;waitingTime_min;travelDistance_km;maxTravelTime_min;directRideTime_min\n";
+            String header = "personId;tripIndex;startLink;startTime;travelTime_min;accessEgressTime_min;cost_MU;waitingTime_min;euclideanDistance_km;maxTravelTime_min;directRideTime_min\n";
             writer.write(header);
             for (DrtTripPrediction prediction : this.tripPredictions) {
                 writer.append(prediction.person.getId().toString());
                 writer.append(";");
                 writer.append(Integer.toString(prediction.trip.getIndex()));
+                writer.append(";");
+                writer.append(prediction.startLinkId.toString());
+                writer.append(";");
+                writer.append(Double.toString(prediction.startTime));
                 writer.append(";");
                 writer.append(Double.toString(prediction.travelTime_min));
                 writer.append(";");
@@ -73,7 +83,7 @@ public class DrtPredictions {
                 writer.append(";");
                 writer.append(Double.toString(prediction.waitingTime_min));
                 writer.append(";");
-                writer.append(Double.toString(prediction.travelDistance_km));
+                writer.append(Double.toString(prediction.euclideanDistance_km));
                 writer.append(";");
                 writer.append(Double.toString(prediction.maxTravelTime_min));
                 writer.append(";");

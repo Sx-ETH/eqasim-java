@@ -43,6 +43,8 @@ public class DrtPredictor extends CachedVariablePredictor<DrtVariables> {
         double waitingTime_min = 0.0;
         double maxTravelTime_min = 0.0;
         double directRideTime_min = 0.0;
+        double euclideanDistance_km = PredictorUtils.calculateEuclideanDistance_km(trip);
+
         for (Leg leg : TripStructureUtils.getLegs(elements)) {
             switch (leg.getMode()) {
                 case TransportMode.walk:
@@ -59,16 +61,16 @@ public class DrtPredictor extends CachedVariablePredictor<DrtVariables> {
                     maxTravelTime_min = route.getMaxTravelTime() / 60.0;
                     directRideTime_min = route.getDirectRideTime() / 60.0;
 
+
+                    this.drtPredictions.addTripPrediction(travelTime_min, accessEgressTime_min, cost_MU, waitingTime_min,
+                            euclideanDistance_km, maxTravelTime_min, directRideTime_min, leg.getRoute().getStartLinkId(),
+                            leg.getDepartureTime().seconds(), person, trip);
                     break;
                 default:
                     throw new IllegalStateException("Encountered unknown mode in DrtPredictor: " + leg.getMode());
             }
         }
 
-        double euclideanDistance_km = PredictorUtils.calculateEuclideanDistance_km(trip);
-
-        this.drtPredictions.addTripPrediction(travelTime_min, accessEgressTime_min, cost_MU, waitingTime_min,
-                euclideanDistance_km, maxTravelTime_min, directRideTime_min, person, trip);
 
         // todo add rejection penalty based on some probability of rejections
 

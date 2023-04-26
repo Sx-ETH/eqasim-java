@@ -19,7 +19,7 @@ public class DrtMetricSmootheningParamSet extends ReflectiveConfigGroupWithConfi
     private SmootheningType smootheningType = SmootheningType.IterationBased;
 
     @PositiveOrZero
-    private double msaWeight = 0.0;
+    private double msaWeight = 0.9;
 
     @Positive
     private int movingWindow = 5;
