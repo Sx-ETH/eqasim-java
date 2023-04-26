@@ -30,30 +30,34 @@ public class DrtMetricCalculationParamSet extends ReflectiveConfigGroupWithConfi
     }
 
     //add default values
-    private String method = "SpatioTemporal";
+    public enum Method {SpatioTemporal, Spatio, Temporal, Global}
 
-    private String spatialType = "zonalSystem";
+    private Method method = Method.SpatioTemporal;
+
+    public enum SpatialType {ZonalSystem, DynamicSystem}
+
+    private SpatialType spatialType = SpatialType.ZonalSystem;
     private int timeBinMin = 30;
     private int distanceBin_m = 1500;
 
     //getters and setters
     @StringGetter(METHOD)
-    public String getMethod() {
+    public Method getMethod() {
         return this.method;
     }
 
     @StringSetter(METHOD)
-    public void setMethod(String method) {
+    public void setMethod(Method method) {
         this.method = method;
     }
 
     @StringGetter(SPATIAL_TYPE)
-    public String getSpatialType() {
+    public SpatialType getSpatialType() {
         return this.spatialType;
     }
 
     @StringSetter(SPATIAL_TYPE)
-    public void setSpatialType(String spatialType) {
+    public void setSpatialType(SpatialType spatialType) {
         this.spatialType = spatialType;
     }
 

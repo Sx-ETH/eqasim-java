@@ -15,18 +15,21 @@ public class DrtDynamicSystemParamSet extends ReflectiveConfigGroupWithConfigura
     @PositiveOrZero
     private int kvalue = 0;
 
-    private String type = "KNN_CP";
+    public enum Type {KNN_CN, KNN_PN, FD}
+
+    private Type type = Type.KNN_CN;
+
     public DrtDynamicSystemParamSet() {
         super(SET_NAME);
     }
 
     @StringGetter(TYPE)
-    public String getType() {
+    public Type getType() {
         return this.type;
     }
 
     @StringSetter(TYPE)
-    public void setType(String type) {
+    public void setType(Type type) {
         this.type = type;
     }
 

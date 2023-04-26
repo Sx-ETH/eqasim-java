@@ -35,7 +35,10 @@ public class DrtModeChoiceConfigGroup extends ReflectiveConfigGroupWithConfigura
 
     private boolean writeDetailedStats = true;
 
-    private String feedbackMethod = "average";
+    public enum Feedback {average, median, min, p_5, p_25, p_75, p_95, max}
+
+    private Feedback feedbackMethod = Feedback.average;
+
     //getters and setters
     @StringGetter(IS_USE_WAITTIME)
     public boolean isUseWaitTime() {
@@ -58,12 +61,12 @@ public class DrtModeChoiceConfigGroup extends ReflectiveConfigGroupWithConfigura
     }
 
     @StringGetter(FEEDBACK_METHOD)
-    public String getFeedBackMethod() {
+    public Feedback getFeedBackMethod() {
         return this.feedbackMethod;
     }
 
     @StringSetter(FEEDBACK_METHOD)
-    public void setFeedBackMethod(String feedbackMethod) {
+    public void setFeedBackMethod(Feedback feedbackMethod) {
         this.feedbackMethod = feedbackMethod;
     }
 
@@ -86,9 +89,6 @@ public class DrtModeChoiceConfigGroup extends ReflectiveConfigGroupWithConfigura
     public DrtMetricCalculationParamSet getDrtMetricCalculationParamSet() {
         return drtMetricCalculationParamSet;
     }
-
-
-
 
 
 }

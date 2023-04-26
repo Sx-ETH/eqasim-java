@@ -1,6 +1,7 @@
 package org.eqasim.switzerland.drt.travel_times;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+import org.eqasim.switzerland.drt.config_group.DrtModeChoiceConfigGroup;
 
 public class DataStats {
     private double avg = Double.NaN;
@@ -31,24 +32,23 @@ public class DataStats {
         this.max = descStats.getMax();
     }
 
-    public double getStat(String stat) {
+    public double getStat(DrtModeChoiceConfigGroup.Feedback stat) {
         switch (stat) {
-            case "avg":
-            case "average":
+            case average:
                 return avg;
-            case "median":
+            case median:
                 return median;
-            case "min":
+            case min:
                 return min;
-            case "p_5":
+            case p_5:
                 return p_5;
-            case "p_25":
+            case p_25:
                 return p_25;
-            case "p_75":
+            case p_75:
                 return p_75;
-            case "p_95":
+            case p_95:
                 return p_95;
-            case "max":
+            case max:
                 return max;
             default:
                 return Double.NaN;
