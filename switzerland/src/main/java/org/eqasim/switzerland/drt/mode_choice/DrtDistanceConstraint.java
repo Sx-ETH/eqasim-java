@@ -20,9 +20,7 @@ public class DrtDistanceConstraint extends AbstractTripConstraint {
             var start = trip.getOriginActivity().getCoord();
             var stop = trip.getDestinationActivity().getCoord();
 
-            if (CoordUtils.calcEuclideanDistance(start, stop) < 250) {
-                return false;
-            }
+            return !(CoordUtils.calcEuclideanDistance(start, stop) < 250);
         }
 
         return true;

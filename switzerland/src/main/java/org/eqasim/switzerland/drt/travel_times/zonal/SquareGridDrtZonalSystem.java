@@ -24,9 +24,7 @@ public class SquareGridDrtZonalSystem extends GridDrtZonalSystem {
         for (Entry<String, PreparedGeometry> zone : zones.entrySet()) {
 
             double x = zone.getValue().getGeometry().getCentroid().getX();
-            ;
             double y = zone.getValue().getGeometry().getCentroid().getY();
-            ;
 
             // if(x < minX || x > maxX || y > maxY || y < minY)
             if (!(x < bounds[0] || y < bounds[1] || x > bounds[2] || y > bounds[3])) {

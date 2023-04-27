@@ -29,7 +29,7 @@ public class DrtPredictions {
     }
 
     // List containing the predicted variables for each trip
-    private List<DrtTripPrediction> tripPredictions;
+    private final List<DrtTripPrediction> tripPredictions;
 
     @Inject
     public DrtPredictions() {
