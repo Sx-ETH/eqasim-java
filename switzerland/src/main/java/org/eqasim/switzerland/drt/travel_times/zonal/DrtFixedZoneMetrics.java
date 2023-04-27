@@ -65,7 +65,7 @@ public class DrtFixedZoneMetrics {
         return drtTripsByDistanceAndTimeBin;
     }
 
-    private static double[] collectWaitTimes(Set<DrtTripData> drtTrips) {
+    public static double[] collectWaitTimes(Set<DrtTripData> drtTrips) {
         double[] l = new double[drtTrips.size()];
 
         int i = 0;

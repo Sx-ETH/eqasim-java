@@ -135,12 +135,12 @@ public class QuadTree<T> implements Serializable {
         return this.top.get(x, y, new QuadTree.MutableDouble(Double.POSITIVE_INFINITY));
     }
 
-    public List<T> getKNearestNeighbors(final double x, final double y, int k) {
+    public Collection<T> getKNearestNeighbors(final double x, final double y, int k) {
         Point query = new Vector2D(x,y);
         PriorityQueue<Map.Entry<Double, T>> maxHeap = new PriorityQueue<>(
                 Comparator.comparingDouble((Map.Entry<Double, T> entry) -> entry.getKey()).reversed());
         getKNearestNeighborsHelper(top, query, k, maxHeap);
-        List<T> result = new ArrayList<>();
+        Collection<T> result = new ArrayList<>();
         while (!maxHeap.isEmpty()) {
             result.add(maxHeap.poll().getValue());
         }

@@ -2,8 +2,10 @@ package org.eqasim.switzerland.drt.travel_times;
 
 import com.google.inject.Inject;
 import org.apache.log4j.Logger;
+import org.eqasim.switzerland.drt.config_group.DrtDynamicSystemParamSet;
 import org.eqasim.switzerland.drt.config_group.DrtModeChoiceConfigGroup;
 import org.eqasim.switzerland.drt.config_group.DrtZonalSystemParamSet;
+import org.eqasim.switzerland.drt.travel_times.dynamic.DynamicWaitTimeMetrics;
 import org.eqasim.switzerland.drt.travel_times.zonal.*;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Network;
@@ -48,6 +50,8 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
     // These fields are needed in case we use a fixed zonal system as a fallback to compute the global stats
     private DataStats globalWaitingTime = null;
     private DataStats globalDelayFactor = null;
+
+    private DynamicWaitTimeMetrics dynamicWaitTimeMetrics = null;
 
 
     @Inject
@@ -101,17 +105,30 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
 
     }
 
+
+
     public double getWaitTime_sec(DrtRoute route, double departureTime) {
         DrtModeChoiceConfigGroup drtDmcConfig = (DrtModeChoiceConfigGroup) config.getModules().get(DrtModeChoiceConfigGroup.GROUP_NAME);
+        DrtTimeUtils drtTimeUtils = new DrtTimeUtils(drtDmcConfig.getDrtMetricCalculationParamSet().getTimeBinMin());
+        int timeBin = drtTimeUtils.getBinIndex(departureTime);
+        String feedback = drtDmcConfig.getFeedBackMethod();
         if (drtDmcConfig.isUseWaitTime()) {
             if (drtDmcConfig.getDrtMetricCalculationParamSet().getSpatialType().equals("zonalSystem")) {
-                String feedback = drtDmcConfig.getFeedBackMethod();
                 String zone = zones.getZoneForLinkId(route.getStartLinkId());
-                DrtTimeUtils drtTimeUtils = new DrtTimeUtils(drtDmcConfig.getDrtMetricCalculationParamSet().getTimeBinMin());
-                int timeBin = drtTimeUtils.getBinIndex(departureTime);
                 return getWaitTimeFromZoneAndTimeBin(zone, timeBin, feedback, route.getMaxWaitTime());
-            } else if (drtDmcConfig.getDrtMetricCalculationParamSet().getSpatialType().equals("dynamic")) {
-                throw new RuntimeException("Not implemented yet.");
+            } else if (drtDmcConfig.getDrtMetricCalculationParamSet().getSpatialType().equals("dynamicSystem")) {
+                //throw new RuntimeException("Not implemented yet.");
+                //get type of dynamic system
+                DrtDynamicSystemParamSet dynamicParams = drtDmcConfig.getDrtMetricCalculationParamSet().getDrtDynamicSystemParamSet();
+                String dynamicType = dynamicParams.getType();
+                int kValue = dynamicParams.getKvalue();
+                double radius = dynamicParams.getRadius();
+                double kShare = dynamicParams.getkShare();
+                int kMax = dynamicParams.getkMax(); //ToDo need to come up with a suitable reason for choosing a max number of Kvalue
+
+                //get location and time bin of the route and departure time
+                return dynamicWaitTimeMetrics.getDynamicWaitTimeForTimeBin(route, timeBin, dynamicType, kValue, radius, kShare, kMax, feedback);
+
             }
         }
         return route.getMaxWaitTime();
@@ -121,23 +138,23 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
     public void notifyIterationEnds(IterationEndsEvent event) {
         DrtModeChoiceConfigGroup drtDmcConfig = (DrtModeChoiceConfigGroup) config.getModules().get(DrtModeChoiceConfigGroup.GROUP_NAME);
         Set<DrtTripData> drtTrips = trackedTimes.getDrtTrips();
+        Network network = event.getServices().getScenario().getNetwork();
 
         // We always compute the global stats
         this.globalWaitingTime = DrtFixedZoneMetrics.calculateGlobalWaitingTime(drtTrips);
         this.globalDelayFactor = DrtFixedZoneMetrics.calculateGlobalDelayFactor(drtTrips);
 
+        // In case we don't do temporal analysis we need to use one time bin (0-endTime)
+        int timeBinSize_min;
+        if (drtDmcConfig.getDrtMetricCalculationParamSet().getMethod().contains("Temporal")) {
+            timeBinSize_min = drtDmcConfig.getDrtMetricCalculationParamSet().getTimeBinMin();
+        } else {
+            QSimConfigGroup qSimConfigGroup = config.qsim();
+            double endTime_s = qSimConfigGroup.getEndTime().seconds();
+            timeBinSize_min = (int) (endTime_s / 60);
+        }
+
         if (drtDmcConfig.getDrtMetricCalculationParamSet().getSpatialType().equals("zonalSystem")) {
-
-
-            // In case we don't do temporal analysis we need to use one time bin (0-endTime)
-            int timeBinSize_min;
-            if (drtDmcConfig.getDrtMetricCalculationParamSet().getMethod().contains("Temporal")) {
-                timeBinSize_min = drtDmcConfig.getDrtMetricCalculationParamSet().getTimeBinMin();
-            } else {
-                QSimConfigGroup qSimConfigGroup = config.qsim();
-                double endTime_s = qSimConfigGroup.getEndTime().seconds();
-                timeBinSize_min = (int) (endTime_s / 60);
-            }
             // In case we don't do zonal analysis we need to use one distance bin (0-maxDistance)
             int distanceBinSize_m;
             if (drtDmcConfig.getDrtMetricCalculationParamSet().getMethod().contains("Spatio")) {
@@ -151,7 +168,9 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
             this.distanceAndTimeBinDelayFactor = DrtFixedZoneMetrics.calculateDistanceAndTimeBinDelayFactor(drtTrips,
                     distanceBinSize_m, timeBinSize_min);
         } else if (drtDmcConfig.getDrtMetricCalculationParamSet().getSpatialType().equals("dynamic")) {
-            throw new RuntimeException("Not implemented yet");
+
+
+            dynamicWaitTimeMetrics.prepareDynamicLocationsAndTimeBins(drtTrips, timeBinSize_min);
         }
         if (drtDmcConfig.writeDetailedStats()) {
             try {
@@ -315,7 +334,7 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
                 this.zones = new SingleZoneDrtZonalSystem(network);
             }
         } else {
-            throw new IllegalArgumentException("Spatial type not implemented yet!");
+           this.dynamicWaitTimeMetrics = new DynamicWaitTimeMetrics(network) ;
         }
     }
 
