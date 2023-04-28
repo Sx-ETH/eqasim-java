@@ -263,7 +263,17 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
     @Override
     public void notifyStartup(StartupEvent event) {
         DrtModeChoiceConfigGroup drtDmcConfig = (DrtModeChoiceConfigGroup) config.getModules().get(DrtModeChoiceConfigGroup.GROUP_NAME);
-        Network network = event.getServices().getScenario().getNetwork();
+
+        // In case we don't do temporal analysis we need to use one time bin (0-endTime)
+        int timeBinSize_min;
+        if (drtDmcConfig.getDrtMetricCalculationParamSet().getMethod() == DrtMetricCalculationParamSet.Method.SpatioTemporal ||
+                drtDmcConfig.getDrtMetricCalculationParamSet().getMethod() == DrtMetricCalculationParamSet.Method.Temporal) {
+            timeBinSize_min = drtDmcConfig.getDrtMetricCalculationParamSet().getTimeBinMin();
+        } else {
+            QSimConfigGroup qSimConfigGroup = config.qsim();
+            double endTime_s = qSimConfigGroup.getEndTime().seconds();
+            timeBinSize_min = (int) (endTime_s / 60);
+        }
 
         if (drtDmcConfig.getDrtMetricCalculationParamSet().getSpatialType() == DrtMetricCalculationParamSet.SpatialType.ZonalSystem) {
             int distanceBinSize_m;
@@ -293,19 +303,9 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
                 this.zones = new SingleZoneDrtZonalSystem(network);
                 distanceBinSize_m = -1;
             }
-            // In case we don't do temporal analysis we need to use one time bin (0-endTime)
-            int timeBinSize_min;
-            if (drtDmcConfig.getDrtMetricCalculationParamSet().getMethod() == DrtMetricCalculationParamSet.Method.SpatioTemporal ||
-                    drtDmcConfig.getDrtMetricCalculationParamSet().getMethod() == DrtMetricCalculationParamSet.Method.Temporal) {
-                timeBinSize_min = drtDmcConfig.getDrtMetricCalculationParamSet().getTimeBinMin();
-            } else {
-                QSimConfigGroup qSimConfigGroup = config.qsim();
-                double endTime_s = qSimConfigGroup.getEndTime().seconds();
-                timeBinSize_min = (int) (endTime_s / 60);
-            }
             this.fixedZoneMetrics = new DrtFixedZoneMetrics(this.zones, timeBinSize_min, distanceBinSize_m);
         } else {
-           this.dynamicWaitTimeMetrics = new DynamicWaitTimeMetrics(network) ;
+            this.dynamicWaitTimeMetrics = new DynamicWaitTimeMetrics(this.network, timeBinSize_min);
         }
     }
 
