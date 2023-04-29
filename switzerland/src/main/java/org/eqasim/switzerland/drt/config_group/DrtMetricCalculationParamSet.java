@@ -13,6 +13,7 @@ public class DrtMetricCalculationParamSet extends ReflectiveConfigGroupWithConfi
     public static final String TIME_BIN_MINUTE = "timeBinMin";
 
     public static final String DISTANCE_BIN_M = "distanceBin";
+    public static final String LAST_BIN_START_DISTANCE_M = "lastBinStartDistance";
 
     @Nullable
     DrtDynamicSystemParamSet drtDynamicSystem;
@@ -39,6 +40,7 @@ public class DrtMetricCalculationParamSet extends ReflectiveConfigGroupWithConfi
     private SpatialType spatialType = SpatialType.ZonalSystem;
     private int timeBinMin = 30;
     private int distanceBin_m = 1500;
+    private int lastBinStartDistance_m = 10000;
 
     //getters and setters
     @StringGetter(METHOD)
@@ -79,6 +81,16 @@ public class DrtMetricCalculationParamSet extends ReflectiveConfigGroupWithConfi
     @StringSetter(DISTANCE_BIN_M)
     public void setDistanceBin_m(int distanceBin_m) {
         this.distanceBin_m = distanceBin_m;
+    }
+
+    @StringGetter(LAST_BIN_START_DISTANCE_M)
+    public int getLastBinStartDistance_m() {
+        return this.lastBinStartDistance_m;
+    }
+
+    @StringSetter(LAST_BIN_START_DISTANCE_M)
+    public void setLastBinStartDistance_m(int lastBinStartDistance_m) {
+        this.lastBinStartDistance_m = lastBinStartDistance_m;
     }
 
     @Nullable

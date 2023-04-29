@@ -140,7 +140,8 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
             DrtModeChoiceConfigGroup.Feedback feedback = drtDmcConfig.getFeedBackMethod();
             double delayFactor = Double.NaN;
 
-            DrtDistanceBinUtils drtDistanceBinUtils = new DrtDistanceBinUtils(drtDmcConfig.getDrtMetricCalculationParamSet().getDistanceBinMetres());
+            DrtDistanceBinUtils drtDistanceBinUtils = new DrtDistanceBinUtils(drtDmcConfig.getDrtMetricCalculationParamSet().getDistanceBinMetres(),
+                    drtDmcConfig.getDrtMetricCalculationParamSet().getLastBinStartDistance_m());
             Link startLink = this.network.getLinks().get(route.getStartLinkId());
             Link endLink = this.network.getLinks().get(route.getEndLinkId());
             double euclideanDistance = CoordUtils.calcEuclideanDistance(startLink.getCoord(), endLink.getCoord());
@@ -300,7 +301,8 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
             this.zones = new SingleZoneDrtZonalSystem(network);
             distanceBinSize_m = -1;
         }
-        this.fixedZoneMetrics = new DrtFixedZoneMetrics(this.zones, timeBinSize_min, distanceBinSize_m);
+        this.fixedZoneMetrics = new DrtFixedZoneMetrics(this.zones, timeBinSize_min, distanceBinSize_m,
+                drtDmcConfig.getDrtMetricCalculationParamSet().getLastBinStartDistance_m());
     }
 
     @Override
