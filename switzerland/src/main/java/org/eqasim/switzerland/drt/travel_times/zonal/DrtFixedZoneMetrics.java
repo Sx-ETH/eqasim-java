@@ -1,6 +1,7 @@
 package org.eqasim.switzerland.drt.travel_times.zonal;
 
 
+import org.apache.log4j.Logger;
 import org.eqasim.switzerland.drt.config_group.DrtModeChoiceConfigGroup;
 import org.eqasim.switzerland.drt.travel_times.DataStats;
 import org.eqasim.switzerland.drt.travel_times.DrtDistanceBinUtils;
@@ -19,6 +20,7 @@ public class DrtFixedZoneMetrics {
     private final FixedDrtZonalSystem zones;
     private final int timeBinSize_min;
     private final int distanceBinSize_m;
+    private static final Logger logger = Logger.getLogger(DrtFixedZoneMetrics.class);
 
     public DrtFixedZoneMetrics(FixedDrtZonalSystem zones, int timeBinSize_min, int distanceBinSize_m) {
         this.zones = zones;
@@ -33,6 +35,10 @@ public class DrtFixedZoneMetrics {
         Map<String, Set<DrtTripData>[]> drtTripsByZoneAndTimeBin = new HashMap<>();
         for (DrtTripData drtTrip : drtTrips) {
             String zone = zones.getZoneForLinkId(drtTrip.startLinkId);
+            if (zone == null) {
+                logger.warn("No zone found for link " + drtTrip.startLinkId);
+                continue;
+            }
             int timeBin = timeUtils.getBinIndex(drtTrip.startTime);
             if (drtTripsByZoneAndTimeBin.containsKey(zone)) {
                 drtTripsByZoneAndTimeBin.get(zone)[timeBin].add(drtTrip);

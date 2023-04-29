@@ -137,39 +137,35 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
     public double getTravelTime_sec(DrtRoute route, double departureTime) {
         DrtModeChoiceConfigGroup drtDmcConfig = (DrtModeChoiceConfigGroup) config.getModules().get(DrtModeChoiceConfigGroup.GROUP_NAME);
         if (drtDmcConfig.isUseDelayFactor()) {
-            if (drtDmcConfig.getDrtMetricCalculationParamSet().getSpatialType() == DrtMetricCalculationParamSet.SpatialType.ZonalSystem) {
-                DrtModeChoiceConfigGroup.Feedback feedback = drtDmcConfig.getFeedBackMethod();
-                DrtDistanceBinUtils drtDistanceBinUtils = new DrtDistanceBinUtils(drtDmcConfig.getDrtMetricCalculationParamSet().getDistanceBinMetres());
-                Link startLink = this.network.getLinks().get(route.getStartLinkId());
-                Link endLink = this.network.getLinks().get(route.getEndLinkId());
-                double euclideanDistance = CoordUtils.calcEuclideanDistance(startLink.getCoord(), endLink.getCoord());
-                int distanceBin = drtDistanceBinUtils.getBinIndex(euclideanDistance);
+            DrtModeChoiceConfigGroup.Feedback feedback = drtDmcConfig.getFeedBackMethod();
+            double delayFactor = Double.NaN;
 
-                DrtTimeUtils drtTimeUtils = new DrtTimeUtils(drtDmcConfig.getDrtMetricCalculationParamSet().getTimeBinMin());
-                int timeBin = drtTimeUtils.getBinIndex(departureTime);
+            DrtDistanceBinUtils drtDistanceBinUtils = new DrtDistanceBinUtils(drtDmcConfig.getDrtMetricCalculationParamSet().getDistanceBinMetres());
+            Link startLink = this.network.getLinks().get(route.getStartLinkId());
+            Link endLink = this.network.getLinks().get(route.getEndLinkId());
+            double euclideanDistance = CoordUtils.calcEuclideanDistance(startLink.getCoord(), endLink.getCoord());
+            int distanceBin = drtDistanceBinUtils.getBinIndex(euclideanDistance);
 
-                double delayFactor = Double.NaN;
-                DrtMetricSmootheningParamSet smootheningParamSet = drtDmcConfig.getDrtMetricSmootheningParamSet();
-                if (smootheningParamSet.getSmootheningType() == DrtMetricSmootheningParamSet.SmootheningType.IterationBased) {
-                    delayFactor = fixedZoneMetrics.getDelayFactorFromDistanceAndTimeBinIteration(distanceBin, timeBin, feedback);
-                } else if (smootheningParamSet.getSmootheningType() == DrtMetricSmootheningParamSet.SmootheningType.MovingAverage) {
-                    delayFactor = fixedZoneMetrics.getDelayFactorFromDistanceAndTimeBinMoving(distanceBin, timeBin, feedback, smootheningParamSet.getMovingWindow());
-                } else if (smootheningParamSet.getSmootheningType() == DrtMetricSmootheningParamSet.SmootheningType.SuccessiveAverage) {
-                    delayFactor = fixedZoneMetrics.getDelayFactorFromDistanceAndTimeBinSuccessive(distanceBin, timeBin, feedback, smootheningParamSet.getMsaWeight());
-                }
-                if (Double.isNaN(delayFactor)) {
-                    logger.warn("No delay factor for distance bin " + distanceBin + " and time bin " + timeBin +
-                            " found. Falling back to global delay factor.");
-                    if (Double.isNaN(globalDelayFactor.getStat(feedback))) {
-                        logger.warn("No global delay factor found. Falling back to max travel time.");
-                        return route.getMaxTravelTime();
-                    }
-                    return globalWaitingTime.getStat(feedback);
-                }
-                return route.getDirectRideTime() * delayFactor;
-            } else if (drtDmcConfig.getDrtMetricCalculationParamSet().getSpatialType() == DrtMetricCalculationParamSet.SpatialType.DynamicSystem) {
-                throw new RuntimeException("Not implemented yet.");
+            DrtTimeUtils drtTimeUtils = new DrtTimeUtils(drtDmcConfig.getDrtMetricCalculationParamSet().getTimeBinMin());
+            int timeBin = drtTimeUtils.getBinIndex(departureTime);
+
+            DrtMetricSmootheningParamSet smootheningParamSet = drtDmcConfig.getDrtMetricSmootheningParamSet();
+            if (smootheningParamSet.getSmootheningType() == DrtMetricSmootheningParamSet.SmootheningType.IterationBased) {
+                delayFactor = fixedZoneMetrics.getDelayFactorFromDistanceAndTimeBinIteration(distanceBin, timeBin, feedback);
+            } else if (smootheningParamSet.getSmootheningType() == DrtMetricSmootheningParamSet.SmootheningType.MovingAverage) {
+                delayFactor = fixedZoneMetrics.getDelayFactorFromDistanceAndTimeBinMoving(distanceBin, timeBin, feedback, smootheningParamSet.getMovingWindow());
+            } else if (smootheningParamSet.getSmootheningType() == DrtMetricSmootheningParamSet.SmootheningType.SuccessiveAverage) {
+                delayFactor = fixedZoneMetrics.getDelayFactorFromDistanceAndTimeBinSuccessive(distanceBin, timeBin, feedback, smootheningParamSet.getMsaWeight());
             }
+            if (Double.isNaN(delayFactor)) {
+                logger.warn("No delay factor for specific distance and time bin found. Falling back to global delay factor.");
+                if (Double.isNaN(globalDelayFactor.getStat(feedback))) {
+                    logger.warn("No global delay factor found. Falling back to max travel time.");
+                    return route.getMaxTravelTime();
+                }
+                return route.getDirectRideTime() * globalDelayFactor.getStat(feedback);
+            }
+            return route.getDirectRideTime() * delayFactor;
         }
         return route.getMaxTravelTime();
     }
@@ -181,11 +177,9 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
             DrtModeChoiceConfigGroup.Feedback feedback = drtDmcConfig.getFeedBackMethod();
             DrtTimeUtils drtTimeUtils = new DrtTimeUtils(drtDmcConfig.getDrtMetricCalculationParamSet().getTimeBinMin());
             int timeBin = drtTimeUtils.getBinIndex(departureTime);
-
+            double waitTime = Double.NaN;
             if (drtDmcConfig.getDrtMetricCalculationParamSet().getSpatialType() == DrtMetricCalculationParamSet.SpatialType.ZonalSystem) {
                 String zone = zones.getZoneForLinkId(route.getStartLinkId());
-
-                double waitTime = Double.NaN;
                 DrtMetricSmootheningParamSet smootheningParamSet = drtDmcConfig.getDrtMetricSmootheningParamSet();
                 if (smootheningParamSet.getSmootheningType() == DrtMetricSmootheningParamSet.SmootheningType.IterationBased) {
                     waitTime = fixedZoneMetrics.getWaitTimeFromZoneAndTimeBinIteration(zone, timeBin, feedback);
@@ -194,16 +188,6 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
                 } else if (smootheningParamSet.getSmootheningType() == DrtMetricSmootheningParamSet.SmootheningType.SuccessiveAverage) {
                     waitTime = fixedZoneMetrics.getWaitTimeFromZoneAndTimeBinSuccessive(zone, timeBin, feedback, smootheningParamSet.getMsaWeight());
                 }
-                if (Double.isNaN(waitTime)) {
-                    logger.warn("No waiting time data for zone " + zone + " and time bin " + timeBin +
-                            ", falling back to global waiting time");
-                    if (Double.isNaN(globalWaitingTime.getStat(feedback))) {
-                        logger.warn("No global waiting time data, returning maxWaitTime");
-                        return route.getMaxWaitTime();
-                    }
-                    return globalWaitingTime.getStat(feedback);
-                }
-                return waitTime;
             } else if (drtDmcConfig.getDrtMetricCalculationParamSet().getSpatialType() == DrtMetricCalculationParamSet.SpatialType.DynamicSystem) {
                 //get type of dynamic system
                 DrtDynamicSystemParamSet dynamicParams = drtDmcConfig.getDrtMetricCalculationParamSet().getDrtDynamicSystemParamSet();
@@ -214,9 +198,18 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
                 int kMax = dynamicParams.getkMax(); //ToDo need to come up with a suitable reason for choosing a max number of Kvalue
 
                 //get location and time bin of the route and departure time
-                return dynamicWaitTimeMetrics.getDynamicWaitTimeForTimeBin(route, timeBin, dynamicType, kValue, radius, kShare, kMax, feedback);
+                waitTime = dynamicWaitTimeMetrics.getDynamicWaitTimeForTimeBin(route, timeBin, dynamicType, kValue, radius, kShare, kMax, feedback);
 
             }
+            if (Double.isNaN(waitTime)) {
+                logger.warn("No waiting time data for specific zone and time bin found, falling back to global waiting time");
+                if (Double.isNaN(globalWaitingTime.getStat(feedback))) {
+                    logger.warn("No global waiting time data, returning maxWaitTime");
+                    return route.getMaxWaitTime();
+                }
+                return globalWaitingTime.getStat(feedback);
+            }
+            return waitTime;
         }
         return route.getMaxWaitTime();
     }
@@ -230,13 +223,14 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
         this.globalWaitingTime = DrtFixedZoneMetrics.calculateGlobalWaitingTime(drtTrips);
         this.globalDelayFactor = DrtFixedZoneMetrics.calculateGlobalDelayFactor(drtTrips);
 
-        if (drtDmcConfig.getDrtMetricCalculationParamSet().getSpatialType() == DrtMetricCalculationParamSet.SpatialType.ZonalSystem) {
-            // Calculate the zonal and time bin metrics and append them to the ArrayLists
-            this.fixedZoneMetrics.calculateAndAddMetrics(drtTrips);
-        } else if (drtDmcConfig.getDrtMetricCalculationParamSet().getSpatialType() == DrtMetricCalculationParamSet.SpatialType.DynamicSystem) {
+        // Calculate the zonal and time bin metrics and append them to the ArrayLists, we always compute it
+        // because the DF is always computed in a zonal system
+        this.fixedZoneMetrics.calculateAndAddMetrics(drtTrips);
 
+        if (drtDmcConfig.getDrtMetricCalculationParamSet().getSpatialType() == DrtMetricCalculationParamSet.SpatialType.DynamicSystem) {
             dynamicWaitTimeMetrics.prepareDynamicLocationsAndTimeBins(drtTrips);
         }
+
         if (drtDmcConfig.writeDetailedStats()) {
             try {
                 String outputPath = event.getServices().getControlerIO().getIterationFilename(event.getIteration(),
@@ -245,10 +239,8 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
                 outputPath = event.getServices().getControlerIO().getIterationFilename(event.getIteration(),
                         "drt_globalStats.csv");
                 writeGlobalStats(this.globalWaitingTime, this.globalDelayFactor, outputPath);
-                if (drtDmcConfig.getDrtMetricCalculationParamSet().getSpatialType() == DrtMetricCalculationParamSet.SpatialType.ZonalSystem) {
-                    String pathWithoutFileName = event.getServices().getControlerIO().getIterationFilename(event.getIteration(), "");
-                    this.fixedZoneMetrics.writeLastIteration(pathWithoutFileName);
-                }
+                String pathWithoutFileName = event.getServices().getControlerIO().getIterationFilename(event.getIteration(), "");
+                this.fixedZoneMetrics.writeLastIteration(pathWithoutFileName);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -275,38 +267,40 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
             timeBinSize_min = (int) (endTime_s / 60);
         }
 
-        if (drtDmcConfig.getDrtMetricCalculationParamSet().getSpatialType() == DrtMetricCalculationParamSet.SpatialType.ZonalSystem) {
-            int distanceBinSize_m;
-            if (drtDmcConfig.getDrtMetricCalculationParamSet().getMethod() == DrtMetricCalculationParamSet.Method.Spatio ||
-                    drtDmcConfig.getDrtMetricCalculationParamSet().getMethod() == DrtMetricCalculationParamSet.Method.SpatioTemporal) {
-                distanceBinSize_m = drtDmcConfig.getDrtMetricCalculationParamSet().getDistanceBinMetres();
-                DrtZonalSystemParamSet zonalSystemParamSet = drtDmcConfig.getDrtMetricCalculationParamSet().getDrtZonalSystemParamSet();
-                if (zonalSystemParamSet.getZonesGeneration() == DrtZonalSystemParamSet.ZonesGeneration.GridFromNetwork) {
-                    double cellSize = zonalSystemParamSet.getCellSize();
-                    if (zonalSystemParamSet.getZoneShape() == DrtZonalSystemParamSet.ZoneShape.Hexagon) {
-                        this.zones = new HexGridDrtZonalSystem(network, cellSize);
-                    } else if (zonalSystemParamSet.getZoneShape() == DrtZonalSystemParamSet.ZoneShape.Square) {
-                        this.zones = new SquareGridDrtZonalSystem(network, cellSize);
-                    } else {
-                        throw new IllegalArgumentException("Zone shape not implemented yet!");
-                    }
-                } else if (!zonalSystemParamSet.getShapefile().isBlank()) {
-                    this.zones = new TAZDrtZonalSystem(network, zonalSystemParamSet.getShapefile());
-                } else {
-                    throw new IllegalArgumentException("Zonal system type not implemented yet!\n" +
-                            "Please use either GridFromNetwork on ZonesGeneration or specify a Shapefile.");
-                }
-
-            }
-            // In case we don't do spatio analysis, we have to create a zonal system with one zone and one distance bin (0-maxDistance)
-            else {
-                this.zones = new SingleZoneDrtZonalSystem(network);
-                distanceBinSize_m = -1;
-            }
-            this.fixedZoneMetrics = new DrtFixedZoneMetrics(this.zones, timeBinSize_min, distanceBinSize_m);
-        } else {
+        // We prepare the dynamicMetrics in case we want to use them
+        if (drtDmcConfig.getDrtMetricCalculationParamSet().getSpatialType() == DrtMetricCalculationParamSet.SpatialType.DynamicSystem) {
             this.dynamicWaitTimeMetrics = new DynamicWaitTimeMetrics(this.network, timeBinSize_min);
         }
+
+        // We prepare the fixedZoneMetrics because we will use them in any case (the DF is always calculated with them)
+        int distanceBinSize_m;
+        if (drtDmcConfig.getDrtMetricCalculationParamSet().getMethod() == DrtMetricCalculationParamSet.Method.Spatio ||
+                drtDmcConfig.getDrtMetricCalculationParamSet().getMethod() == DrtMetricCalculationParamSet.Method.SpatioTemporal) {
+            distanceBinSize_m = drtDmcConfig.getDrtMetricCalculationParamSet().getDistanceBinMetres();
+            DrtZonalSystemParamSet zonalSystemParamSet = drtDmcConfig.getDrtMetricCalculationParamSet().getDrtZonalSystemParamSet();
+            if (zonalSystemParamSet.getZonesGeneration() == DrtZonalSystemParamSet.ZonesGeneration.GridFromNetwork) {
+                double cellSize = zonalSystemParamSet.getCellSize();
+                if (zonalSystemParamSet.getZoneShape() == DrtZonalSystemParamSet.ZoneShape.Hexagon) {
+                    this.zones = new HexGridDrtZonalSystem(network, cellSize);
+                } else if (zonalSystemParamSet.getZoneShape() == DrtZonalSystemParamSet.ZoneShape.Square) {
+                    this.zones = new SquareGridDrtZonalSystem(network, cellSize);
+                } else {
+                    throw new IllegalArgumentException("Zone shape not implemented yet!");
+                }
+            } else if (!zonalSystemParamSet.getShapefile().isBlank()) {
+                this.zones = new TAZDrtZonalSystem(network, zonalSystemParamSet.getShapefile());
+            } else {
+                throw new IllegalArgumentException("Zonal system type not implemented yet!\n" +
+                        "Please use either GridFromNetwork on ZonesGeneration or specify a Shapefile.");
+            }
+
+        }
+        // In case we don't do spatio analysis, we have to create a zonal system with one zone and one distance bin (0-maxDistance)
+        else {
+            this.zones = new SingleZoneDrtZonalSystem(network);
+            distanceBinSize_m = -1;
+        }
+        this.fixedZoneMetrics = new DrtFixedZoneMetrics(this.zones, timeBinSize_min, distanceBinSize_m);
     }
 
     @Override
