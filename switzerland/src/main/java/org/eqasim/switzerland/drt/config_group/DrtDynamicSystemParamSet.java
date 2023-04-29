@@ -54,15 +54,16 @@ public class DrtDynamicSystemParamSet extends ReflectiveConfigGroupWithConfigura
         this.kvalue = kvalue;
     }
 
-    @StringSetter(RADIUS)
+    @StringGetter(RADIUS)
     public double getRadius() {
         return radius;
     }
 
-    @StringGetter(RADIUS)
+    @StringSetter(RADIUS)
     public void setRadius(double radius) {
         this.radius = radius;
     }
+
     @StringGetter(K_SHARE)
     public double getkShare() {
         return kShare;
