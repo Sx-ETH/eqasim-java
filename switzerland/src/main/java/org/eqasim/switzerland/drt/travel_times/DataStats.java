@@ -13,6 +13,8 @@ public class DataStats {
     private double p_95 = Double.NaN;
     private double max = Double.NaN;
 
+    private double weightedAvg = Double.NaN;
+
     public DataStats() {
     }
 
@@ -30,6 +32,38 @@ public class DataStats {
         this.p_75 = descStats.getPercentile(75);
         this.p_95 = descStats.getPercentile(95);
         this.max = descStats.getMax();
+    }
+
+    public DataStats(double[] stats, double[] distances) {
+        DescriptiveStatistics descStats = new DescriptiveStatistics(stats);
+        this.avg = descStats.getMean();
+        this.median = descStats.getPercentile(50);
+        this.min = descStats.getMin();
+        this.p_5 = descStats.getPercentile(5);
+        this.p_25 = descStats.getPercentile(25);
+        this.p_75 = descStats.getPercentile(75);
+        this.p_95 = descStats.getPercentile(95);
+        this.max = descStats.getMax();
+        this.weightedAvg = getWeightedAverage(stats, distances);
+    }
+
+    private double getWeightedAverage(double[] stats, double[] distances) {
+        double avgSum = 0.0;
+        String decayType = "PowerDecay";
+        for (int i = 0; i< stats.length; i++) {
+            switch (decayType) {
+                case "PowerDecay":
+
+                    break;
+                case "InverseDecay":
+                    break;
+            }
+        }
+        //powerDecay = Sum (value * distance^-2);
+        //inverseDecay = Sum (value * 1/distance);
+        //exponentialDecay = Sum (value * e^ - distance);
+        //spatialCorrelation = *some formula;
+
     }
 
     public double getStat(DrtModeChoiceConfigGroup.Feedback stat) {
