@@ -51,7 +51,8 @@ public class CreateDrtVehicles {
     protected String vehicleName = "drt";
     public static final List<Link> linkList = new LinkedList<>();
 
-    private final Set<Geometry> shapes = new HashSet<>();;
+    private final Set<Geometry> shapes = new HashSet<>();
+    ;
 
     private final static GeometryFactory geometryFactory = new GeometryFactory();
 
@@ -127,16 +128,19 @@ public class CreateDrtVehicles {
                     }
                 }
             }
-            while (!startLink.getAllowedModes().contains(TransportMode.car));
+            while (!startLink.getAllowedModes().contains(TransportMode.car) &&
+                    ((!useBoundary) || (shapes.isEmpty()) ||
+                            (useBoundary && !shapes.isEmpty() && checkLinkId(startLink.getId()))));
             //for multi-modal networks: Only links where cars can ride should be used.
 
             //check for boundary conditions
+            /*
             if(useBoundary && !shapes.isEmpty()){
                 if(!checkLinkId(startLink.getId())){
                     continue;
                 }
 
-            }
+            }*/
 
             vehicles.add(ImmutableDvrpVehicleSpecification.newBuilder().id(Id.create(vehicleName + i, DvrpVehicle.class))
                     .startLinkId(startLink.getId())
@@ -205,7 +209,7 @@ public class CreateDrtVehicles {
         return false;
     }
 
-    public void generateBoundary(URL url){
+    public void generateBoundary(URL url) {
         //private final Set<Geometry> shapes = new HashSet<>();
         try {
             DataStore dataStore = DataStoreFinder.getDataStore(Collections.singletonMap("url", url));
@@ -240,6 +244,7 @@ public class CreateDrtVehicles {
 
         return taxisFile;
     }
+
     public String createVehicles(Population population, String taxisFile) throws CommandLine.ConfigurationException, IOException {
         List<DvrpVehicleSpecification> vehicles;
 
