@@ -35,7 +35,7 @@ public class DrtModeChoiceConfigGroup extends ReflectiveConfigGroupWithConfigura
 
     private boolean writeDetailedStats = true;
 
-    public enum Feedback {average, median, min, p_5, p_25, p_75, p_95, max}
+    public enum Feedback {average, median, min, p_5, p_25, p_75, p_95, max, weightedAverage}
 
     private Feedback feedbackMethod = Feedback.average;
 

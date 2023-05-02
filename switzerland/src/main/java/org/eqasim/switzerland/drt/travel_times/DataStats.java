@@ -55,7 +55,7 @@ public class DataStats {
     private double getWeightedAverage(double[] stats, double[] distances) {
         double avgSum = 0.0;
         double weightSum = 0.0;
-        for (int i = 0; i< stats.length; i++) {
+        for (int i = 0; i < stats.length; i++) {
             switch (decayType) {
                 case POWER_DECAY:
                     avgSum += stats[i] * Math.pow(distances[i], -2);
@@ -74,7 +74,7 @@ public class DataStats {
                     break;
             }
         }
-        return avgSum/weightSum;
+        return avgSum / weightSum;
         //powerDecay = Sum (value * distance^-2);
         //inverseDecay = Sum (value * 1/distance);
         //exponentialDecay = Sum (value * e^ - distance);
@@ -100,6 +100,8 @@ public class DataStats {
                 return p_95;
             case max:
                 return max;
+            case weightedAverage:
+                return weightedAvg;
             default:
                 return Double.NaN;
         }
