@@ -7,6 +7,7 @@ import org.eqasim.switzerland.drt.travel_times.DataStats;
 import org.eqasim.switzerland.drt.travel_times.DrtDistanceBinUtils;
 import org.eqasim.switzerland.drt.travel_times.DrtTimeUtils;
 import org.eqasim.switzerland.drt.travel_times.DrtTripData;
+import org.matsim.api.core.v01.Coord;
 import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.core.utils.io.IOUtils;
 
@@ -91,6 +92,17 @@ public class DrtFixedZoneMetrics {
         int i = 0;
         for (DrtTripData drtTrip : drtTrips) {
             l[i] = drtTrip.waitTime;
+            ++i;
+        }
+        return l;
+    }
+
+    public static double[] collectDistances(Set<DrtTripData> drtTrips, Coord tripCoord) {
+        double[] l = new double[drtTrips.size()];
+
+        int i = 0;
+        for (DrtTripData drtTrip : drtTrips) {
+            l[i] = CoordUtils.calcEuclideanDistance(drtTrip.startCoord, tripCoord);
             ++i;
         }
         return l;

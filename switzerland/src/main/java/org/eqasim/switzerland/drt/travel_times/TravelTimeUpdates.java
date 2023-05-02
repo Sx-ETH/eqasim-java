@@ -197,9 +197,10 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
                 double radius = dynamicParams.getRadius();
                 double kShare = dynamicParams.getkShare();
                 int kMax = dynamicParams.getkMax(); //ToDo need to come up with a suitable reason for choosing a max number of Kvalue
+                DrtDynamicSystemParamSet.DecayType decayType = dynamicParams.getDecayType();
 
                 //get location and time bin of the route and departure time
-                waitTime = dynamicWaitTimeMetrics.getDynamicWaitTimeForTimeBin(route, timeBin, dynamicType, kValue, radius, kShare, kMax, feedback);
+                waitTime = dynamicWaitTimeMetrics.getDynamicWaitTimeForTimeBin(route, timeBin, dynamicType, kValue, radius, kShare, kMax, feedback, decayType);
 
             }
             if (Double.isNaN(waitTime)) {

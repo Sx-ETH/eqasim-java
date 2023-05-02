@@ -1,6 +1,7 @@
 package org.eqasim.switzerland.drt.travel_times;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+import org.eqasim.switzerland.drt.config_group.DrtDynamicSystemParamSet;
 import org.eqasim.switzerland.drt.config_group.DrtModeChoiceConfigGroup;
 
 public class DataStats {
@@ -14,6 +15,8 @@ public class DataStats {
     private double max = Double.NaN;
 
     private double weightedAvg = Double.NaN;
+
+    private DrtDynamicSystemParamSet.DecayType decayType = null;
 
     public DataStats() {
     }
@@ -32,9 +35,11 @@ public class DataStats {
         this.p_75 = descStats.getPercentile(75);
         this.p_95 = descStats.getPercentile(95);
         this.max = descStats.getMax();
+        this.weightedAvg = this.avg; //To feedback weighted average for delay factor that does not have dynamic implementation
     }
 
-    public DataStats(double[] stats, double[] distances) {
+    public DataStats(double[] stats, double[] distances, DrtDynamicSystemParamSet.DecayType decayType) {
+        this.decayType = decayType;
         DescriptiveStatistics descStats = new DescriptiveStatistics(stats);
         this.avg = descStats.getMean();
         this.median = descStats.getPercentile(50);
@@ -49,16 +54,27 @@ public class DataStats {
 
     private double getWeightedAverage(double[] stats, double[] distances) {
         double avgSum = 0.0;
-        String decayType = "PowerDecay";
+        double weightSum = 0.0;
         for (int i = 0; i< stats.length; i++) {
             switch (decayType) {
-                case "PowerDecay":
-
+                case POWER_DECAY:
+                    avgSum += stats[i] * Math.pow(distances[i], -2);
+                    weightSum += Math.pow(distances[i], -2);
                     break;
-                case "InverseDecay":
+                case INVERSE_DECAY:
+                    avgSum += stats[i] * Math.pow(distances[i], -1);
+                    weightSum += Math.pow(distances[i], -1);
+                    break;
+                case EXPONENTIAL_DECAY:
+                    avgSum += stats[i] * Math.exp(-distances[i]);
+                    weightSum += Math.exp(-distances[i]);
+                    break;
+                case SPATIAL_CORRELATION:
+                    //ToDo
                     break;
             }
         }
+        return avgSum/weightSum;
         //powerDecay = Sum (value * distance^-2);
         //inverseDecay = Sum (value * 1/distance);
         //exponentialDecay = Sum (value * e^ - distance);
