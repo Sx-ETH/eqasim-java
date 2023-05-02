@@ -25,7 +25,7 @@ public class DrtMetricCalculationParamSet extends ReflectiveConfigGroupWithConfi
         addDefinition(DrtDynamicSystemParamSet.SET_NAME, DrtDynamicSystemParamSet::new, () -> drtDynamicSystem,
                 params -> drtDynamicSystem = (DrtDynamicSystemParamSet) params);
 
-        addDefinition(DrtZonalSystemParamSet.SET_NAME, DrtZonalSystemParamSet::new, () -> drtDynamicSystem,
+        addDefinition(DrtZonalSystemParamSet.SET_NAME, DrtZonalSystemParamSet::new, () -> drtZonalSystem,
                 params -> drtZonalSystem = (DrtZonalSystemParamSet) params);
 
     }
