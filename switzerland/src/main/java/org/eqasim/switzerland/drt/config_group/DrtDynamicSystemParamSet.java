@@ -15,17 +15,21 @@ public class DrtDynamicSystemParamSet extends ReflectiveConfigGroupWithConfigura
 
     public static final String K_SHARE = "kShare";
     private static final String K_MAX = "kMax";
+    private static final String DECAY_TYPE = "decayType";
 
     @PositiveOrZero
     private int kvalue = 0;
 
     public enum Type {KNN_CN, KNN_PN, FD}
 
+    public enum DecayType {POWER_DECAY, INVERSE_DECAY, EXPONENTIAL_DECAY, SPATIAL_CORRELATION}
+
     private Type type = Type.KNN_CN;
 
     private int kMax = 1000; //max k value that is needed for percentage share
 
     private double kShare = 0.0; //Todo Restriction set
+    private DecayType decayType = DecayType.POWER_DECAY;
 
     @PositiveOrZero
     private double radius = 0.0; //ToDo make -1 to force user to set it?
@@ -82,5 +86,15 @@ public class DrtDynamicSystemParamSet extends ReflectiveConfigGroupWithConfigura
     @StringSetter(K_MAX)
     public void setkMax(int kMax) {
         this.kMax = kMax;
+    }
+
+    @StringGetter(DECAY_TYPE)
+    public DecayType getDecayType() {
+        return decayType;
+    }
+
+    @StringSetter(DECAY_TYPE)
+    public void setDecayType(DecayType decayType) {
+        this.decayType = decayType;
     }
 }
