@@ -113,6 +113,15 @@ public class SwissDrtConfigurator extends SwitzerlandConfigurator {
             calculationParamSet.addParameterSet(new DrtZonalSystemParamSet());
             calculationParamSet.addParameterSet(new DrtDynamicSystemParamSet());
             drtDmcConfig.addParameterSet(calculationParamSet);
+        } else {
+            if (drtDmcConfig.getDrtMetricCalculationParamSet().getDrtZonalSystemParamSet() == null) {
+                DrtZonalSystemParamSet zonalSystemParamSet = new DrtZonalSystemParamSet();
+                drtDmcConfig.getDrtMetricCalculationParamSet().addParameterSet(zonalSystemParamSet);
+            }
+            if (drtDmcConfig.getDrtMetricCalculationParamSet().getDrtDynamicSystemParamSet() == null) {
+                DrtDynamicSystemParamSet dynamicSystemParamSet = new DrtDynamicSystemParamSet();
+                drtDmcConfig.getDrtMetricCalculationParamSet().addParameterSet(dynamicSystemParamSet);
+            }
         }
 
         if (drtDmcConfig.getDrtMetricSmootheningParamSet() == null) {

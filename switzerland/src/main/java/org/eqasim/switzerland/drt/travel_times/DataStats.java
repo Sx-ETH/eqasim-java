@@ -108,11 +108,11 @@ public class DataStats {
     }
 
     public static String getCSVHeader(String separator) {
-        return "avg" + separator + "median" + separator + "min" + separator + "p_5" + separator + "p_25" + separator + "p_75" + separator + "p_95" + separator + "max";
+        return "avg" + separator + "median" + separator + "min" + separator + "p_5" + separator + "p_25" + separator + "p_75" + separator + "p_95" + separator + "max" + separator + "weightedAvg";
     }
 
     public String getCSVLine(String separator) {
-        return avg + separator + median + separator + min + separator + p_5 + separator + p_25 + separator + p_75 + separator + p_95 + separator + max;
+        return avg + separator + median + separator + min + separator + p_5 + separator + p_25 + separator + p_75 + separator + p_95 + separator + max + separator + weightedAvg;
     }
 
     private static double combineIterations(double previousIt, double currentIt, double weight) {

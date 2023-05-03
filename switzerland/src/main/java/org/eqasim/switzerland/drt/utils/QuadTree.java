@@ -167,6 +167,9 @@ public class QuadTree<T> implements Serializable {
             getKNearestNeighborsHelper(node.southeast, query, k, maxHeap);
             getKNearestNeighborsHelper(node.southwest, query, k, maxHeap);
         } else {
+            if (node.leaves == null) {
+                return;
+            }
             for (QuadTree.Leaf<T> leaf : node.leaves) {
                 Point leafCoords = new Vector2D(leaf.x, leaf.y);
 
