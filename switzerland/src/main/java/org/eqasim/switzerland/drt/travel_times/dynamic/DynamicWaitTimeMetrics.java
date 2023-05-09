@@ -52,7 +52,7 @@ public class DynamicWaitTimeMetrics {
             quadTreesByTimeBins.get(timeBin).put(drtTrip.startCoord.getX(), drtTrip.startCoord.getY(), drtTrip);
 
             //Test it got put inside
-            System.out.println(quadTreesByTimeBins.get(timeBin));
+            //System.out.println(quadTreesByTimeBins.get(timeBin));
             //should we get link coords instead of the start?
         }
     }
