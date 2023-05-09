@@ -101,7 +101,7 @@ def zurich_overlay(ax, lakes_path, zurich_districts_path, lake_restriction, numb
 
 def add_scalebar(ax):
     # add scale bar
-    scalebar = ScaleBar(1, font_properties={'size': 20}, location="lower left", frameon=False, box_color=None)
+    scalebar = ScaleBar(1, font_properties={'size': 15}, location="lower left", frameon=False, box_color=None)
     ax.add_artist(scalebar)
     scalebar.get_fixed_value()
     
@@ -118,7 +118,7 @@ def add_north(ax):
     y_max = ax.get_ybound()[1]
     dy = y_max - y_min
 
-    ax.text(x=x_min, y=y_min + dy*0.1, s='N', fontsize=30)
+    ax.text(x=x_min, y=y_min + dy*0.1, s='N', fontsize=15)
     ax.arrow(x=x_min + dx*0.017, y=y_min + dy*0.14, 
            dx=0, dy=0, width=0,
            length_includes_head=False,
@@ -127,9 +127,10 @@ def add_north(ax):
     
     return ax
 
-def plot_zonal_avg(metrics, zones, column, lake_restriction, lakes_path, zurich_districts_path, add_map=True, in_subplot=False):
-    sns.set_context("poster")
+def plot_zonal_avg(metrics, zones, column, lake_restriction, lakes_path, zurich_districts_path, add_map=True, in_subplot=False, vmax=None):
+    
     if not in_subplot:
+        sns.set_context("poster")
         plt.figure(figsize=(13,13))
     fig = plt.gcf()
     ax = plt.gca()
@@ -144,12 +145,12 @@ def plot_zonal_avg(metrics, zones, column, lake_restriction, lakes_path, zurich_
     temp.plot(column, 
               ax=ax, 
              #  vmin=2.0,
-             #  vmax=6.0,
+                vmax=vmax,
               legend=True,
               legend_kwds=dict(label="Average " + column + " [min]",
                                orientation="horizontal",
                                shrink=0.7,
-                               cax=cax
+                               cax=cax,
                                ),
               alpha= 0.7 if add_map else 1.0, 
               cmap='plasma', 
@@ -157,7 +158,11 @@ def plot_zonal_avg(metrics, zones, column, lake_restriction, lakes_path, zurich_
               )
     ax = zurich_overlay(ax,lakes_path, zurich_districts_path, lake_restriction,number_districts=True, district_col="district_id")
     ax = add_scalebar(ax)
-
+    # get color bar
+    cax = fig.axes[-1]
+    cax.tick_params(labelsize=12)
+    # modify font size of color bar
+    cax.xaxis.label.set_size(14)
     # add north arrow
     ax = add_north(ax)
     if add_map:
@@ -183,7 +188,7 @@ def plot_districts_wait_time(it_drt_trips_stats, lake_path, zurich_districts_pat
                               'waitTime', shapely.ops.unary_union([geo for geo in df_districts["geometry"]]),
                              lake_path, zurich_districts_path, add_map=True)
 
-def plot_multigrid_wait_time(grid_sizes, it_drt_trips_stats, zurich_shp_path, lake_path, zurich_districts_path, map_limit=None):
+def plot_multigrid_wait_time(grid_sizes, it_drt_trips_stats, zurich_shp_path, lake_path, zurich_districts_path, map_limit=None, vmax=None):
     """
     Plots the wait time in different grid sizes
     grid_sizes: list of grid sizes
@@ -196,9 +201,11 @@ def plot_multigrid_wait_time(grid_sizes, it_drt_trips_stats, zurich_shp_path, la
     it_drt_trips_stats_gpd = utils.convert_drt_legs_to_gpd(it_drt_trips_stats)
     zurich_shp = gpd.read_file(zurich_shp_path)
     n_sizes = len(grid_sizes)
-    plt.figure(figsize=(13,n_sizes*25))
+    if (n_sizes % 2) == 1:
+        raise ValueError("Number of grid sizes must be even")
+    plt.figure(figsize=(13,n_sizes//2*13))
     for idx,gs in enumerate(grid_sizes,start=0):
-        plt.subplot(n_sizes*2,1,idx*2+1)
+        plt.subplot(n_sizes,2,idx+1)
         grid = utils.create_grid_from_shapefile(zurich_shp_path, gs)
         lake_limit = zurich_shp.loc[0].geometry
         if map_limit:
@@ -207,18 +214,22 @@ def plot_multigrid_wait_time(grid_sizes, it_drt_trips_stats, zurich_shp_path, la
         imputed = impute(it_drt_trips_stats_gpd, grid, "trip_id", "grid_id",fix_by_distance=False).drop("geometry", axis=1)
         metrics = get_metrics_for_zonal_plot(imputed, grid, "grid_id", metrics=["waitTime"])
         plot_zonal_avg(metrics, grid, 'waitTime', 
-                              lake_limit, lake_path, zurich_districts_path, add_map=True, in_subplot=True)
-        plt.title('grid size = ' + str(gs) + 'm')
+                              lake_limit, lake_path, zurich_districts_path, add_map=True, in_subplot=True, vmax=vmax)
+        plt.title('grid size = ' + str(gs) + 'm', fontsize=14)
         
-        plt.subplot(n_sizes*2,1,idx*2+2)
-        sns.set_context('notebook')
+        plt.subplot(n_sizes,2,idx+n_sizes+1)
         grouped_by_n_trips = imputed.groupby('grid_id') \
                                 .agg(columnAvg=('waitTime', 'mean'), nTrips=('trip_id','size'))
         
         x = grouped_by_n_trips.nTrips
         y = grouped_by_n_trips.columnAvg / 60
         sns.regplot(x=x,y=y)
-        plt.ylabel('Waiting time (min)')
+        plt.ylim(0, vmax)
+        plt.ylabel('Waiting time (min)', fontsize=12)
+        plt.xlabel('Number of trips', fontsize=12)
+        plt.title('grid size = ' + str(gs) + 'm', fontsize=14)
+        plt.xticks(fontsize=12)
+        plt.yticks(fontsize=12)
         
     plt.tight_layout()
     plt.show()
@@ -241,7 +252,7 @@ def plot_column_by_trip_density_scatter(drt_legs_with_zone_id, zone_id_field, co
     sns.regplot(x=x,y=y)
 
   
-def plot_OD_delayFactor_heatmaps(it_drt_trips_stats, zones, zones_id_field, filter_router_zeros=False):
+def plot_OD_delayFactor_heatmaps(it_drt_trips_stats, zones, zones_id_field, filter_router_zeros=False, vmin=None, vmax=None):
     """
     Plot the delayFactor heatmap binning by origin and destination
     it_drt_trips_stats: dataframe with drt trips stats from one iteration
@@ -271,22 +282,26 @@ def plot_OD_delayFactor_heatmaps(it_drt_trips_stats, zones, zones_id_field, filt
     to_plot = [average_df_router, average_df_estimated, computed_df_router, computed_df_estimated]
     titles = ['Avg of DF using router', 'Avg of DF using estimation from DRT', 'Computed DF from sum using router', 'Computed DF from sum estimation from DRT']
     
-    fig = plt.figure(figsize=(20,20))
+    fig = plt.figure(figsize=(14,14))
     
     for idx, data in enumerate(to_plot, start=1):
         ax = plt.subplot(2,2,idx)
-        im = ax.matshow(data.values)
+        im = ax.matshow(data.values, vmin=vmin, vmax=vmax)
 
         # Show all ticks and label them with the respective list entries
         #display(data)
-        plt.xticks(np.arange(len(data.columns)), labels=data.columns.values.astype('int'))
-        plt.yticks(np.arange(len(data.index)), labels=data.index.values.astype('int'))
-        plt.xlabel(data.columns.name)
-        plt.ylabel(data.index.name)
+        plt.xticks(np.arange(len(data.columns)), labels=data.columns.values.astype('int'), fontsize=14)
+        plt.yticks(np.arange(len(data.index)), labels=data.index.values.astype('int'), fontsize=14)
+        plt.xlabel(data.columns.name, fontsize=14)
+        plt.ylabel(data.index.name, fontsize=14)
         ax.xaxis.set_ticks_position('bottom')
-        plt.title(titles[idx-1])
+        plt.title(titles[idx-1], fontsize=14)
         cbar = ax.figure.colorbar(im, ax=ax)
-        cbar.ax.set_ylabel('delayFactor', rotation=-90, va="bottom")
+        cbar.ax.set_ylabel('delayFactor', rotation=-90, va="bottom", fontsize=14)
+        cbar.ax.tick_params(labelsize=14)
+        if (len(data.columns) > 20):
+            plt.xticks([])
+            plt.yticks([])
     plt.tight_layout()
     plt.show()
 
@@ -341,8 +356,9 @@ def avg_by_euclidean_distance_bin(drt_trips_stats, column, min_distance=0, max_d
     legs = drt_trips_stats.copy()
     n_bins = (max_distance - min_distance) // bin_distance_m
     distance_bins = [min_distance + i*bin_distance_m for i in range(n_bins + 1)]
-    legs['euclidean_distance'] = np.sqrt((legs.startX - legs.endX)**2 + (legs.startY - legs.endY)**2)
-    legs['distance_bin'] = pd.cut(legs.euclidean_distance, distance_bins).map(lambda x: int((x.left + x.right)/2))
+    if 'euclideanDistance' not in legs.columns:
+        legs['euclideanDistance'] = np.sqrt((legs.startX - legs.endX)**2 + (legs.startY - legs.endY)**2)
+    legs['distance_bin'] = pd.cut(legs.euclideanDistance, distance_bins).map(lambda x: int((x.left + x.right)/2))
     if column == 'compute_total_delay_factor_estimated':
         grouped = legs.groupby(['distance_bin'])['totalTravelTime'].sum() / legs.groupby(['distance_bin'])['estimatedUnsharedTime'].sum()
     elif column == 'compute_total_delay_factor_router':
@@ -351,9 +367,19 @@ def avg_by_euclidean_distance_bin(drt_trips_stats, column, min_distance=0, max_d
         grouped = legs.groupby(['distance_bin'])[column].mean()
     return grouped
 
+def median_by_euclidean_distance_bin(drt_trips_stats, column, min_distance=0, max_distance=5000, bin_distance_m=200):
+    legs = drt_trips_stats.copy()
+    n_bins = (max_distance - min_distance) // bin_distance_m
+    distance_bins = [min_distance + i*bin_distance_m for i in range(n_bins + 1)]
+    if 'euclideanDistance' not in legs.columns:
+        legs['euclideanDistance'] = np.sqrt((legs.startX - legs.endX)**2 + (legs.startY - legs.endY)**2)
+    legs['distance_bin'] = pd.cut(legs.euclideanDistance, distance_bins).map(lambda x: int((x.left + x.right)/2))
+    grouped = legs.groupby(['distance_bin'])[column].median()
+    return grouped
 
-
-def plot_delay_factor(data, start_time, end_time, bin_duration_min, min_distance, max_distance, bin_distance_m, iteration=-1, plot_estimated=True, plot_using_sum=True, filter_router_zeros=False):
+def plot_delay_factor(data, start_time, end_time, bin_duration_min, min_distance, max_distance, bin_distance_m,
+                        iteration=-1, plot_estimated=True, plot_using_sum=True, filter_router_zeros=False,
+                        add_boxplots=False, showfliers=False, ylim=None):
     """
     Plots the delay factor for the DRT trips
     data: dictionary with the output dataframes (must contain drt_trips_stats)
@@ -367,7 +393,12 @@ def plot_delay_factor(data, start_time, end_time, bin_duration_min, min_distance
     plot_estimated: if True, plots the delay factor using the estimated unshared time done by the DRT module (default: True)
     plot_using_sum: if True, plots the delay factor using the sum of the travel times of the legs and the sum of the predicted times(default: True)
     filter_router_zeros: if True, filters out the trips with routerUnsharedTime = 0 (default: False)
+    add_boxplots: if True, adds boxplots for the delay factor (default: False)
+    showfliers: if True, shows the outliers in the boxplots (default: False)
+    ylim: y limits of the plot (default: None)
     """
+    if add_boxplots and (plot_estimated or plot_using_sum):
+        raise ValueError('Cannot add boxplots if plot_estimated or plot_using_sum are True')
     it_drt_trip_stats = data['drt_trips_stats'][iteration].copy(deep=True)
     add_title = ''
     if filter_router_zeros:
@@ -375,61 +406,153 @@ def plot_delay_factor(data, start_time, end_time, bin_duration_min, min_distance
         add_title = ' \n(filtering the trips with 0 predicted time by the router)'
     delayFactor_avg = avg_by_time_bin(it_drt_trip_stats, 'delayFactor', start_time=start_time, 
                                      end_time=end_time, bin_duration_min=bin_duration_min)
-    delayFactorEstimatedDRT_avg = avg_by_time_bin(it_drt_trip_stats, 'delayFactorEstimatedDRT', start_time=start_time, 
+    delayFactor_median = median_by_time_bin(it_drt_trip_stats, 'delayFactor', start_time=start_time, 
                                      end_time=end_time, bin_duration_min=bin_duration_min)
-    delayFactorComputedRouter_avg = avg_by_time_bin(it_drt_trip_stats, 'compute_total_delay_factor_router', start_time=start_time, 
-                                     end_time=end_time, bin_duration_min=bin_duration_min)
-    delayFactorComputedEstimatedDRT_avg = avg_by_time_bin(it_drt_trip_stats, 'compute_total_delay_factor_estimated', start_time=start_time, 
-                                     end_time=end_time, bin_duration_min=bin_duration_min)
+    
     plt.figure(figsize=(15,7.5))
     
     plt.subplot(1,2,1)
     xticks = [z*3600 for z in range(start_time, end_time+1, 2)]
     xticks_labels = [str(z) + 'h' for z in range(start_time, end_time+1, 2)]
+
+    marker = 'o-'
+    linewidth = 2
+
+    if add_boxplots:
+        time_bins_data, time_bins_middle_points, width = get_data_for_boxplot_time_bin(it_drt_trip_stats, 'delayFactor', start_time, end_time, bin_duration_min)
+        plt.boxplot(time_bins_data, positions=time_bins_middle_points, widths=width, showfliers=showfliers,
+                    patch_artist=True, boxprops={'color': 'none', 'facecolor': 'red', 'alpha': 0.25},
+                    medianprops={'color':'navy'},
+                    whiskerprops={'color': 'black', 'linewidth': 0.75})
+        marker = '-'
+        linewidth = 1.5
+
+    plt.plot(delayFactor_avg.index.values, delayFactor_avg.values, marker, color='red', 
+        label='Avg of delay factor using router', linewidth=linewidth, zorder=10)
+
+    if not plot_estimated and not plot_using_sum:
+        plt.plot(delayFactor_median.index.values, delayFactor_median.values, marker, color='navy',
+                label='Median of delay factor using router', linewidth=linewidth, zorder=10)
     
-    plt.plot(delayFactor_avg.index.values, delayFactor_avg.values, ls='-', marker='o', color='#1f77b4', label='Avg of delay factor using router')
+    
     if plot_using_sum:
+        delayFactorComputedRouter_avg = avg_by_time_bin(it_drt_trip_stats, 'compute_total_delay_factor_router', start_time=start_time, 
+                                     end_time=end_time, bin_duration_min=bin_duration_min)
         plt.plot(delayFactorComputedRouter_avg.index.values, delayFactorComputedRouter_avg.values, ls='--', marker='o', color='#1f77b4', label='Computed from sum delay factor using router')
 
     if plot_estimated:
+        delayFactorEstimatedDRT_avg = avg_by_time_bin(it_drt_trip_stats, 'delayFactorEstimatedDRT', start_time=start_time, 
+                                     end_time=end_time, bin_duration_min=bin_duration_min)
         plt.plot(delayFactorEstimatedDRT_avg.index.values, delayFactorEstimatedDRT_avg.values, ls='-', marker='o', color='#ff7f0e', label='Avg of delay factor using estimated from DRT')
         if plot_using_sum:
+            delayFactorComputedEstimatedDRT_avg = avg_by_time_bin(it_drt_trip_stats, 'compute_total_delay_factor_estimated', start_time=start_time, 
+                                     end_time=end_time, bin_duration_min=bin_duration_min)
             plt.plot(delayFactorComputedEstimatedDRT_avg.index.values, delayFactorComputedEstimatedDRT_avg.values, ls='--', marker='o', color='#ff7f0e', label='Computed from sum delay factor using estimated from DRT')
-    plt.legend()
-    plt.xlim(start_time*3600,end_time*3600)
-    plt.xticks(xticks, xticks_labels)
-    plt.title('Delay Factor by departure time' + add_title)
-    plt.ylabel('Delay Factor')
-    plt.xlabel('Time of the day')
+
+    ax = plt.gca()
+    ax.axhline(y=it_drt_trip_stats.delayFactor.mean(), color="black", label='Mean of all times', zorder=10, linewidth=1)
+    ax.axhline(y=it_drt_trip_stats.delayFactor.median(), color="black",ls = '--', label='Median of all times', zorder=10, linewidth=1)
+
+    if ylim is not None:
+        plt.gca().set_ylim(top=ylim)
     
+    plt.xlim(start_time*3600,end_time*3600)
+    plt.xticks(xticks, xticks_labels, fontsize=12)
+    plt.title('Delay Factor by departure time' + add_title)
+    plt.ylabel('Delay Factor', fontsize=12)
+    plt.xlabel('Time of the day', fontsize=12)
+    plt.yticks(fontsize=12)
+    
+    plt.legend(fontsize=12)
+
     plt.subplot(1,2,2)
     
     delayFactor_avg = avg_by_euclidean_distance_bin(it_drt_trip_stats, 'delayFactor', min_distance=min_distance, 
                                      max_distance=max_distance, bin_distance_m=bin_distance_m)
-    delayFactorEstimatedDRT_avg = avg_by_euclidean_distance_bin(it_drt_trip_stats, 'delayFactorEstimatedDRT', min_distance=min_distance, 
-                                     max_distance=max_distance, bin_distance_m=bin_distance_m)
-    delayFactorComputedRouter_avg = avg_by_euclidean_distance_bin(it_drt_trip_stats, 'compute_total_delay_factor_router', min_distance=min_distance, 
-                                     max_distance=max_distance, bin_distance_m=bin_distance_m)
-    delayFactorComputedEstimatedDRT_avg = avg_by_euclidean_distance_bin(it_drt_trip_stats, 'compute_total_delay_factor_estimated',min_distance=min_distance, 
-                                     max_distance=max_distance, bin_distance_m=bin_distance_m)
-    plt.plot(np.array(delayFactor_avg.index.values)/1000, delayFactor_avg.values, ls='-', marker='o', color='#1f77b4', label='Avg of delay factor using router')
+    delayFactor_median = median_by_euclidean_distance_bin(it_drt_trip_stats, 'delayFactor', min_distance=min_distance,
+                                        max_distance=max_distance, bin_distance_m=bin_distance_m)
+    
+    if add_boxplots:
+        distance_bins_data, distance_bins_middle_points, width = get_data_for_boxplot_distance_bin(it_drt_trip_stats, 'delayFactor', min_distance, max_distance, bin_distance_m)
+        plt.boxplot(distance_bins_data, positions=[t/1000 for t in distance_bins_middle_points], widths=width/1000, showfliers=showfliers,
+                    patch_artist=True, boxprops={'color': 'none', 'facecolor': 'red', 'alpha': 0.25},
+                    medianprops={'color':'navy'},
+                    whiskerprops={'color': 'black', 'linewidth': 0.75})
+
+    plt.plot(np.array(delayFactor_avg.index.values)/1000, delayFactor_avg.values, marker, color='red',
+                    label='Avg of delay factor using router', linewidth=linewidth, zorder=10)
+    if not plot_estimated and not plot_using_sum:
+        plt.plot(np.array(delayFactor_median.index.values)/1000, delayFactor_median.values, marker, color='navy',
+                label='Median of delay factor using router', linewidth=linewidth, zorder=10)
+
     if plot_using_sum:
+        delayFactorComputedRouter_avg = avg_by_euclidean_distance_bin(it_drt_trip_stats, 'compute_total_delay_factor_router', min_distance=min_distance, 
+                                     max_distance=max_distance, bin_distance_m=bin_distance_m)
         plt.plot(np.array(delayFactorComputedRouter_avg.index.values)/1000, delayFactorComputedRouter_avg.values, ls='--', marker='o', color='#1f77b4', label='Computed from sum delay factor using router')
     if plot_estimated:
+        delayFactorEstimatedDRT_avg = avg_by_euclidean_distance_bin(it_drt_trip_stats, 'delayFactorEstimatedDRT', min_distance=min_distance, 
+                                     max_distance=max_distance, bin_distance_m=bin_distance_m)
         plt.plot(np.array(delayFactorEstimatedDRT_avg.index.values)/1000, delayFactorEstimatedDRT_avg.values, ls='-', marker='o', color='#ff7f0e', label='Avg of delay factor using estimated from DRT')
         if plot_using_sum:
+            delayFactorComputedEstimatedDRT_avg = avg_by_euclidean_distance_bin(it_drt_trip_stats, 'compute_total_delay_factor_estimated',min_distance=min_distance, 
+                                     max_distance=max_distance, bin_distance_m=bin_distance_m)
             plt.plot(np.array(delayFactorComputedEstimatedDRT_avg.index.values)/1000, delayFactorComputedEstimatedDRT_avg.values, ls='--', marker='o', color='#ff7f0e', label='Computed from sum delay factor using estimated from DRT')
 
-    plt.legend()
+    ax = plt.gca()
+    ax.axhline(y=it_drt_trip_stats.delayFactor.mean(), color="black", label='Mean of all times', zorder=10, linewidth=1)
+    ax.axhline(y=it_drt_trip_stats.delayFactor.median(), color="black",ls = '--', label='Median of all times', zorder=10, linewidth=1)
+
+    plt.legend(fontsize=12, loc='upper left')
     plt.title('Delay Factor by euclidean distance' + add_title)
-    plt.xlabel('Euclidean distance (km)')
-    plt.ylabel('Delay Factor')
-    
-    plt.tight_layout()
+    plt.xlabel('Euclidean distance (km)', fontsize=12)
+    plt.ylabel('Delay Factor', fontsize=12)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    #plt.tight_layout()
     plt.show()
     
+def plot_delay_factor_scatter(data, iteration=-1):
+    """
+    Plot the waiting time scatter plot
+    data: dictionary with the output dataframes (must contain drt_trips_stats)
+    iteration: iteration to plot, -1 for the last one
+    """
+    it_drt_trip_stats = data['drt_trips_stats'][iteration]
 
-def plot_df_multiple_time_bins(data, start_time, end_time, bin_durations_min, iteration=-1, plot_estimated=True, plot_using_sum=True, filter_router_zeros=False):
+    plt.figure(figsize=(15, 7.5))
+
+    plt.subplot(1,2,1)
+    x = it_drt_trip_stats['startTime']
+    y = it_drt_trip_stats['delayFactor']
+    plt.scatter(x,y, marker='x')
+    # Calculate Pearson correlation coefficient
+    corr_coef = np.corrcoef(x, y)[0, 1]
+
+    xticks = [z*3600 for z in range(0, 25, 2)]
+    xticks_labels = [str(z) + 'h' for z in range(0, 25, 2)]
+    plt.xticks(xticks, xticks_labels, fontsize=12)
+    plt.title('Delay factor vs start time')
+    plt.ylabel('Delay factor', fontsize=12)
+    plt.xlabel('Time of the day', fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.text(0.95, 0.95, f'Pearson Corr:\n{corr_coef:.2f}', transform=plt.gca().transAxes, fontsize=12,
+                verticalalignment='top', horizontalalignment='right', bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
+    
+    plt.subplot(1,2,2)
+    x = it_drt_trip_stats['euclideanDistance'] / 1000
+    plt.scatter(x,y, marker='x')
+    # Calculate Pearson correlation coefficient
+    corr_coef = np.corrcoef(x, y)[0, 1]
+    plt.xticks(fontsize=12)
+    plt.title('Delay factor vs euclidean distance')
+    plt.xlabel('Euclidean distance (km)', fontsize=12)
+    plt.ylabel('Delay factor', fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.text(0.95, 0.95, f'Pearson Corr:\n{corr_coef:.2f}', transform=plt.gca().transAxes, fontsize=12,
+                verticalalignment='top', horizontalalignment='right', bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
+    plt.show()
+
+def plot_df_multiple_time_bins(data, start_time, end_time, bin_durations_min, iteration=-1, plot_estimated=True, plot_using_sum=True, filter_router_zeros=False, add_boxplots=False, showfliers=False):
     """
     Plot the delay factor for multiple time bins
     data: dictionary with the output dataframes (must contain drt_trips_stats)
@@ -440,48 +563,79 @@ def plot_df_multiple_time_bins(data, start_time, end_time, bin_durations_min, it
     plot_estimated: if True, plots the delay factor using the estimated unshared time done by the DRT module (default: True)
     plot_using_sum: if True, plots the delay factor using the sum of the travel times of the legs and the sum of the predicted times(default: True)
     filter_router_zeros: if True, filters out the trips with routerUnsharedTime = 0 (default: False)
+    add_boxplots: if True, adds boxplots for each time bin (default: False)
+    showfliers: if True, shows the outliers in the boxplots (default: False)
     """
+    if add_boxplots and (plot_estimated or plot_using_sum):
+        raise ValueError('Cannot add boxplots if plot_estimated or plot_using_sum are True')
     it_drt_trip_stats = data['drt_trips_stats'][iteration]
     add_title = ''
     if filter_router_zeros:
         it_drt_trip_stats = it_drt_trip_stats[it_drt_trip_stats.routerUnsharedTime != 0]
         add_title = ' \n(filtering the trips with 0 predicted time by the router)'
     n_rows = (len(bin_durations_min) - 1) // 2 + 1
+
     plt.figure(figsize=(15, n_rows * 7.5))
     
     xticks = [z*3600 for z in range(start_time, end_time+1, 2)]
     xticks_labels = [str(z) + 'h' for z in range(start_time, end_time+1, 2)]
+
+    marker = 'o-'
+    linewidth = 2
+    if add_boxplots:
+        marker = '-'
+        linewidth = 1.5
     
     for idx,time_bin in enumerate(bin_durations_min, start=1):
         delayFactor_avg = avg_by_time_bin(it_drt_trip_stats, 'delayFactor', start_time=start_time, 
                                      end_time=end_time, bin_duration_min=time_bin)
-        delayFactorEstimatedDRT_avg = avg_by_time_bin(it_drt_trip_stats, 'delayFactorEstimatedDRT', start_time=start_time, 
-                                         end_time=end_time, bin_duration_min=time_bin)
-        delayFactorComputedRouter_avg = avg_by_time_bin(it_drt_trip_stats, 'compute_total_delay_factor_router', start_time=start_time, 
-                                         end_time=end_time, bin_duration_min=time_bin)
-        delayFactorComputedEstimatedDRT_avg = avg_by_time_bin(it_drt_trip_stats, 'compute_total_delay_factor_estimated', start_time=start_time, 
-                                         end_time=end_time, bin_duration_min=time_bin)
+        delayFactor_median = median_by_time_bin(it_drt_trip_stats, 'delayFactor', start_time=start_time, 
+                                     end_time=end_time, bin_duration_min=time_bin)
     
         plt.subplot(n_rows,2,idx)
-        plt.plot(delayFactor_avg.index.values, delayFactor_avg.values, ls='-', marker='o', color='#1f77b4', label='Avg of delay factor using router')
+        plt.plot(delayFactor_avg.index.values, delayFactor_avg.values, marker, linewidth=linewidth,
+            color='red', label='Avg of delay factor using router', zorder=10)
+        if not plot_estimated and not plot_using_sum:
+            plt.plot(delayFactor_median.index.values, delayFactor_median.values, marker, color='navy',
+                    label='Median of delay factor using router', linewidth=linewidth, zorder=10)
+        
+        if add_boxplots:
+            time_bins_data, time_bins_middle_points, width = get_data_for_boxplot_time_bin(it_drt_trip_stats, 'delayFactor', start_time, end_time, time_bin)
+            plt.boxplot(time_bins_data, positions=time_bins_middle_points, widths=width, showfliers=showfliers,
+                        patch_artist=True, boxprops={'color': 'none', 'facecolor': 'red', 'alpha': 0.25},
+                        medianprops={'color':'navy'},
+                        whiskerprops={'color': 'black', 'linewidth': 0.75})
+
         if plot_using_sum:
+            delayFactorComputedRouter_avg = avg_by_time_bin(it_drt_trip_stats, 'compute_total_delay_factor_router', start_time=start_time, 
+                                         end_time=end_time, bin_duration_min=time_bin)
             plt.plot(delayFactorComputedRouter_avg.index.values, delayFactorComputedRouter_avg.values, ls='--', marker='o', color='#1f77b4', label='Computed from sum delay factor using router')
         if plot_estimated:
+            delayFactorEstimatedDRT_avg = avg_by_time_bin(it_drt_trip_stats, 'delayFactorEstimatedDRT', start_time=start_time, 
+                                         end_time=end_time, bin_duration_min=time_bin)
             plt.plot(delayFactorEstimatedDRT_avg.index.values, delayFactorEstimatedDRT_avg.values, ls='-', marker='o', color='#ff7f0e', label='Avg of delay factor using estimated from DRT')
             if plot_using_sum:
+                delayFactorComputedEstimatedDRT_avg = avg_by_time_bin(it_drt_trip_stats, 'compute_total_delay_factor_estimated', start_time=start_time, 
+                                         end_time=end_time, bin_duration_min=time_bin)
                 plt.plot(delayFactorComputedEstimatedDRT_avg.index.values, delayFactorComputedEstimatedDRT_avg.values, ls='--', marker='o', color='#ff7f0e', label='Computed from sum delay factor using estimated from DRT')
         
-        plt.legend()
+        ax = plt.gca()
+        ax.axhline(y=it_drt_trip_stats.delayFactor.mean(), color="black", label='Mean of all times', zorder=10, linewidth=1)
+        ax.axhline(y=it_drt_trip_stats.delayFactor.median(), color="black",ls = '--', label='Median of all times', zorder=10, linewidth=1)
+
+
+        plt.legend(fontsize=12)
         plt.xlim(start_time*3600,end_time*3600)
-        plt.xticks(xticks, xticks_labels)
+        plt.xticks(xticks, xticks_labels, fontsize=12)
         plt.title('Delay Factor by departure time' + add_title + '\nTime bin = ' + str(time_bin) + ' min')
-        plt.ylabel('Delay Factor')
-        plt.xlabel('Time of the day')
+        plt.ylabel('Delay Factor', fontsize=12)
+        plt.xlabel('Time of the day', fontsize=12)
+        plt.yticks(fontsize=12)
     
     plt.tight_layout()
     plt.show()
         
-def plot_df_multiple_distance_bins(data,  min_distance, max_distance, bin_distances_m, iteration=-1, plot_estimated=True, plot_using_sum=True, filter_router_zeros=False):
+def plot_df_multiple_distance_bins(data,  min_distance, max_distance, bin_distances_m, iteration=-1, plot_estimated=True, plot_using_sum=True, filter_router_zeros=False, add_boxplots=False, showfliers=False):
     """
     Plot the delay factor for multiple distance bins
     data: dictionary with the output dataframes (must contain drt_trips_stats)
@@ -492,7 +646,11 @@ def plot_df_multiple_distance_bins(data,  min_distance, max_distance, bin_distan
     plot_estimated: if True, plots the delay factor using the estimated unshared time done by the DRT module (default: True)
     plot_using_sum: if True, plots the delay factor using the sum of the travel times of the legs and the sum of the predicted times(default: True)
     filter_router_zeros: if True, filters out the trips with routerUnsharedTime = 0 (default: False)
+    add_boxplots: if True, adds boxplots for each distance bin (default: False)
+    showfliers: if True, shows the outliers in the boxplots (default: False)
     """
+    if add_boxplots and (plot_estimated or plot_using_sum):
+        raise ValueError('Cannot add boxplots if plot_estimated or plot_using_sum are True')
     it_drt_trip_stats = data['drt_trips_stats'][iteration]
     add_title = ''
     if filter_router_zeros:
@@ -500,36 +658,84 @@ def plot_df_multiple_distance_bins(data,  min_distance, max_distance, bin_distan
         add_title = ' \n(filtering the trips with 0 predicted time by the router)'
     n_rows = (len(bin_distances_m) - 1) // 2 + 1
     plt.figure(figsize=(15, n_rows * 7.5))
+
+    marker = 'o-'
+    linewidth = 2
+    if add_boxplots:
+        marker = '-'
+        linewidth = 1.5
     
     for idx,distance_bin in enumerate(bin_distances_m, start=1):
         delayFactor_avg = avg_by_euclidean_distance_bin(it_drt_trip_stats, 'delayFactor', min_distance=min_distance, 
                                      max_distance=max_distance, bin_distance_m=distance_bin)
-        delayFactorEstimatedDRT_avg = avg_by_euclidean_distance_bin(it_drt_trip_stats, 'delayFactorEstimatedDRT', min_distance=min_distance, 
-                                         max_distance=max_distance, bin_distance_m=distance_bin)
-        delayFactorComputedRouter_avg = avg_by_euclidean_distance_bin(it_drt_trip_stats, 'compute_total_delay_factor_router', min_distance=min_distance, 
-                                         max_distance=max_distance, bin_distance_m=distance_bin)
-        delayFactorComputedEstimatedDRT_avg = avg_by_euclidean_distance_bin(it_drt_trip_stats, 'compute_total_delay_factor_estimated',min_distance=min_distance, 
-                                         max_distance=max_distance, bin_distance_m=distance_bin)
+        delayFactor_median = median_by_euclidean_distance_bin(it_drt_trip_stats, 'delayFactor', min_distance=min_distance,
+                                        max_distance=max_distance, bin_distance_m=distance_bin)
         plt.subplot(n_rows,2,idx)
-
-        plt.plot(np.array(delayFactor_avg.index.values)/1000, delayFactor_avg.values, ls='-', marker='o', color='#1f77b4', label='Avg of delay factor using router')
+     
+        plt.plot(np.array(delayFactor_avg.index.values)/1000, delayFactor_avg.values, marker, color='red',
+                    label='Avg of delay factor using router', linewidth=linewidth, zorder=10)
+        if not plot_estimated and not plot_using_sum:
+            plt.plot(np.array(delayFactor_median.index.values)/1000, delayFactor_median.values, marker, color='navy',
+                    label='Median of delay factor using router', linewidth=linewidth, zorder=10)
+        
+        if add_boxplots:
+            distance_bins_data, distance_bins_middle_points, width = get_data_for_boxplot_distance_bin(it_drt_trip_stats, 'delayFactor', min_distance, max_distance, distance_bin)
+            plt.boxplot(distance_bins_data, positions=[t/1000 for t in distance_bins_middle_points], widths=width/1000, showfliers=showfliers,
+                        patch_artist=True, boxprops={'color': 'none', 'facecolor': 'red', 'alpha': 0.25},
+                        medianprops={'color':'navy'},
+                        whiskerprops={'color': 'black', 'linewidth': 0.75})
+        
         if plot_using_sum:
+            delayFactorComputedRouter_avg = avg_by_euclidean_distance_bin(it_drt_trip_stats, 'compute_total_delay_factor_router', min_distance=min_distance, 
+                                         max_distance=max_distance, bin_distance_m=distance_bin)
             plt.plot(np.array(delayFactorComputedRouter_avg.index.values)/1000, delayFactorComputedRouter_avg.values, ls='--', marker='o', color='#1f77b4', label='Computed from sum delay factor using router')
         if plot_estimated:
+            delayFactorEstimatedDRT_avg = avg_by_euclidean_distance_bin(it_drt_trip_stats, 'delayFactorEstimatedDRT', min_distance=min_distance, 
+                                         max_distance=max_distance, bin_distance_m=distance_bin)
             plt.plot(np.array(delayFactorEstimatedDRT_avg.index.values)/1000, delayFactorEstimatedDRT_avg.values, ls='-', marker='o', color='#ff7f0e', label='Avg of delay factor using estimated from DRT')
             if plot_using_sum:
+                delayFactorComputedEstimatedDRT_avg = avg_by_euclidean_distance_bin(it_drt_trip_stats, 'compute_total_delay_factor_estimated',min_distance=min_distance, 
+                                         max_distance=max_distance, bin_distance_m=distance_bin)
                 plt.plot(np.array(delayFactorComputedEstimatedDRT_avg.index.values)/1000, delayFactorComputedEstimatedDRT_avg.values, ls='--', marker='o', color='#ff7f0e', label='Computed from sum delay factor using estimated from DRT')
         
-        plt.legend()
+        ax = plt.gca()
+        ax.axhline(y=it_drt_trip_stats.delayFactor.mean(), color="black", label='Mean of all times', zorder=10, linewidth=1)
+        ax.axhline(y=it_drt_trip_stats.delayFactor.median(), color="black",ls = '--', label='Median of all times', zorder=10, linewidth=1)
+
+        plt.legend(fontsize=12, loc='upper left')
         plt.title('Delay Factor by euclidean distance' + add_title + '\nDistance bin = ' + str(distance_bin) + 'm')
-        plt.xlabel('Euclidean distance (km)')
-        plt.ylabel('Delay Factor')
+        plt.xlabel('Euclidean distance (km)', fontsize=12)
+        plt.ylabel('Delay Factor', fontsize=12)
+        x_ticks = np.arange(0, max_distance + 1, 1000)
+        plt.xticks(x_ticks/1000, x_ticks/1000, fontsize=12)       
+        plt.yticks(fontsize=12)
     
-    plt.tight_layout()
     plt.show()
 
+def get_data_for_boxplot_time_bin(it_drt_trip_stats, column, start_time, end_time, bin_duration_min):
+    legs = it_drt_trip_stats.copy(deep=True)
+    n_time_bins = (end_time - start_time) * 60 // bin_duration_min
+    time_bins = [start_time*3600 + i*bin_duration_min*60 for i in range(0,n_time_bins+1)]
+    legs['time_bin'] = pd.cut(legs.startTime, time_bins).map(lambda x: int((x.left + x.right)/2))
+
+    time_bins_middle_points = [int((time_bins[i] + time_bins[i+1])/2) for i in range(len(time_bins)-1)]
+    time_bins_data = [legs[legs.time_bin == t][column].values for t in time_bins_middle_points]
+    width = (time_bins_middle_points[1] - time_bins_middle_points[0]) * 0.5
+    return time_bins_data, time_bins_middle_points, width
+
+def get_data_for_boxplot_distance_bin(it_drt_trip_stats, column, min_distance, max_distance, bin_distance_m):
+    legs = it_drt_trip_stats.copy(deep=True)
+    n_distance_bins = (max_distance - min_distance) // bin_distance_m
+    distance_bins = [min_distance + i*bin_distance_m for i in range(n_distance_bins + 1)]
+    legs['distance_bin'] = pd.cut(legs.euclideanDistance, distance_bins).map(lambda x: int((x.left + x.right)/2))
+
+    distance_bins_middle_points = [int((distance_bins[i] + distance_bins[i+1])/2) for i in range(len(distance_bins)-1)]
+    distance_bins_data = [legs[legs.distance_bin == t][column].values for t in distance_bins_middle_points]
+    width = (distance_bins_middle_points[1] - distance_bins_middle_points[0]) * 0.5
+    return distance_bins_data, distance_bins_middle_points, width
     
-def plot_waiting_time(data, start_time, end_time, bin_duration_min, min_distance, max_distance, bin_distance_m, iteration=-1, filter_router_zeros=False):
+def plot_waiting_time(data, start_time, end_time, bin_duration_min, min_distance, max_distance, bin_distance_m,
+                        iteration=-1, filter_router_zeros=False, add_boxplots=False, showfliers=False, ylim=None):
     """
     Plot the waiting time for a given time bin and a given distance bin
     data: dictionary with the output dataframes (must contain drt_trips_stats)
@@ -541,6 +747,9 @@ def plot_waiting_time(data, start_time, end_time, bin_duration_min, min_distance
     bin_distance_m: distances of the distance bin (in meters)
     iteration: iteration to plot, -1 for the last one
     filter_router_zeros: if True, filters out the trips with routerUnsharedTime = 0 (default: False)
+    add_boxplots: if True, adds boxplots for the waiting time (default: False)
+    showfliers: if True, shows the outliers in the boxplots (default: False)
+    ylim: superior y limit of the plot (default: None)
     """
     it_drt_trip_stats = data['drt_trips_stats'][iteration]
     add_title = ''
@@ -559,31 +768,117 @@ def plot_waiting_time(data, start_time, end_time, bin_duration_min, min_distance
     plt.subplot(1,2,1)
     xticks = [z*3600 for z in range(start_time, end_time+1, 2)]
     xticks_labels = [str(z) + 'h' for z in range(start_time, end_time+1, 2)]
+    marker = 'o-'
+    linewidth = 2
+    if add_boxplots:
+        time_bins_data, time_bins_middle_points, width = get_data_for_boxplot_time_bin(it_drt_trip_stats, 'waitTime', start_time, end_time, bin_duration_min)
+        plt.boxplot([t/60 for t in time_bins_data], positions=time_bins_middle_points, widths=width, showfliers=showfliers,
+                    patch_artist=True, boxprops={'color': 'none', 'facecolor': 'red', 'alpha': 0.25},
+                    medianprops={'color':'navy'},
+                    whiskerprops={'color': 'black', 'linewidth': 0.75})
+        linewidth = 1.5
+        marker = '-'
     
-    plt.plot(waitTime_avg.index.values, waitTime_avg.values/60, 'o-', label='Avg of wait time')
-    plt.plot(waitTime_median.index.values, waitTime_median.values/60, 'o-', label='Median of wait time')
-    plt.xlim(start_time*3600,end_time*3600)
-    plt.xticks(xticks, xticks_labels)
-    plt.title('Wait time by departure time' + add_title)
-    plt.ylabel('Wait time (min)')
-    plt.xlabel('Time of the day')
+    plt.plot(waitTime_avg.index.values, waitTime_avg.values/60, marker, 
+                color='red',label='Avg of wait time', linewidth=linewidth, zorder=10)
+    plt.plot(waitTime_median.index.values, waitTime_median.values/60, marker,
+                color='navy',label='Median of wait time', linewidth=linewidth, zorder=10)
+
     ax = plt.gca()
-    ax.axhline(y=it_drt_trip_stats.waitTime.mean()/60, color="black", label='Mean of all times')
-    ax.axhline(y=it_drt_trip_stats.waitTime.median()/60, color="black",ls = '--', label='Median of all times')
-    plt.legend()
+    ax.axhline(y=it_drt_trip_stats.waitTime.mean()/60, color="black", label='Mean of all times', zorder=10, linewidth=1)
+    ax.axhline(y=it_drt_trip_stats.waitTime.median()/60, color="black",ls = '--', label='Median of all times', zorder=10, linewidth=1)
+
+    plt.gca().set_ylim(bottom=0)
+    if ylim is not None:
+        plt.ylim(0,ylim)
+    plt.xlim(start_time*3600,end_time*3600)
+    plt.xticks(xticks, xticks_labels, fontsize=12)
+    plt.title('Wait time by departure time' + add_title)
+    plt.ylabel('Wait time (min)', fontsize=12)
+    plt.xlabel('Time of the day', fontsize=12)
+    plt.yticks(fontsize=12)
+    
+    plt.legend(loc='upper left', fontsize=12)
+    
     
     plt.subplot(1,2,2)
     waitTime_avg = avg_by_euclidean_distance_bin(it_drt_trip_stats, 'waitTime', min_distance=min_distance, 
                                      max_distance=max_distance, bin_distance_m=bin_distance_m)
-    plt.plot(np.array(waitTime_avg.index.values) / 1000, waitTime_avg.values/60, 'o-', label='Avg of wait time')
+    waitTime_median = median_by_euclidean_distance_bin(it_drt_trip_stats, 'waitTime', min_distance=min_distance, 
+                                     max_distance=max_distance, bin_distance_m=bin_distance_m)
+
+    if add_boxplots:
+        distance_bins_data, distance_bins_middle_points, width = get_data_for_boxplot_distance_bin(it_drt_trip_stats, 'waitTime', min_distance, max_distance, bin_distance_m)
+        plt.boxplot([t/60 for t in distance_bins_data], positions=[t/1000 for t in distance_bins_middle_points], widths=width/1000, showfliers=showfliers,
+                    patch_artist=True, boxprops={'color': 'none', 'facecolor': 'red', 'alpha': 0.25},
+                    medianprops={'color':'navy'},
+                    whiskerprops={'color': 'black', 'linewidth': 0.75})
+            
+    plt.plot(np.array(waitTime_avg.index.values) / 1000, waitTime_avg.values/60, marker, 
+            color='red', linewidth=linewidth, label='Avg of wait time', zorder=10)
+    plt.plot(np.array(waitTime_median.index.values) / 1000, waitTime_median.values/60, marker,
+            color='navy', linewidth=linewidth, label='Median of wait time', zorder=10)
+    plt.gca().set_ylim(bottom=0)
+    if ylim is not None:
+        plt.ylim(0,ylim)
+    ax = plt.gca()
+    ax.axhline(y=it_drt_trip_stats.waitTime.mean()/60, color="black", label='Mean of all distances', zorder=10, linewidth=1)
+    ax.axhline(y=it_drt_trip_stats.waitTime.median()/60, color="black",ls = '--', label='Median of all distances', zorder=10, linewidth=1)
+
     plt.title('Wait time by euclidean distance' + add_title)
-    plt.xlabel('Euclidean distance (km)')
-    plt.ylabel('Wait time (min)')
-    plt.legend()
+    plt.xlabel('Euclidean distance (km)', fontsize=12)
+    plt.ylabel('Wait time (min)', fontsize=12)
+    plt.legend(loc='upper right', fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.xticks(fontsize=12)
     
     plt.show()
- 
-def plot_waiting_time_multiple_time_bins(data, start_time, end_time, bin_durations_min, iteration=-1, filter_router_zeros=False):
+
+
+def plot_waiting_time_scatter(data, iteration=-1):
+    """
+    Plot the waiting time scatter plot
+    data: dictionary with the output dataframes (must contain drt_trips_stats)
+    iteration: iteration to plot, -1 for the last one
+    """
+    it_drt_trip_stats = data['drt_trips_stats'][iteration]
+
+    plt.figure(figsize=(15, 7.5))
+
+    plt.subplot(1,2,1)
+    x = it_drt_trip_stats['startTime']
+    y = it_drt_trip_stats['waitTime']/ 60
+    plt.scatter(x,y, marker='x')
+    # Calculate Pearson correlation coefficient
+    corr_coef = np.corrcoef(x, y)[0, 1]
+
+    xticks = [z*3600 for z in range(0, 25, 2)]
+    xticks_labels = [str(z) + 'h' for z in range(0, 25, 2)]
+    plt.xticks(xticks, xticks_labels, fontsize=12)
+    plt.title('Waiting time vs start time')
+    plt.ylabel('Waiting time (min)', fontsize=12)
+    plt.xlabel('Time of the day', fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.text(0.95, 0.95, f'Pearson Corr:\n{corr_coef:.2f}', transform=plt.gca().transAxes, fontsize=12,
+                verticalalignment='top', horizontalalignment='right', bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
+    
+    plt.subplot(1,2,2)
+    x = it_drt_trip_stats['euclideanDistance'] / 1000
+    plt.scatter(x,y, marker='x')
+    # Calculate Pearson correlation coefficient
+    corr_coef = np.corrcoef(x, y)[0, 1]
+    plt.xticks(fontsize=12)
+    plt.title('Waiting time vs euclidean distance')
+    plt.xlabel('Euclidean distance (km)', fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.ylabel('Waiting time (min)', fontsize=12)
+    plt.text(0.95, 0.95, f'Pearson Corr:\n{corr_coef:.2f}', transform=plt.gca().transAxes, fontsize=12,
+                verticalalignment='top', horizontalalignment='right', bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
+    plt.show()
+
+
+
+def plot_waiting_time_multiple_time_bins(data, start_time, end_time, bin_durations_min, iteration=-1, filter_router_zeros=False, add_boxplots=False, showfliers=False, ylim=None):
     """
     Plot the waiting time for multiple time bins
     data: dictionary with the output dataframes (must contain drt_trips_stats)
@@ -592,6 +887,9 @@ def plot_waiting_time_multiple_time_bins(data, start_time, end_time, bin_duratio
     bin_durations_min: list of durations of the time bins (in minutes)
     iteration: iteration to plot, -1 for the last one
     filter_router_zeros: if True, filters out the trips with routerUnsharedTime = 0 (default: False)
+    add_boxplots: if True, adds boxplots for each time bin (default: False)
+    showfliers: if True, shows the outliers in the boxplots (default: False)
+    ylim: y axis limit (default: None)
     """
     it_drt_trip_stats = data['drt_trips_stats'][iteration]
     add_title = ''
@@ -603,6 +901,12 @@ def plot_waiting_time_multiple_time_bins(data, start_time, end_time, bin_duratio
     
     xticks = [z*3600 for z in range(start_time, end_time+1, 2)]
     xticks_labels = [str(z) + 'h' for z in range(start_time, end_time+1, 2)]
+
+    marker = 'o-'
+    linewidth = 2
+    if add_boxplots:
+        marker = '-'
+        linewidth = 1.5
     
     for idx,time_bin in enumerate(bin_durations_min, start=1):
         waitTime_avg = avg_by_time_bin(it_drt_trip_stats, 'waitTime', start_time=start_time, 
@@ -611,21 +915,35 @@ def plot_waiting_time_multiple_time_bins(data, start_time, end_time, bin_duratio
                                      end_time=end_time, bin_duration_min=time_bin)
         
         plt.subplot(n_rows,2,idx)
-        plt.plot(waitTime_avg.index.values, waitTime_avg.values/60, 'o-', label='Avg of wait time')
-        plt.plot(waitTime_median.index.values, waitTime_median.values/60, 'o-', label='Median of wait time')
+
+        if add_boxplots:
+            time_bins_data, time_bins_middle_points, width = get_data_for_boxplot_time_bin(it_drt_trip_stats, 'waitTime', start_time, end_time, time_bin)
+            plt.boxplot([t/60 for t in time_bins_data], positions=time_bins_middle_points, widths=width, showfliers=showfliers,
+                            patch_artist=True, boxprops={'color': 'none', 'facecolor': 'red', 'alpha': 0.25},
+                            medianprops={'color':'navy'},
+                            whiskerprops={'color': 'black', 'linewidth': 0.75})
+
+        plt.plot(waitTime_avg.index.values, waitTime_avg.values/60, marker, 
+                    color='red',label='Avg of wait time', linewidth=linewidth, zorder=10)
+        plt.plot(waitTime_median.index.values, waitTime_median.values/60, marker,
+                    color='navy',label='Median of wait time', linewidth=linewidth, zorder=10)
         plt.xlim(start_time*3600,end_time*3600)
-        plt.xticks(xticks, xticks_labels)
+        plt.xticks(xticks, xticks_labels, fontsize=12)
+        plt.yticks(fontsize=12)
         plt.title('Wait time by departure time' + add_title + '\nTime bin = ' + str(time_bin) + ' min')
-        plt.ylabel('Wait time (min)')
-        plt.xlabel('Time of the day')
+        plt.ylabel('Wait time (min)', fontsize=12)
+        plt.xlabel('Time of the day', fontsize=12)
+        plt.gca().set_ylim(bottom=0)
+        if ylim is not None:
+            plt.ylim(0,ylim)
         ax = plt.gca()
-        ax.axhline(y=it_drt_trip_stats.waitTime.mean()/60, color="black", label='Mean of all times')
-        ax.axhline(y=it_drt_trip_stats.waitTime.median()/60, color="black",ls = '--', label='Median of all times')
+        ax.axhline(y=it_drt_trip_stats.waitTime.mean()/60, color="black", label='Mean of all times', zorder=10, linewidth=1)
+        ax.axhline(y=it_drt_trip_stats.waitTime.median()/60, color="black",ls = '--', label='Median of all times', zorder=10, linewidth=1)
+        plt.legend(loc='upper left', fontsize=12)
     
-    plt.tight_layout()
     plt.show()
 
-def plot_waiting_time_multiple_distance_bins(data,  min_distance, max_distance, bin_distances_m, iteration=-1, filter_router_zeros=False):
+def plot_waiting_time_multiple_distance_bins(data,  min_distance, max_distance, bin_distances_m, iteration=-1, filter_router_zeros=False, add_boxplots=False, showfliers=False, ylim=None):
     """
     Plot the waiting time for multiple distance bins
     data: dictionary with the output dataframes (must contain drt_trips_stats)
@@ -634,6 +952,9 @@ def plot_waiting_time_multiple_distance_bins(data,  min_distance, max_distance, 
     bin_distances_m: list of distances of the distance bins (in meters)
     iteration: iteration to plot, -1 for the last one
     filter_router_zeros: if True, filters out the trips with routerUnsharedTime = 0 (default: False)
+    add_boxplots: if True, adds boxplots for each distance bin (default: False)
+    showfliers: if True, shows the outliers in the boxplots (default: False)
+    ylim: y axis limit (default: None)
     """
     it_drt_trip_stats = data['drt_trips_stats'][iteration]
     add_title = ''
@@ -642,18 +963,88 @@ def plot_waiting_time_multiple_distance_bins(data,  min_distance, max_distance, 
         add_title = ' \n(filtering the trips with 0 predicted time by the router)'
     n_rows = (len(bin_distances_m) - 1) // 2 + 1
     plt.figure(figsize=(15, n_rows * 7.5))
+
+    marker = 'o-'
+    linewidth = 2
+    if add_boxplots:
+        marker = '-'
+        linewidth = 1.5
     
     for idx,distance_bin in enumerate(bin_distances_m, start=1):
         plt.subplot(n_rows,2,idx)
         waitTime_avg = avg_by_euclidean_distance_bin(it_drt_trip_stats, 'waitTime', min_distance=min_distance, 
                                      max_distance=max_distance, bin_distance_m=distance_bin)
-        plt.plot(np.array(waitTime_avg.index.values) / 1000, waitTime_avg.values/60, 'o-', label='Avg of wait time')
+        waitTime_median = median_by_euclidean_distance_bin(it_drt_trip_stats, 'waitTime', min_distance=min_distance, 
+                                     max_distance=max_distance, bin_distance_m=distance_bin)
+
+        if add_boxplots:
+            distance_bins_data, distance_bins_middle_points, width = get_data_for_boxplot_distance_bin(it_drt_trip_stats, 'waitTime', min_distance, max_distance, distance_bin)
+            plt.boxplot([t/60 for t in distance_bins_data], positions=[t/1000 for t in distance_bins_middle_points], widths=width/1000, showfliers=showfliers,
+                        patch_artist=True, boxprops={'color': 'none', 'facecolor': 'red', 'alpha': 0.25},
+                        medianprops={'color':'navy'},
+                        whiskerprops={'color': 'black', 'linewidth': 0.75})
+
+        plt.plot(np.array(waitTime_avg.index.values) / 1000, waitTime_avg.values/60, marker, 
+            color='red', linewidth=linewidth, label='Avg of wait time', zorder=10)
+        plt.plot(np.array(waitTime_median.index.values) / 1000, waitTime_median.values/60, marker,
+                color='navy', linewidth=linewidth, label='Median of wait time', zorder=10)
+        ax = plt.gca()
+        ax.axhline(y=it_drt_trip_stats.waitTime.mean()/60, color="black", label='Mean of all distances', zorder=10, linewidth=1)
+        ax.axhline(y=it_drt_trip_stats.waitTime.median()/60, color="black",ls = '--', label='Median of all distances', zorder=10, linewidth=1)
+
+        plt.gca().set_ylim(bottom=0)
+        if ylim is not None:
+            plt.ylim(0,ylim)
         plt.title('Wait time by euclidean distance' + add_title + '\nDistance bin = ' + str(distance_bin) + 'm')
-        plt.xlabel('Euclidean distance (km)')
+        plt.xlabel('Euclidean distance (km)', fontsize=12)
+        plt.ylabel('Wait time (min)', fontsize=12)
+        plt.legend(loc='upper right', fontsize=12)
+        plt.yticks(fontsize=12)
+        x_ticks = np.arange(0, max_distance + 1, 1000)
+        plt.xticks(x_ticks/1000, x_ticks/1000, fontsize=12)
     
-    plt.tight_layout()
     plt.show()
-    
+
+def get_stats_table(it_drt_trip_stats):
+    index_list = [("Number of rides", ""),
+                    ("Wait time (min)", "Mean"),
+                    ("Wait time (min)", "Median"),
+                    ("Wait time (min)", "Std"),
+                    ("Wait time (min)", "75-percentile"),
+                    ("Wait time (min)", "99-percentile"),
+                    ("Wait time (min)", "Max"),
+                    ("Travel time (min)", "Mean"),
+                    ("Travel time (min)", "Median"),
+                    ("Travel time (min)", "Std"),
+                    ("Travel time (min)", "75-percentile"),
+                    ("Travel time (min)", "99-percentile"),
+                    ("Travel time (min)", "Max"),
+                    #("Mean distance (km)", ""),
+                    ("Mean direct distance (km)", ""),
+                    ("Average detour factor (time wise)", "")
+                  ]
+
+    index = pd.MultiIndex.from_tuples(index_list)
+    stats = pd.DataFrame(index=index)
+    stats.loc[("Number of rides", ""), "Value"] = len(it_drt_trip_stats)
+    stats.loc[("Wait time (min)", "Mean"), "Value"] = it_drt_trip_stats.waitTime.mean() / 60
+    stats.loc[("Wait time (min)", "Median"), "Value"] = it_drt_trip_stats.waitTime.median() / 60
+    stats.loc[("Wait time (min)", "Std"), "Value"] = it_drt_trip_stats.waitTime.std() / 60
+    stats.loc[("Wait time (min)", "75-percentile"), "Value"] = it_drt_trip_stats.waitTime.quantile(0.75) / 60
+    stats.loc[("Wait time (min)", "99-percentile"), "Value"] = it_drt_trip_stats.waitTime.quantile(0.99) / 60
+    stats.loc[("Wait time (min)", "Max"), "Value"] = it_drt_trip_stats.waitTime.max() / 60
+    stats.loc[("Travel time (min)", "Mean"), "Value"] = it_drt_trip_stats.totalTravelTime.mean() / 60
+    stats.loc[("Travel time (min)", "Median"), "Value"] = it_drt_trip_stats.totalTravelTime.median() / 60
+    stats.loc[("Travel time (min)", "Std"), "Value"] = it_drt_trip_stats.totalTravelTime.std() / 60
+    stats.loc[("Travel time (min)", "75-percentile"), "Value"] = it_drt_trip_stats.totalTravelTime.quantile(0.75) / 60
+    stats.loc[("Travel time (min)", "99-percentile"), "Value"] = it_drt_trip_stats.totalTravelTime.quantile(0.99) / 60
+    stats.loc[("Travel time (min)", "Max"), "Value"] = it_drt_trip_stats.totalTravelTime.max() / 60
+    #stats.loc[("Mean distance (km)", ""), "Value"] = it_drt_trip_stats.distance.mean() / 1000
+    stats.loc[("Mean direct distance (km)", ""), "Value"] = it_drt_trip_stats.euclideanDistance.mean() / 1000
+    stats.loc[("Average detour factor (time wise)", ""), "Value"] = it_drt_trip_stats.delayFactor.mean()
+    return stats
+
+
 
 def plot_difference_estimated_router(data, iteration=-1):
     it_drt_trip_stats = data['drt_trips_stats'][iteration]
