@@ -1,7 +1,7 @@
 package org.eqasim.switzerland.drt.travel_times;
 
 public class DrtTimeUtils {
-    private double timeBinSize_min;
+    private final double timeBinSize_min;
 
     public DrtTimeUtils(double timeBinSize_min) {
         this.timeBinSize_min = timeBinSize_min;

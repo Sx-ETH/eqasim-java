@@ -14,13 +14,16 @@ public class DrtMetricSmootheningParamSet extends ReflectiveConfigGroupWithConfi
     public static final String SMOOTHENING_TYPE = "smootheningType";
 
     //options are IterationBased, MovingAverage, SuccessiveAverage
-    private String smootheningType = "IterationBased";
+    public enum SmootheningType {IterationBased, MovingAverage, SuccessiveAverage}
+
+    private SmootheningType smootheningType = SmootheningType.IterationBased;
 
     @PositiveOrZero
-    private double msaWeight = 0.0;
+    private double msaWeight = 0.9;
 
     @Positive
     private int movingWindow = 5;
+
     public DrtMetricSmootheningParamSet() {
         super(SET_NAME);
     }
@@ -47,12 +50,12 @@ public class DrtMetricSmootheningParamSet extends ReflectiveConfigGroupWithConfi
     }
 
     @StringGetter(SMOOTHENING_TYPE)
-    public String getSmootheningType() {
+    public SmootheningType getSmootheningType() {
         return this.smootheningType;
     }
 
     @StringSetter(SMOOTHENING_TYPE)
-    public void setSmootheningType(String smootheningType) {
+    public void setSmootheningType(SmootheningType smootheningType) {
         this.smootheningType = smootheningType;
     }
 }

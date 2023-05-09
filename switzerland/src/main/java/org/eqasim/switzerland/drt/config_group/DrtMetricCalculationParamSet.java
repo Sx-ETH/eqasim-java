@@ -13,65 +13,84 @@ public class DrtMetricCalculationParamSet extends ReflectiveConfigGroupWithConfi
     public static final String TIME_BIN_MINUTE = "timeBinMin";
 
     public static final String DISTANCE_BIN_M = "distanceBin";
+    public static final String LAST_BIN_START_DISTANCE_M = "lastBinStartDistance";
 
     @Nullable
     DrtDynamicSystemParamSet drtDynamicSystem;
     @Nullable
     DrtZonalSystemParamSet drtZonalSystem;
+
     public DrtMetricCalculationParamSet() {
         super(SET_NAME);
         addDefinition(DrtDynamicSystemParamSet.SET_NAME, DrtDynamicSystemParamSet::new, () -> drtDynamicSystem,
                 params -> drtDynamicSystem = (DrtDynamicSystemParamSet) params);
 
-        addDefinition(DrtZonalSystemParamSet.SET_NAME, DrtZonalSystemParamSet::new, () -> drtDynamicSystem,
+        addDefinition(DrtZonalSystemParamSet.SET_NAME, DrtZonalSystemParamSet::new, () -> drtZonalSystem,
                 params -> drtZonalSystem = (DrtZonalSystemParamSet) params);
 
     }
 
     //add default values
-    private String method = "SpatioTemporal";
+    public enum Method {SpatioTemporal, Spatio, Temporal, Global}
 
-    private String spatialType = "zonalSystem";
-    private double timeBinMin = 30;
-    private double distanceBin_m = 1500;
+    private Method method = Method.SpatioTemporal;
+
+    public enum SpatialType {ZonalSystem, DynamicSystem}
+
+    private SpatialType spatialType = SpatialType.ZonalSystem;
+    private int timeBinMin = 30;
+    private int distanceBin_m = 1500;
+    private int lastBinStartDistance_m = 10000;
 
     //getters and setters
     @StringGetter(METHOD)
-    public String getMethod() {
+    public Method getMethod() {
         return this.method;
     }
+
     @StringSetter(METHOD)
-    public void setMethod(String method) {
+    public void setMethod(Method method) {
         this.method = method;
     }
+
     @StringGetter(SPATIAL_TYPE)
-    public String getSpatialType() {
+    public SpatialType getSpatialType() {
         return this.spatialType;
     }
 
     @StringSetter(SPATIAL_TYPE)
-    public void setSpatialType(String spatialType) {
+    public void setSpatialType(SpatialType spatialType) {
         this.spatialType = spatialType;
     }
 
     @StringGetter(TIME_BIN_MINUTE)
-    public double getTimeBinMin() {
+    public int getTimeBinMin() {
         return this.timeBinMin;
     }
 
     @StringSetter(TIME_BIN_MINUTE)
-    public void setTimeBinMin(double timeBinMin) {
+    public void setTimeBinMin(int timeBinMin) {
         this.timeBinMin = timeBinMin;
     }
 
     @StringGetter(DISTANCE_BIN_M)
-    public double getDistanceBinMetres() {
+    public int getDistanceBinMetres() {
         return this.distanceBin_m;
     }
 
     @StringSetter(DISTANCE_BIN_M)
-    public void setDistanceBin_m(double distanceBin_m) {
+    public void setDistanceBin_m(int distanceBin_m) {
         this.distanceBin_m = distanceBin_m;
+    }
+
+    @StringGetter(LAST_BIN_START_DISTANCE_M)
+    public int getLastBinStartDistance_m() {
+        return this.lastBinStartDistance_m;
+    }
+
+    @StringSetter(LAST_BIN_START_DISTANCE_M)
+    public void setLastBinStartDistance_m(int lastBinStartDistance_m) {
+        this.lastBinStartDistance_m = lastBinStartDistance_m;
     }
 
     @Nullable
@@ -83,8 +102,6 @@ public class DrtMetricCalculationParamSet extends ReflectiveConfigGroupWithConfi
     public DrtZonalSystemParamSet getDrtZonalSystemParamSet() {
         return drtZonalSystem;
     }
-
-
 
 
 }

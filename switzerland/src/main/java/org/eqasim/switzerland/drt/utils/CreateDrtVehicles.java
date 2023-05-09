@@ -5,6 +5,16 @@ package org.eqasim.switzerland.drt.utils;
  * @project sampling-drt
  */
 
+import org.geotools.data.DataStore;
+import org.geotools.data.DataStoreFinder;
+import org.geotools.data.simple.SimpleFeatureCollection;
+import org.geotools.data.simple.SimpleFeatureIterator;
+import org.geotools.data.simple.SimpleFeatureSource;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
+import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Link;
@@ -18,8 +28,10 @@ import org.matsim.contrib.dvrp.fleet.FleetWriter;
 import org.matsim.contrib.dvrp.fleet.ImmutableDvrpVehicleSpecification;
 import org.matsim.core.config.CommandLine;
 import org.matsim.core.gbl.MatsimRandom;
+import org.opengis.feature.simple.SimpleFeature;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.*;
 
 
@@ -36,9 +48,20 @@ public class CreateDrtVehicles {
     private int seats;
     private Random random;
     private Long randomSeed;
+    protected String vehicleName = "drt";
     public static final List<Link> linkList = new LinkedList<>();
 
-    public CreateDrtVehicles(Long randomSeed, int numberofVehicles, double operationStartTime, double operationEndTime, int seats) {
+    private final Set<Geometry> shapes = new HashSet<>();
+    ;
+
+    private final static GeometryFactory geometryFactory = new GeometryFactory();
+
+    private final Network network;
+
+    private boolean useBoundary = false;
+
+    public CreateDrtVehicles(Long randomSeed, Network network, int numberofVehicles, double operationStartTime, double operationEndTime, int seats) {
+        this.network = network;
         this.numberofVehicles = numberofVehicles;
         this.operationStartTime = operationStartTime;
         this.operationEndTime = operationEndTime;
@@ -48,15 +71,13 @@ public class CreateDrtVehicles {
     }
 
     //when random seed is not provided
-    public CreateDrtVehicles(int numberofVehicles, double operationStartTime, double operationEndTime, int seats) {
+    public CreateDrtVehicles(Network network, int numberofVehicles, double operationStartTime, double operationEndTime, int seats) {
+        this.network = network;
         this.numberofVehicles = numberofVehicles;
         this.operationStartTime = operationStartTime;
         this.operationEndTime = operationEndTime;
         this.seats = seats;
         this.random = MatsimRandom.getLocalInstance();
-    }
-
-    public CreateDrtVehicles() {
     }
 
     public List<DvrpVehicleSpecification> RandomPlacementGenerator(Network network) {
@@ -107,9 +128,21 @@ public class CreateDrtVehicles {
                     }
                 }
             }
-            while (!startLink.getAllowedModes().contains(TransportMode.car));
+            while (!startLink.getAllowedModes().contains(TransportMode.car) &&
+                    ((!useBoundary) || (shapes.isEmpty()) ||
+                            (useBoundary && !shapes.isEmpty() && checkLinkId(startLink.getId()))));
             //for multi-modal networks: Only links where cars can ride should be used.
-            vehicles.add(ImmutableDvrpVehicleSpecification.newBuilder().id(Id.create("drt" + i, DvrpVehicle.class))
+
+            //check for boundary conditions
+            /*
+            if(useBoundary && !shapes.isEmpty()){
+                if(!checkLinkId(startLink.getId())){
+                    continue;
+                }
+
+            }*/
+
+            vehicles.add(ImmutableDvrpVehicleSpecification.newBuilder().id(Id.create(vehicleName + i, DvrpVehicle.class))
                     .startLinkId(startLink.getId())
                     .capacity(seats)
                     .serviceBeginTime(operationStartTime)
@@ -161,23 +194,71 @@ public class CreateDrtVehicles {
         return cumulativeDensity;
     }
 
+    private boolean checkLinkId(Id<Link> linkId) {
+        Link link = network.getLinks().get(linkId);
+        Coord coord = link.getCoord();
+        Coordinate coordinate = new Coordinate(coord.getX(), coord.getY());
+        Point point = geometryFactory.createPoint(coordinate);
 
-    public String createVehicles(Network network, Population population, String taxisFile) throws CommandLine.ConfigurationException, IOException {
+        for (Geometry shape : shapes) {
+            if (shape.contains(point)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public void generateBoundary(URL url) {
+        //private final Set<Geometry> shapes = new HashSet<>();
+        try {
+            DataStore dataStore = DataStoreFinder.getDataStore(Collections.singletonMap("url", url));
+
+            SimpleFeatureSource featureSource = dataStore.getFeatureSource(dataStore.getTypeNames()[0]);
+            SimpleFeatureCollection featureCollection = featureSource.getFeatures();
+            SimpleFeatureIterator featureIterator = featureCollection.features();
+
+            while (featureIterator.hasNext()) {
+                SimpleFeature feature = featureIterator.next();
+                shapes.add((Geometry) feature.getDefaultGeometry());
+            }
+
+            featureIterator.close();
+            dataStore.dispose();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    public String createVehicles(Population population, String taxisFile, String vehicleName) throws CommandLine.ConfigurationException, IOException {
         List<DvrpVehicleSpecification> vehicles;
+
+        this.vehicleName = vehicleName;
 
         //generate vehicles randomly ToDo: generate by hub or by population density
         //vehicles = RandomPlacementGenerator(network);
         vehicles = populationDensityGenerator(getPopulationDensity(population, network));
-
-        for (DvrpVehicleSpecification v : vehicles) {
-            Link l = network.getLinks().get(v.getStartLinkId());
-            System.out.println(String.valueOf(l.getCoord().getX()) + "," + String.valueOf(l.getCoord().getY()));
-        }
 
         new FleetWriter(vehicles.stream()).write(taxisFile);
 
         return taxisFile;
     }
 
+    public String createVehicles(Population population, String taxisFile) throws CommandLine.ConfigurationException, IOException {
+        List<DvrpVehicleSpecification> vehicles;
+
+        //generate vehicles randomly ToDo: generate by hub or by population density
+        //vehicles = RandomPlacementGenerator(network);
+        vehicles = populationDensityGenerator(getPopulationDensity(population, network));
+
+        new FleetWriter(vehicles.stream()).write(taxisFile);
+
+        return taxisFile;
+    }
+
+    public void setUseBoundary(boolean useBoundary) {
+        this.useBoundary = useBoundary;
+    }
 }
 

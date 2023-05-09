@@ -16,8 +16,8 @@ import java.util.Collection;
 import java.util.Map;
 
 public class TAZDrtZonalSystem extends FixedDrtZonalSystem {
-    private ShapeFileReader shapeFileReader;
-    private Collection<SimpleFeature> features;
+    private final ShapeFileReader shapeFileReader;
+    private final Collection<SimpleFeature> features;
 
 
     public TAZDrtZonalSystem(Network network, String filename) {
@@ -50,6 +50,11 @@ public class TAZDrtZonalSystem extends FixedDrtZonalSystem {
             }
         }
         return null;
+    }
+
+    @Override
+    public Collection<SimpleFeature> getSimpleFeatures(String crs) {
+        return this.features;
     }
 
 

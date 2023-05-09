@@ -14,11 +14,15 @@ public class DrtZonalSystemParamSet extends ReflectiveConfigGroupWithConfigurabl
 
 
     //options
-    private String zonesGeneration = "GridFromNetwork";
+    public enum ZonesGeneration {GridFromNetwork, Shapefile}
+
+    private ZonesGeneration zonesGeneration = ZonesGeneration.GridFromNetwork;
     @PositiveOrZero
     private int cellSize = 500;
 
-    private String zoneShape = "Hexagon";
+    public enum ZoneShape {Hexagon, Square}
+
+    private ZoneShape zoneShape = ZoneShape.Hexagon;
 
     private String shapefile = "";
 
@@ -27,12 +31,12 @@ public class DrtZonalSystemParamSet extends ReflectiveConfigGroupWithConfigurabl
     }
 
     @StringGetter(ZONES_GENERATION)
-    public String getZonesGeneration() {
+    public ZonesGeneration getZonesGeneration() {
         return this.zonesGeneration;
     }
 
     @StringSetter(ZONES_GENERATION)
-    public void setZonesGeneration(String zonesGeneration) {
+    public void setZonesGeneration(ZonesGeneration zonesGeneration) {
         this.zonesGeneration = zonesGeneration;
     }
 
@@ -47,12 +51,12 @@ public class DrtZonalSystemParamSet extends ReflectiveConfigGroupWithConfigurabl
     }
 
     @StringGetter(ZONE_SHAPE)
-    public String getZoneShape() {
+    public ZoneShape getZoneShape() {
         return this.zoneShape;
     }
 
     @StringSetter(ZONE_SHAPE)
-    public void setZoneShape(String zoneShape) {
+    public void setZoneShape(ZoneShape zoneShape) {
         this.zoneShape = zoneShape;
     }
 

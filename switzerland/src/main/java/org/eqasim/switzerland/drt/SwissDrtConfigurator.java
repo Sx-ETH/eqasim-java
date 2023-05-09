@@ -105,17 +105,26 @@ public class SwissDrtConfigurator extends SwitzerlandConfigurator {
 
     public static void configureDrtTimeMetrics(Config config) {
         DrtModeChoiceConfigGroup drtDmcConfig = (DrtModeChoiceConfigGroup) config.getModules().get(DrtModeChoiceConfigGroup.GROUP_NAME);
-        drtDmcConfig.setFeedBackMethod("average");
+        // drtDmcConfig.setFeedBackMethod("average");
 
         //...
-        if (drtDmcConfig.getDrtMetricCalculationParamSet() == null){
+        if (drtDmcConfig.getDrtMetricCalculationParamSet() == null) {
             DrtMetricCalculationParamSet calculationParamSet = new DrtMetricCalculationParamSet();
             calculationParamSet.addParameterSet(new DrtZonalSystemParamSet());
             calculationParamSet.addParameterSet(new DrtDynamicSystemParamSet());
             drtDmcConfig.addParameterSet(calculationParamSet);
+        } else {
+            if (drtDmcConfig.getDrtMetricCalculationParamSet().getDrtZonalSystemParamSet() == null) {
+                DrtZonalSystemParamSet zonalSystemParamSet = new DrtZonalSystemParamSet();
+                drtDmcConfig.getDrtMetricCalculationParamSet().addParameterSet(zonalSystemParamSet);
+            }
+            if (drtDmcConfig.getDrtMetricCalculationParamSet().getDrtDynamicSystemParamSet() == null) {
+                DrtDynamicSystemParamSet dynamicSystemParamSet = new DrtDynamicSystemParamSet();
+                drtDmcConfig.getDrtMetricCalculationParamSet().addParameterSet(dynamicSystemParamSet);
+            }
         }
 
-        if (drtDmcConfig.getDrtMetricSmootheningParamSet() == null){
+        if (drtDmcConfig.getDrtMetricSmootheningParamSet() == null) {
             DrtMetricSmootheningParamSet smootheningParamSet = new DrtMetricSmootheningParamSet();
             drtDmcConfig.addParameterSet(smootheningParamSet);
         }
