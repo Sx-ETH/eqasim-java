@@ -161,9 +161,9 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
                 }
             }
             if (Double.isNaN(delayFactor)) {
-                logger.warn("No delay factor for specific distance and time bin found. Falling back to global delay factor.");
+                //logger.warn("No delay factor for specific distance and time bin found. Falling back to global delay factor.");
                 if (Double.isNaN(globalDelayFactor.getStat(feedback))) {
-                    logger.warn("No global delay factor found. Falling back to max travel time.");
+                    //logger.warn("No global delay factor found. Falling back to max travel time.");
                     return route.getMaxTravelTime();
                 }
                 return route.getDirectRideTime() * globalDelayFactor.getStat(feedback);
@@ -209,9 +209,9 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
                 }
             }
             if (Double.isNaN(waitTime)) {
-                logger.warn("No waiting time data for specific zone and time bin found, falling back to global waiting time");
+                //logger.warn("No waiting time data for specific zone and time bin found, falling back to global waiting time");
                 if (Double.isNaN(globalWaitingTime.getStat(feedback))) {
-                    logger.warn("No global waiting time data, returning maxWaitTime");
+                    //logger.warn("No global waiting time data, returning maxWaitTime");
                     return route.getMaxWaitTime();
                 }
                 return globalWaitingTime.getStat(feedback);
