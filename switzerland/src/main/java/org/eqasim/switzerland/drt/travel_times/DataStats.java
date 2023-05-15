@@ -56,18 +56,20 @@ public class DataStats {
         double avgSum = 0.0;
         double weightSum = 0.0;
         for (int i = 0; i < stats.length; i++) {
+            // The distances are in meters, so we need to convert them to kilometers
+            double d = distances[i] / 1000.0;
             switch (decayType) {
                 case POWER_DECAY:
-                    avgSum += stats[i] * Math.pow(distances[i], -2);
-                    weightSum += Math.pow(distances[i], -2);
+                    avgSum += stats[i] * Math.pow(d, -2);
+                    weightSum += Math.pow(d, -2);
                     break;
                 case INVERSE_DECAY:
-                    avgSum += stats[i] * Math.pow(distances[i], -1);
-                    weightSum += Math.pow(distances[i], -1);
+                    avgSum += stats[i] * Math.pow(d, -1);
+                    weightSum += Math.pow(d, -1);
                     break;
                 case EXPONENTIAL_DECAY:
-                    avgSum += stats[i] * Math.exp(-distances[i]);
-                    weightSum += Math.exp(-distances[i]);
+                    avgSum += stats[i] * Math.exp(-d);
+                    weightSum += Math.exp(-d);
                     break;
                 case SPATIAL_CORRELATION:
                     //ToDo
