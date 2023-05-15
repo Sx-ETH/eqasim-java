@@ -82,6 +82,27 @@ def get_metrics_for_zonal_plot(df, zones, zone_id, metrics=["waitTime"]):
     mean_metrics = mean_metrics.round(1)
     return mean_metrics
 
+def get_mean_standard_error_for_zonal_plot(df, zones, zone_id, metric):
+    joined_df = pd.merge(df, zones, on=zone_id, how="right") #merge on right to ensure all zones are showing
+    
+    ## computing metrics for plot
+    mean = joined_df.groupby(zone_id)[metric].mean().fillna(0).reset_index()
+    std = joined_df.groupby(zone_id)[metric].std().fillna(0).reset_index()
+    count = joined_df.groupby(zone_id)[metric].count().fillna(0).reset_index()
+    mean["std"] = std[metric]
+    mean["count"] = count[metric]
+    mean["standard_error"] = mean["std"] / np.sqrt(mean["count"])
+    return mean
+
+def get_coefficient_of_variation_for_zonal_plot(df, zones, zone_id, metric):
+    joined_df = pd.merge(df, zones, on=zone_id, how="right") #merge on right to ensure all zones are showing
+    
+    ## computing metrics for plot
+    mean = joined_df.groupby(zone_id)[metric].mean().fillna(0).reset_index()
+    std = joined_df.groupby(zone_id)[metric].std().fillna(0).reset_index()
+    mean["std"] = std[metric]
+    mean["coefficient_of_variation"] = mean["std"] / mean[metric]
+    return mean
 
 #add Zurich or zonal overlay
 def zurich_overlay(ax, lakes_path, zurich_districts_path, lake_restriction, number_districts=True, district_col="knr"):
@@ -127,7 +148,7 @@ def add_north(ax):
     
     return ax
 
-def plot_zonal_avg(metrics, zones, column, lake_restriction, lakes_path, zurich_districts_path, add_map=True, in_subplot=False, vmax=None):
+def plot_zonal_avg(metrics, zones, column, lake_restriction, lakes_path, zurich_districts_path, legend_title, add_map=True, in_subplot=False, vmin=None, vmax=None):
     
     if not in_subplot:
         sns.set_context("poster")
@@ -144,10 +165,10 @@ def plot_zonal_avg(metrics, zones, column, lake_restriction, lakes_path, zurich_
     temp = gpd.GeoDataFrame(pd.merge(metrics, zones))
     temp.plot(column, 
               ax=ax, 
-             #  vmin=2.0,
-                vmax=vmax,
+              vmin=vmin,
+              vmax=vmax,
               legend=True,
-              legend_kwds=dict(label="Average " + column + " [min]",
+              legend_kwds=dict(label=legend_title,
                                orientation="horizontal",
                                shrink=0.7,
                                cax=cax,
@@ -186,7 +207,72 @@ def plot_districts_wait_time(it_drt_trips_stats, lake_path, zurich_districts_pat
     district_metrics_drt_legs = get_metrics_for_zonal_plot(imputed_from_legs, df_districts, "district_id", metrics=["waitTime"])#, "delayFactor", "delayFactor_estimated"])
     plot_zonal_avg(district_metrics_drt_legs, df_districts, 
                               'waitTime', shapely.ops.unary_union([geo for geo in df_districts["geometry"]]),
-                             lake_path, zurich_districts_path, add_map=True)
+                             lake_path, zurich_districts_path, 
+                             "Average wait time [min]", add_map=True)
+
+def plot_districts_wait_time_standard_error(it_drt_trips_stats, lake_path, zurich_districts_path):
+    """
+    Plots the wait time mean standard error by districts
+    it_drt_trips_stats: dataframe with drt trips stats from one iteration
+    lake_path: path to the lake shapefile in Zurich
+    zurich_districts_path: path to the zurich districts shapefile
+    """
+    it_drt_trips_stats_gpd = utils.convert_drt_legs_to_gpd(it_drt_trips_stats)
+    df_districts = get_zurich_districts_gpd(zurich_districts_path)
+    imputed_from_legs = impute(it_drt_trips_stats_gpd, df_districts, "trip_id", "district_id",fix_by_distance=False).drop("geometry", axis=1)
+
+    district_metrics_drt_legs = get_mean_standard_error_for_zonal_plot(imputed_from_legs, df_districts, "district_id", "waitTime")
+    # Make a bar plot showing the standard error of the wait time
+    plt.figure(figsize=(6,6))
+    plt.bar(district_metrics_drt_legs.district_id.astype(int), district_metrics_drt_legs["standard_error"])
+    plt.xlabel("District ID", fontsize=12)
+    plt.xticks(district_metrics_drt_legs.district_id.astype(int), fontsize=12)
+    plt.ylabel("Standard error of the wait time [min]", fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.title("Standard error of the wait time by district", fontsize=14)
+
+    plt.show()
+
+def plot_taz_zones_wait_time(it_drt_trips_stats, lake_path, taz_path, taz_id_field, zurich_districts_path, vmax=None):
+    """
+    Plots the wait time by districts
+    it_drt_trips_stats: dataframe with drt trips stats from one iteration
+    lake_path: path to the lake shapefile in Zurich
+    taz_path: path to the taz shapefile
+    taz_id_field: name of the field in the taz shapefile that contains the taz id
+    zurich_districts_path: path to the zurich districts shapefile
+    vmax: maximum value for the colorbar
+    """
+    sns.set_context('notebook')
+    it_drt_trips_stats_gpd = utils.convert_drt_legs_to_gpd(it_drt_trips_stats)
+    taz = gpd.read_file(taz_path)
+    imputed_from_legs = impute(it_drt_trips_stats_gpd, taz, "trip_id", taz_id_field,fix_by_distance=False).drop("geometry", axis=1)
+    #Since we are not fixing by distance, checking how many points are outside the districts
+    print("no. of trips outside the zones: ", sum(pd.isna(imputed_from_legs[taz_id_field])))
+    
+    district_metrics_drt_legs = get_metrics_for_zonal_plot(imputed_from_legs, taz, taz_id_field, metrics=["waitTime"])#, "delayFactor", "delayFactor_estimated"])
+    
+    plt.figure(figsize=(13,7))
+    plt.subplot(1,2,1)
+    plot_zonal_avg(district_metrics_drt_legs, taz, 
+                              'waitTime', shapely.ops.unary_union([geo for geo in taz["geometry"]]),
+                             lake_path, zurich_districts_path, 
+                             "Average wait time [min]", add_map=True, in_subplot=True, vmax=vmax)
+    plt.subplot(1,2,2)
+    grouped_by_n_trips = imputed_from_legs.groupby(taz_id_field) \
+                                .agg(columnAvg=('waitTime', 'mean'), nTrips=('trip_id','size'))
+        
+    x = grouped_by_n_trips.nTrips
+    y = grouped_by_n_trips.columnAvg / 60
+    sns.regplot(x=x,y=y)
+    plt.ylim(0, vmax)
+    plt.ylabel('Waiting time (min)', fontsize=12)
+    plt.xlabel('Number of trips', fontsize=12)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.tight_layout()
+    plt.show()
+    
 
 def plot_multigrid_wait_time(grid_sizes, it_drt_trips_stats, zurich_shp_path, lake_path, zurich_districts_path, map_limit=None, vmax=None):
     """
@@ -213,8 +299,9 @@ def plot_multigrid_wait_time(grid_sizes, it_drt_trips_stats, zurich_shp_path, la
             lake_limit = map_limit
         imputed = impute(it_drt_trips_stats_gpd, grid, "trip_id", "grid_id",fix_by_distance=False).drop("geometry", axis=1)
         metrics = get_metrics_for_zonal_plot(imputed, grid, "grid_id", metrics=["waitTime"])
-        plot_zonal_avg(metrics, grid, 'waitTime', 
-                              lake_limit, lake_path, zurich_districts_path, add_map=True, in_subplot=True, vmax=vmax)
+        plot_zonal_avg(metrics, grid, 'waitTime', lake_limit, lake_path,
+                            zurich_districts_path,"Average wait time [min]",
+                              add_map=True, in_subplot=True, vmax=vmax)
         plt.title('grid size = ' + str(gs) + 'm', fontsize=14)
         
         plt.subplot(n_sizes,2,idx+n_sizes+1)
@@ -233,6 +320,42 @@ def plot_multigrid_wait_time(grid_sizes, it_drt_trips_stats, zurich_shp_path, la
         
     plt.tight_layout()
     plt.show()
+
+def plot_multigrid_wait_time_variation_coefficient(grid_sizes, it_drt_trips_stats, zurich_shp_path, lake_path, zurich_districts_path, map_limit=None, vmin=None, vmax=None):
+    """
+    Plots the variation coefficient of the wait time in different grid sizes
+    grid_sizes: list of grid sizes
+    it_drt_trips_stats: dataframe with drt trips stats from one iteration
+    zurich_shp_path: path to the shapefile of zurich
+    lake_path: path to the shapefile of the lakes in zurich
+    zurich_districts_path: path to the shapefile of the districts in zurich
+    map_limit: if not None shapely polygon to limit the map
+    """
+    it_drt_trips_stats_gpd = utils.convert_drt_legs_to_gpd(it_drt_trips_stats)
+    zurich_shp = gpd.read_file(zurich_shp_path)
+    n_sizes = len(grid_sizes)
+    if (n_sizes % 2) == 1:
+        raise ValueError("Number of grid sizes must be even")
+    plt.figure(figsize=(13,n_sizes//4*13))
+    for idx,gs in enumerate(grid_sizes,start=0):
+        plt.subplot(n_sizes//2,2,idx+1)
+        grid = utils.create_grid_from_shapefile(zurich_shp_path, gs)
+        lake_limit = zurich_shp.loc[0].geometry
+        if map_limit:
+            grid = gpd.clip(grid, map_limit)
+            lake_limit = map_limit
+        imputed = impute(it_drt_trips_stats_gpd, grid, "trip_id", "grid_id",fix_by_distance=False).drop("geometry", axis=1)
+        metrics = get_coefficient_of_variation_for_zonal_plot(imputed, grid, "grid_id", "waitTime")
+        plot_zonal_avg(metrics, grid, 'coefficient_of_variation', 
+                              lake_limit, lake_path, zurich_districts_path,
+                                "Coefficient of variation of wait time",
+                              add_map=True, in_subplot=True, vmin=vmin, vmax=vmax)
+        plt.title('grid size = ' + str(gs) + 'm', fontsize=14)
+        
+        
+    plt.tight_layout()
+    plt.show()
+
 
 def plot_column_by_trip_density_scatter(drt_legs_with_zone_id, zone_id_field, column, limit_n_trips = None):
     """
@@ -305,7 +428,9 @@ def plot_OD_delayFactor_heatmaps(it_drt_trips_stats, zones, zones_id_field, filt
     plt.tight_layout()
     plt.show()
 
-    
+def show_stopwatch(folder):
+    return Image(folder + '/stopwatch.png')
+
 def show_modeshare(folder):
     return Image(folder + '/modestats.png')
     
