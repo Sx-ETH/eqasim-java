@@ -272,7 +272,41 @@ def plot_taz_zones_wait_time(it_drt_trips_stats, lake_path, taz_path, taz_id_fie
     plt.yticks(fontsize=12)
     plt.tight_layout()
     plt.show()
+
+def plot_taz_zones_wait_time_cv(it_drt_trips_stats, lake_path, taz_path, taz_id_field, zurich_districts_path, vmax=None):
+    """
+    Plots the wait time by districts
+    it_drt_trips_stats: dataframe with drt trips stats from one iteration
+    lake_path: path to the lake shapefile in Zurich
+    taz_path: path to the taz shapefile
+    taz_id_field: name of the field in the taz shapefile that contains the taz id
+    zurich_districts_path: path to the zurich districts shapefile
+    vmax: maximum value for the colorbar
+    """
+    sns.set_context('notebook')
+    it_drt_trips_stats_gpd = utils.convert_drt_legs_to_gpd(it_drt_trips_stats)
+    taz = gpd.read_file(taz_path)
+    imputed_from_legs = impute(it_drt_trips_stats_gpd, taz, "trip_id", taz_id_field,fix_by_distance=False).drop("geometry", axis=1)
+    #Since we are not fixing by distance, checking how many points are outside the districts
+    print("no. of trips outside the zones: ", sum(pd.isna(imputed_from_legs[taz_id_field])))
+	
+    cv_metrics_drt_legs = get_coefficient_of_variation_for_zonal_plot(imputed_from_legs, taz, taz_id_field, "waitTime")
     
+    district_metrics_drt_legs = get_metrics_for_zonal_plot(imputed_from_legs, taz, taz_id_field, metrics=["waitTime"])#, "delayFactor", "delayFactor_estimated"])
+    
+    plt.figure(figsize=(13,7))
+    plt.subplot(1,2,1)
+    plot_zonal_avg(district_metrics_drt_legs, taz, 
+                              'waitTime', shapely.ops.unary_union([geo for geo in taz["geometry"]]),
+                             lake_path, zurich_districts_path, 
+                             "Average wait time [min]", add_map=True, in_subplot=True, vmax=vmax)
+    plt.subplot(1,2,2)
+    plot_zonal_avg(cv_metrics_drt_legs, taz, 
+                              'coefficient_of_variation', shapely.ops.unary_union([geo for geo in taz["geometry"]]),
+                             lake_path, zurich_districts_path, 
+                             "Coefficient of variation of wait time", add_map=True, in_subplot=True, vmax=vmax)
+    plt.tight_layout()
+    plt.show()    
 
 def plot_multigrid_wait_time(grid_sizes, it_drt_trips_stats, zurich_shp_path, lake_path, zurich_districts_path, map_limit=None, vmax=None):
     """
