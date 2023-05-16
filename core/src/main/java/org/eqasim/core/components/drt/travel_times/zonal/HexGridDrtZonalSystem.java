@@ -1,4 +1,4 @@
-package org.eqasim.switzerland.drt.travel_times.zonal;
+package org.eqasim.core.components.drt.travel_times.zonal;
 
 import com.google.inject.Inject;
 import org.apache.log4j.Logger;

@@ -1,11 +1,11 @@
-package org.eqasim.switzerland.drt.travel_times.dynamic;
+package org.eqasim.core.components.drt.travel_times.dynamic;
 
-import org.eqasim.switzerland.drt.config_group.DrtDynamicSystemParamSet;
-import org.eqasim.switzerland.drt.config_group.DrtModeChoiceConfigGroup;
-import org.eqasim.switzerland.drt.travel_times.DataStats;
-import org.eqasim.switzerland.drt.travel_times.DrtTimeUtils;
-import org.eqasim.switzerland.drt.travel_times.DrtTripData;
-import org.eqasim.switzerland.drt.utils.QuadTree;
+import org.eqasim.core.components.drt.config_group.DrtDynamicSystemParamSet;
+import org.eqasim.core.components.drt.config_group.DrtModeChoiceConfigGroup;
+import org.eqasim.core.components.drt.travel_times.DataStats;
+import org.eqasim.core.components.drt.travel_times.DrtTimeUtils;
+import org.eqasim.core.components.drt.travel_times.DrtTripData;
+import org.eqasim.core.components.drt.utils.QuadTree;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.contrib.drt.routing.DrtRoute;
@@ -13,8 +13,8 @@ import org.matsim.core.network.NetworkUtils;
 
 import java.util.*;
 
-import static org.eqasim.switzerland.drt.travel_times.zonal.DrtFixedZoneMetrics.collectDistances;
-import static org.eqasim.switzerland.drt.travel_times.zonal.DrtFixedZoneMetrics.collectWaitTimes;
+import static org.eqasim.core.components.drt.travel_times.zonal.DrtFixedZoneMetrics.collectDistances;
+import static org.eqasim.core.components.drt.travel_times.zonal.DrtFixedZoneMetrics.collectWaitTimes;
 
 public class DynamicWaitTimeMetrics {
 

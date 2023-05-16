@@ -1,4 +1,4 @@
-package org.eqasim.switzerland.drt.config_group;
+package org.eqasim.core.components.drt.config_group;
 
 import org.matsim.contrib.util.ReflectiveConfigGroupWithConfigurableParameterSets;
 

@@ -1,4 +1,4 @@
-package org.eqasim.switzerland.drt.config_group;
+package org.eqasim.core.components.drt.config_group;
 
 import org.eqasim.core.simulation.mode_choice.AbstractEqasimExtension;
 import org.matsim.core.config.CommandLine;

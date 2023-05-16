@@ -1,23 +1,17 @@
-package org.eqasim.switzerland.drt.utils;
+package org.eqasim.core.components.drt.utils;
 
-import org.geotools.feature.simple.SimpleFeatureImpl;
-import org.locationtech.jts.geom.MultiPolygon;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.config.CommandLine;
-import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.scenario.ScenarioUtils;
-import org.matsim.core.utils.gis.ShapeFileReader;
-import org.opengis.feature.simple.SimpleFeature;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Collection;
 
 public class RunCreateDrtVehicles {
     public static void main(String[] args) throws CommandLine.ConfigurationException, IOException {

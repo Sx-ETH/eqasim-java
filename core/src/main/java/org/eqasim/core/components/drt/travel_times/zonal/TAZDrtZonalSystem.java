@@ -1,4 +1,4 @@
-package org.eqasim.switzerland.drt.travel_times.zonal;
+package org.eqasim.core.components.drt.travel_times.zonal;
 
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.prep.PreparedGeometry;

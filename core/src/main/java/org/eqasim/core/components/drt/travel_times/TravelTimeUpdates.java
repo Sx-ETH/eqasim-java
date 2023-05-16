@@ -1,10 +1,11 @@
-package org.eqasim.switzerland.drt.travel_times;
+package org.eqasim.core.components.drt.travel_times;
 
 import com.google.inject.Inject;
 import org.apache.log4j.Logger;
-import org.eqasim.switzerland.drt.config_group.*;
-import org.eqasim.switzerland.drt.travel_times.dynamic.DynamicWaitTimeMetrics;
-import org.eqasim.switzerland.drt.travel_times.zonal.*;
+import org.eqasim.core.components.drt.travel_times.dynamic.DynamicWaitTimeMetrics;
+import org.eqasim.core.components.drt.travel_times.zonal.*;
+import org.eqasim.core.components.drt.config_group.*;
+import org.eqasim.core.components.drt.travel_times.zonal.*;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;

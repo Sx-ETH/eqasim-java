@@ -1,7 +1,6 @@
-package org.eqasim.switzerland.drt.travel_times;
+package org.eqasim.core.components.drt.travel_times;
 
 import org.eqasim.core.simulation.mode_choice.AbstractEqasimExtension;
-import org.eqasim.switzerland.drt.mode_choice.DrtDistanceConstraint;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.contrib.drt.run.DrtConfigGroup;
 
@@ -28,6 +27,5 @@ public class SwissDrtTravelTimeModule extends AbstractEqasimExtension {
         bind(DrtPredictions.class).asEagerSingleton();
 
         binder().requestStaticInjection(TravelTimeUpdates.class);
-        bindTripConstraintFactory(DrtDistanceConstraint.NAME).to(DrtDistanceConstraint.Factory.class);
     }
 }

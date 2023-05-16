@@ -1,4 +1,4 @@
-package org.eqasim.switzerland.drt.travel_times;
+package org.eqasim.core.components.drt.travel_times;
 
 
 import com.google.inject.Inject;

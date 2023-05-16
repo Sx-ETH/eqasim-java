@@ -1,8 +1,8 @@
-package org.eqasim.switzerland.drt.travel_times;
+package org.eqasim.core.components.drt.travel_times;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-import org.eqasim.switzerland.drt.config_group.DrtDynamicSystemParamSet;
-import org.eqasim.switzerland.drt.config_group.DrtModeChoiceConfigGroup;
+import org.eqasim.core.components.drt.config_group.DrtDynamicSystemParamSet;
+import org.eqasim.core.components.drt.config_group.DrtModeChoiceConfigGroup;
 
 public class DataStats {
     private double avg = Double.NaN;

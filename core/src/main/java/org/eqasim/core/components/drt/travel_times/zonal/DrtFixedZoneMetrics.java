@@ -1,12 +1,12 @@
-package org.eqasim.switzerland.drt.travel_times.zonal;
+package org.eqasim.core.components.drt.travel_times.zonal;
 
 
 import org.apache.log4j.Logger;
-import org.eqasim.switzerland.drt.config_group.DrtModeChoiceConfigGroup;
-import org.eqasim.switzerland.drt.travel_times.DataStats;
-import org.eqasim.switzerland.drt.travel_times.DrtDistanceBinUtils;
-import org.eqasim.switzerland.drt.travel_times.DrtTimeUtils;
-import org.eqasim.switzerland.drt.travel_times.DrtTripData;
+import org.eqasim.core.components.drt.config_group.DrtModeChoiceConfigGroup;
+import org.eqasim.core.components.drt.travel_times.DataStats;
+import org.eqasim.core.components.drt.travel_times.DrtDistanceBinUtils;
+import org.eqasim.core.components.drt.travel_times.DrtTimeUtils;
+import org.eqasim.core.components.drt.travel_times.DrtTripData;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.core.utils.io.IOUtils;

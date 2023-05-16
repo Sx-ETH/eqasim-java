@@ -51,6 +51,7 @@ public class SwissDrtModeChoiceModule extends AbstractEqasimExtension {
         // Override parameter bindings
         bind(SwissModeParameters.class).to(SwissDrtModeParameters.class);
         bind(SwissCostParameters.class).to(SwissDrtCostParameters.class);
+        bindTripConstraintFactory(DrtDistanceConstraint.NAME).to(DrtDistanceConstraint.Factory.class);
     }
 
     @Provides

@@ -1,4 +1,4 @@
-package org.eqasim.switzerland.drt.utils;
+package org.eqasim.core.components.drt.utils;
 
 /**
  * @author kaghog created on 06.12.2021
