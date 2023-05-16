@@ -33,12 +33,13 @@ public class FeederConstraint implements TripConstraint {
 	public boolean validateBeforeEstimation(DiscreteModeChoiceTrip trip, String mode, List<String> previousModes) {
 		if(trip.getOriginActivity().getType().equals("outside") || trip.getDestinationActivity().getType().equals("outside")) {
 			if(trip.getOriginActivity().getType().equals(trip.getDestinationActivity().getType())) {
-				return false;
+				return trip.getInitialMode().equals(mode);
 			}
 			if(trip.getInitialMode().equals("pt") || trip.getInitialMode().equals("feeder")) {
 				return mode.equals("pt") || mode.equals("feeder");
+			} else {
+				return trip.getInitialMode().equals(mode);
 			}
-			return false;
 		}
 		return true;
 	}

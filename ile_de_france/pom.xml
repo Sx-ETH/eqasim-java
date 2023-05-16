@@ -11,6 +11,12 @@
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
+	<repositories>
+		<repository>
+			<id>jipack</id>
+			<url>file://E:\repos\matsim-cba\.m2\repository</url>
+		</repository>
+	</repositories>
 	<dependencies>
 		<dependency>
 			<groupId>org.eqasim</groupId>
@@ -22,6 +28,18 @@
 			<groupId>org.matsim.contrib</groupId>
 			<artifactId>drt</artifactId>
 			<version>${matsim.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.matsim.contrib</groupId>
+			<artifactId>dvrp</artifactId>
+			<version>${matsim.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.github.MATSimToCBA</groupId>
+			<artifactId>matsim-cba</artifactId>
+			<version>0.9</version>
 		</dependency>
 	</dependencies>
 

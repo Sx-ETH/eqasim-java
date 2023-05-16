@@ -16,7 +16,6 @@ import org.matsim.core.utils.timing.TimeInterpretation;
 import org.matsim.core.utils.timing.TimeTracker;
 
 import java.util.*;
-import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 public class EventFiringTourBasedModel implements DiscreteModeChoiceModel {
@@ -61,8 +60,8 @@ public class EventFiringTourBasedModel implements DiscreteModeChoiceModel {
 
         int tripIndex = 1;
         TimeTracker time = new TimeTracker(timeInterpreterFactory);
-
-        for (List<DiscreteModeChoiceTrip> tourTrips : tourFinder.findTours(trips)) {
+        List<List<DiscreteModeChoiceTrip>> tours = tourFinder.findTours(trips);
+        for (List<DiscreteModeChoiceTrip> tourTrips : tours) {
             time.addActivity(tourTrips.get(0).getOriginActivity());
 
             // We pass the departure time through the first origin activity
@@ -72,7 +71,6 @@ public class EventFiringTourBasedModel implements DiscreteModeChoiceModel {
             List<TourCandidate> utilityCandidates = new ArrayList<>();
             List<List<String>> tourModesExcludedBeforeEstimation = new ArrayList<>();
             List<TourCandidate> candidatesExcludedAfterEstimation = new ArrayList<>();
-
             if (tourFilter.filter(person, tourTrips)) {
                 ModeChainGenerator generator = modeChainGeneratorFactory.createModeChainGenerator(modes, person,
                         tourTrips);
@@ -134,9 +132,9 @@ public class EventFiringTourBasedModel implements DiscreteModeChoiceModel {
                 if (!selectedCandidate.isPresent()) {
                     switch (fallbackBehaviour) {
                         case INITIAL_CHOICE:
-                            logger.warn(
-                                    buildFallbackMessage(tripIndex, person, "Setting tour modes back to initial choice."));
+                            //logger.warn(buildFallbackMessage(tripIndex, person, "Setting tour modes back to initial choice."));
                             selectedCandidate = Optional.of(createFallbackCandidate(person, tourTrips, tourCandidates));
+                            this.eventsManager.processEvent(new TourSelectorEvent(-1, person, utilityCandidates, (TourCandidate) selectedCandidate.get(), tourModesExcludedBeforeEstimation, candidatesExcludedAfterEstimation));
                             break;
                         case IGNORE_AGENT:
                             return handleIgnoreAgent(tripIndex, person, tourTrips);
@@ -144,12 +142,13 @@ public class EventFiringTourBasedModel implements DiscreteModeChoiceModel {
                             throw new NoFeasibleChoiceException(buildFallbackMessage(tripIndex, person, ""));
                     }
                 } else {
-                    this.eventsManager.processEvent(new TourSelectorEvent(-1, person, utilityCandidates, (TourCandidate) selectedCandidate.get(), tourModesExcludedBeforeEstimation, candidatesExcludedAfterEstimation));
+                    this.eventsManager.processEvent(new TourSelectorEvent(-1, person, utilityCandidates, (TourCandidate) selectedCandidate.get(), tourModesExcludedBeforeEstimation, candidatesExcludedAfterEstimation, "initial_choice"));
                 }
 
                 finalTourCandidate = (TourCandidate) selectedCandidate.get();
             } else {
                 finalTourCandidate = createFallbackCandidate(person, tourTrips, tourCandidates);
+                this.eventsManager.processEvent(new TourSelectorEvent(-1, person, utilityCandidates, finalTourCandidate, tourModesExcludedBeforeEstimation, candidatesExcludedAfterEstimation, "filtered_out"));
             }
 
             tourCandidates.add(finalTourCandidate);
@@ -166,7 +165,9 @@ public class EventFiringTourBasedModel implements DiscreteModeChoiceModel {
                 time.addDuration(finalTourCandidate.getTripCandidates().get(i).getDuration());
             }
         }
-
+        if(tours.size() == 0) {
+            this.eventsManager.processEvent(new NoTourFoundForPersonEvent(-1, person));
+        }
         return createTripCandidates(tourCandidates);
     }
 

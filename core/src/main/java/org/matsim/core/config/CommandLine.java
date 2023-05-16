@@ -631,7 +631,7 @@ public class CommandLine {
             throws ConfigurationException {
         int separatorIndex = remainder.indexOf(".");
         if(separatorIndex > -1) {
-            Pattern pattern = Pattern.compile("^([a-zA-Z]+)(\\[([a-zA-Z]+)=(.+)\\])?(!)?$");
+            Pattern pattern = Pattern.compile("^(.+?)(\\[([a-zA-Z]+)=(.+)\\])?(!)?$");
             String childSelector = remainder.substring(0, separatorIndex);
             Matcher matcher = pattern.matcher(childSelector);
             if(!matcher.matches()) {
@@ -644,7 +644,7 @@ public class CommandLine {
 
             ConfigGroup selectedParameterSet = null;
             for(ConfigGroup parameterSet: configGroup.getParameterSets(parameterSetType)) {
-                if(parameterSetCriteria != null && parameterSet.getParams().containsKey(parameterSetCriteria)) {
+                if(parameterSetCriteria != null && !parameterSet.getParams().containsKey(parameterSetCriteria)) {
                     throw new ConfigurationException(String.format("Parameter %s not found in %s", parameterSetCriteria, path));
                 }
                 if(parameterSetCriteria == null || parameterSet.getParams().get(parameterSetCriteria).equals(parameterSetCriteriaValue)) {

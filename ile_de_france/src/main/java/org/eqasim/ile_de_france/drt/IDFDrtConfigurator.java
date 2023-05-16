@@ -1,7 +1,6 @@
 package org.eqasim.ile_de_france.drt;
 
 import org.eqasim.ile_de_france.IDFConfigurator;
-import org.eqasim.ile_de_france.drt.IDFDrtConfigGroup;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.contrib.drt.routing.DrtRoute;
 import org.matsim.contrib.drt.routing.DrtRouteFactory;
@@ -21,5 +20,7 @@ public class IDFDrtConfigurator extends IDFConfigurator {
     @Override
     public void configureScenario(Scenario scenario) {
         scenario.getPopulation().getFactory().getRouteFactories().setRouteFactory(DrtRoute.class, new DrtRouteFactory());
+        DvrpConfigGroup dvrpConfigGroup = (DvrpConfigGroup) scenario.getConfig().getModules().get(DvrpConfigGroup.GROUP_NAME);
+        
     }
 }

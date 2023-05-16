@@ -12,6 +12,8 @@ public class DrtRejectionsLinearPenaltyProviderConfigGroup extends ReflectiveCon
     public static final String TARGET_REJECTION_PROBABILITY = "targetRejectionProbability";
     public static final String INITIAL_REJECTION_PENALTY = "initialRejectionPenalty";
 
+    public static final String ENABLE_BACKWARD_ADJUSTMENT = "enableBackwardAdjustment";
+
     public DrtRejectionsLinearPenaltyProviderConfigGroup() {
         super(SET_NAME);
     }
@@ -25,6 +27,7 @@ public class DrtRejectionsLinearPenaltyProviderConfigGroup extends ReflectiveCon
 
     private double initialRejectionPenalty = 0.0;
 
+    private boolean enableBackwardAdjustment = false;
 
     @StringGetter(TARGET_REJECTION_PROBABILITY)
     public double getTargetRejectionProbability() {
@@ -54,6 +57,16 @@ public class DrtRejectionsLinearPenaltyProviderConfigGroup extends ReflectiveCon
     @StringSetter(INITIAL_REJECTION_PENALTY)
     public void setInitialRejectionPenalty(double initialRejectionPenalty) {
         this.initialRejectionPenalty = initialRejectionPenalty;
+    }
+
+    @StringGetter(ENABLE_BACKWARD_ADJUSTMENT)
+    public boolean isBackwardAdjustmentEnabled() {
+        return this.enableBackwardAdjustment;
+    }
+
+    @StringSetter(ENABLE_BACKWARD_ADJUSTMENT)
+    public void setEnableBackwardAdjustment(boolean enableBackwardAdjustment) {
+        this.enableBackwardAdjustment = enableBackwardAdjustment;
     }
 
 }

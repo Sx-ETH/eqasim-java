@@ -1,9 +1,11 @@
 package org.eqasim.core.simulation;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.google.inject.Inject;
 import org.eqasim.core.components.EqasimComponentsModule;
 import org.eqasim.core.components.config.EqasimConfigGroup;
 import org.eqasim.core.components.traffic.EqasimTrafficQSimModule;
@@ -19,11 +21,16 @@ import org.matsim.contribs.discrete_mode_choice.modules.config.DiscreteModeChoic
 import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
+import org.matsim.core.controler.OutputDirectoryHierarchy;
+import org.matsim.core.controler.events.StartupEvent;
+import org.matsim.core.controler.listener.StartupListener;
 import org.matsim.core.mobsim.qsim.AbstractQSimModule;
 import org.matsim.households.Household;
 
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorModule;
+
+import javax.imageio.ImageIO;
 
 public class EqasimConfigurator {
 	protected final List<ConfigGroup> configGroups = new LinkedList<>();
@@ -75,6 +82,18 @@ public class EqasimConfigurator {
 		controller.configureQSimComponents(configurator -> {
 			EqasimTransitQSimModule.configure(configurator, controller.getConfig());
 		});
+		controller.addControlerListener(new StartupListener() {
+
+			@Inject
+			private OutputDirectoryHierarchy outputDirectoryHierarchy;
+
+			@Override
+			public void notifyStartup(StartupEvent event) {
+				System.setProperty("java.io.tmpdir", outputDirectoryHierarchy.getTempPath());
+				ImageIO.setCacheDirectory(new File(outputDirectoryHierarchy.getTempPath()));
+			}
+		});
+
 	}
 
 	public void configureScenario(Scenario scenario) {

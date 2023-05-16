@@ -27,15 +27,6 @@ import org.matsim.utils.objectattributes.attributable.Attributes;
 import java.util.*;
 
 
-//TODO see OutsideConstraint class
-//TODO can inject pt & DRT estimators
-//TODO LOOK AT SWITCH BETWEEN CAR & PT for FEEDER
-//TODO LOOK AT WAITING TIMES FOR DRT
-//TODO ALSO REJECTIONS
-//TODO Check DRT's min cost flow code for example on gathering drt perf stats
-//TODO Gare du nord 5h25
-
-
 
 public class FeederRoutingModule implements RoutingModule {
 	private final RoutingModule drtRoutingModule;
@@ -80,33 +71,24 @@ public class FeederRoutingModule implements RoutingModule {
 
 	public List<? extends PlanElement> calcRoute(Facility fromFacility, Facility toFacility, double departureTime,
 			Person person) {
+		// Identify closest stations from the origin and destination of the trip
 		Facility accessFacility = this.quadTree.getClosest(fromFacility.getCoord().getX(), fromFacility.getCoord().getY());
 		Facility egressFacility = this.quadTree.getClosest(toFacility.getCoord().getX(), toFacility.getCoord().getY());
 
 		List<PlanElement> intermodalRoute = new LinkedList<>();
+		// Computing the access DRT route
 		List<? extends PlanElement> drtRoute = null;
+		// If the trip starts right after an outside activity, we leave its first part as PT
 		if(! (fromFacility instanceof ActivityFacilityImpl) || ! ((ActivityFacilityImpl) fromFacility).getId().toString().startsWith("outside")) {
 			drtRoute = drtRoutingModule.calcRoute(DefaultRoutingRequest.withoutAttributes(fromFacility, accessFacility, departureTime, person));
 		}
-		if(drtRoute != null) {
-			for(PlanElement planElement: drtRoute) {
-				if(planElement instanceof Leg){
-					Leg leg = (Leg) planElement;
-					if(leg.getMode().equals("drt")){
-						DrtRoute route = (DrtRoute) leg.getRoute();
-						if(route.getDirectRideTime() >= route.getMaxWaitTime()) {
-							//logger.info("FEEDER ACCESS TRIP BREAKS CONSTRAINTS, CANCELLING IT");
-							//drtRoute = null;
-						}
-					}
-				}
-			}
-		}
 		double accessTime = departureTime;
 		if(drtRoute == null) {
+			// if no DRT route, next part of the trip starts from the origin
 			accessFacility = fromFacility;
 		}
 		else {
+			//Otherwise we have already a first part of the trip
 			intermodalRoute.addAll(drtRoute);
 			for (PlanElement element : intermodalRoute) {
 				if (element instanceof Leg) {
@@ -120,6 +102,7 @@ public class FeederRoutingModule implements RoutingModule {
 			intermodalRoute.add(accessInteractionActivity);
 		}
 
+		// Compute the PT part of the route
 		List<PlanElement> ptRoute = new LinkedList<>(transitRoutingModule.calcRoute(DefaultRoutingRequest.withoutAttributes(accessFacility, egressFacility, accessTime, person)));
 		double egressTime = accessTime;
 
@@ -131,32 +114,22 @@ public class FeederRoutingModule implements RoutingModule {
 			}
 		}
 
+		// Compute the egress DRT route
+		// Same as above, if the trip ends righe before an outside activity, we leave its last part as PT
 		if(!(egressFacility instanceof ActivityFacilityImpl) || ! ((ActivityFacilityImpl) egressFacility).getId().toString().startsWith("outside"))
 		{
 			drtRoute = drtRoutingModule.calcRoute(DefaultRoutingRequest.withoutAttributes(egressFacility, toFacility, egressTime, person));
-			if(drtRoute != null) {
-				for(PlanElement planElement: drtRoute) {
-					if(planElement instanceof Leg){
-						Leg leg = (Leg) planElement;
-						if(leg.getMode().equals("drt")){
-							DrtRoute route = (DrtRoute) leg.getRoute();
-							if(route.getDirectRideTime() >= route.getMaxWaitTime()) {
-								//logger.info("FEEDER EGRESS TRIP BREAKS CONSTRAINTS, CANCELLING IT");
-								//drtRoute = null;
-							}
-						}
-					}
-				}
-			}
 		}
 		else
 		{
 			drtRoute = null;
 		}
 
+		// If no valid DRT route is found, we recompute a PT route from the access facility to the trip destination
 		if(drtRoute == null) {
 			intermodalRoute.addAll(transitRoutingModule.calcRoute(DefaultRoutingRequest.withoutAttributes(accessFacility, toFacility, accessTime, person)));
 		} else {
+			// Otherwise we add it as an egress to the whole route
 			intermodalRoute.addAll(ptRoute);
 			Activity egressInteractionActivity = populationFactory.createActivityFromLinkId("feeder interaction", egressFacility.getLinkId());
 			egressInteractionActivity.setMaximumDuration(0);

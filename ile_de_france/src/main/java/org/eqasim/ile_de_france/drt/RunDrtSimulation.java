@@ -3,10 +3,13 @@ package org.eqasim.ile_de_france.drt;
 import org.eqasim.core.components.transit.EqasimTransitQSimModule;
 import org.eqasim.core.simulation.analysis.EqasimAnalysisModule;
 import org.eqasim.core.simulation.mode_choice.EqasimModeChoiceModule;
+import org.eqasim.ile_de_france.CbaUtils;
 import org.eqasim.ile_de_france.drt.analysis.DvrpAnalsisModule;
+import org.eqasim.ile_de_france.drt.mode_choice.DrtEpsilonModule;
 import org.eqasim.ile_de_france.feeder.FeederModule;
 import org.eqasim.ile_de_france.feeder.analysis.FeederAnalysisModule;
 import org.eqasim.ile_de_france.mode_choice.IDFModeChoiceModule;
+import org.eqasim.ile_de_france.mode_choice.epsilon.EpsilonModule;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.contrib.drt.run.DrtConfigGroup;
 import org.matsim.contrib.drt.run.MultiModeDrtConfigGroup;
@@ -23,16 +26,20 @@ import org.matsim.core.scenario.ScenarioUtils;
 public class RunDrtSimulation {
     public static void main(String[] args) throws CommandLine.ConfigurationException {
         CommandLine cmd = new CommandLine.Builder(args) //
-                .requireOptions("config-path").allowOptions("drt-variables-estimator", "drtRejectionsPenaltyProvider", "use-am") //
+                .requireOptions("config-path").allowOptions("drt-variables-estimator", "drtRejectionsPenaltyProvider", "use-am", "cba") //
                 .allowPrefixes("mode-choice-parameter", "cost-parameter") //
                 .build();
 
+        boolean cba = cmd.hasOption("cba") && Boolean.parseBoolean(cmd.getOptionStrict("cba"));
+
         IDFDrtConfigurator configurator = new IDFDrtConfigurator();
-        boolean useFeeder = cmd.hasOption("use-feeder") && Boolean.parseBoolean(cmd.getOptionStrict("use-feeder"));
 
         Config config;
         ConfigGroup[] configGroups = configurator.getConfigGroups();
         config = ConfigUtils.loadConfig(cmd.getOptionStrict("config-path"), configGroups);
+        if(cba) {
+            CbaUtils.adaptConfig(config, true);
+        }
         cmd.applyConfiguration(config);
 
         MultiModeDrtConfigGroup multiModeDrtConfig;
@@ -80,6 +87,14 @@ public class RunDrtSimulation {
                 controller.addOverridingModule(new FeederModule(null, scenario.getTransitSchedule()));
                 controller.addOverridingModule(new FeederAnalysisModule());
             }
+        }
+        {
+            //Add support of Epsilon utility sstimators
+            controller.addOverridingModule(new EpsilonModule());
+            controller.addOverridingModule(new DrtEpsilonModule());
+        }
+        if(cba) {
+            CbaUtils.adaptControler(controller);
         }
         controller.run();
     }

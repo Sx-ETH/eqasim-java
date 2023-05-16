@@ -46,7 +46,7 @@ public class AdaptConfigForFeeder extends AdaptConfigForDrt{
         Config config = ConfigUtils.loadConfig(inputConfigPath, configurator.getConfigGroups());
 
         new AdaptConfigForFeeder().adapt(config, path.toString(), qsimEndtime);
-
+        cmd.applyConfiguration(config);
         ConfigUtils.writeConfig(config, outputConfigPath);
     }
 }

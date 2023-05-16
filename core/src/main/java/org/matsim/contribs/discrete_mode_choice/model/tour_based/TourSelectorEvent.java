@@ -1,4 +1,4 @@
-package org.matsim.contribs.discrete_mode_choice.model;
+package org.matsim.contribs.discrete_mode_choice.model.tour_based;
 
 import org.matsim.api.core.v01.events.Event;
 import org.matsim.api.core.v01.population.Person;
@@ -14,14 +14,20 @@ public class TourSelectorEvent extends Event {
     private final Person person;
     private final List<List<String>> tourModesExcludedBeforeEstimation;
     private final List<TourCandidate> candidatesExcludedAfterEstimation;
+    private final String status;
 
     public TourSelectorEvent(double time, Person person, List<TourCandidate> candidates, TourCandidate selected, List<List<String>> tourModesExcludedBeforeEstimation, List<TourCandidate> candidatesExcludedAfterEstimation) {
+        this(time, person, candidates, selected, tourModesExcludedBeforeEstimation, candidatesExcludedAfterEstimation, "");
+    }
+
+    public TourSelectorEvent(double time, Person person, List<TourCandidate> candidates, TourCandidate selected, List<List<String>> tourModesExcludedBeforeEstimation, List<TourCandidate> candidatesExcludedAfterEstimation, String status) {
         super(time);
         this.candidates = candidates;
         this.selected = selected;
         this.person = person;
         this.tourModesExcludedBeforeEstimation = tourModesExcludedBeforeEstimation;
         this.candidatesExcludedAfterEstimation = candidatesExcludedAfterEstimation;
+        this.status = status;
     }
 
     public TourCandidate getSelected() {
@@ -42,6 +48,10 @@ public class TourSelectorEvent extends Event {
 
     public Person getPerson() {
         return this.person;
+    }
+
+    public String getStatus() {
+        return this.status;
     }
 
     @Override

@@ -46,7 +46,8 @@ public class ExportNetworkToShapefile {
 				.addAttribute("osm", String.class) //
 				.addAttribute("lanes", Integer.class) //
 				.addAttribute("capacity", Double.class) //
-				.addAttribute("freespeed", Double.class) //
+				.addAttribute("freespeed", Double.class)
+				.addAttribute("modes", String.class)//
 				.create();
 
 		for (Link link : network.getLinks().values()) {
@@ -74,6 +75,7 @@ public class ExportNetworkToShapefile {
 								link.getNumberOfLanes(), //
 								link.getCapacity(), //
 								link.getFreespeed(), //
+								String.join(";", link.getAllowedModes())
 						}, null);
 
 				features.add(feature);

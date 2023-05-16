@@ -20,7 +20,6 @@ import org.matsim.contribs.discrete_mode_choice.model.trip_based.TripBasedModel;
 import org.matsim.contribs.discrete_mode_choice.model.trip_based.TripConstraintFactory;
 import org.matsim.contribs.discrete_mode_choice.model.trip_based.TripEstimator;
 import org.matsim.contribs.discrete_mode_choice.model.utilities.UtilitySelectorFactory;
-import org.matsim.contribs.discrete_mode_choice.modules.*;
 import org.matsim.contribs.discrete_mode_choice.modules.config.DiscreteModeChoiceConfigGroup;
 import org.matsim.contribs.discrete_mode_choice.replanning.TripListConverter;
 import org.matsim.core.api.experimental.events.EventsManager;

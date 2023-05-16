@@ -44,10 +44,31 @@ public class RunTripAnalysis {
 				.allowOptions("vehicle-modes") //
 				.allowOptions("input-distance-units", "output-distance-units")
 				.allowOptions("extent-path", "extent-attribute", "extent-value", "schedule-path")
-				.allowOptions("main-mode-identifier")
+				.allowOptions("main-mode-identifier", "person-analysis-filter")
 				.build();
-
-		run(cmd, new DefaultPersonAnalysisFilter());
+		PersonAnalysisFilter personAnalysisFilter;
+		if(cmd.hasOption("person-analysis-filter")) {
+			try {
+				Class<?> personAnalysisFilterClass = Class.forName(cmd.getOptionStrict("person-analysis-filter"));
+				boolean foundPersonAnalysisFilterInterface = false;
+				for(Class<?> classObject : personAnalysisFilterClass.getInterfaces()) {
+					if(classObject.equals(PersonAnalysisFilter.class)) {
+						foundPersonAnalysisFilterInterface = true;
+						break;
+					}
+				}
+				if(!foundPersonAnalysisFilterInterface) {
+					throw new IllegalStateException("The provided class " + cmd.getOptionStrict("main-mode-identifier") + " does not implement the PersonAnalysisFilter interface");
+				}
+				personAnalysisFilter = (PersonAnalysisFilter) personAnalysisFilterClass.getConstructor().newInstance();
+			} catch (InstantiationException | IllegalAccessException | InvocationTargetException |
+					 NoSuchMethodException | ClassNotFoundException e) {
+				throw new RuntimeException(e);
+			}
+		} else {
+			personAnalysisFilter = new DefaultPersonAnalysisFilter();
+		}
+		run(cmd, personAnalysisFilter);
 	}
 
 	public static void run(CommandLine cmd, PersonAnalysisFilter personAnalysisFilter)

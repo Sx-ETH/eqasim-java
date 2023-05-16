@@ -15,7 +15,7 @@ public class DrtRejectionsLinearPenaltyProvider implements DrtRejectionPenaltyPr
 
     private final double targetRejectionProbability;
     private final double initialRejectionPenalty;
-    private final double rejectionPenaltyAlpha; //TO TEST 0.01 -> 0.3 -> 1
+    private final double rejectionPenaltyAlpha;
     private final static int ENABLE_AFTER_ITERATION = -1;
     private double rejectionPenalty;
     private final RejectionTracker rejectionTracker;
@@ -24,6 +24,7 @@ public class DrtRejectionsLinearPenaltyProvider implements DrtRejectionPenaltyPr
     private final Map<Integer, Double> rejectionProbabilitiesHistory = new HashMap<>();
     private final Map<Integer, Double> numberOfRequestsToRejectionRates = new HashMap<>();
 
+    private final boolean enableBackwardAdjustment;
 
     @Inject
     public DrtRejectionsLinearPenaltyProvider(RejectionTracker rejectionTracker, MatsimServices services, DrtRejectionsLinearPenaltyProviderConfigGroup configGroup) {
@@ -33,6 +34,7 @@ public class DrtRejectionsLinearPenaltyProvider implements DrtRejectionPenaltyPr
         this.initialRejectionPenalty = configGroup.getInitialRejectionPenalty();
         this.rejectionPenaltyAlpha = configGroup.getAlpha();
         this.rejectionPenalty = this.initialRejectionPenalty;
+        this.enableBackwardAdjustment = configGroup.isBackwardAdjustmentEnabled();
     }
 
     @Override
@@ -49,10 +51,14 @@ public class DrtRejectionsLinearPenaltyProvider implements DrtRejectionPenaltyPr
         }
 
 
-        if(!Double.isNaN(lastRejectionProbability) && targetRejectionProbability < lastRejectionProbability && event.getIteration() >= ENABLE_AFTER_ITERATION){
-            double delta = targetRejectionProbability - lastRejectionProbability;
-            double update = delta * rejectionPenaltyAlpha;
-            this.rejectionPenalty += update;
+        if(!Double.isNaN(lastRejectionProbability) && event.getIteration() >= ENABLE_AFTER_ITERATION){
+            if(enableBackwardAdjustment || targetRejectionProbability < lastRejectionProbability) {
+                double delta = targetRejectionProbability - lastRejectionProbability;
+                double update = delta * rejectionPenaltyAlpha;
+                if(this.rejectionPenalty + update <= 0) {
+                    this.rejectionPenalty += update;
+                }
+            }
         }
 
         if(!event.isLastIteration()){
@@ -75,8 +81,6 @@ public class DrtRejectionsLinearPenaltyProvider implements DrtRejectionPenaltyPr
                 writer.write(key+";"+this.numberOfRequestsToRejectionRates.get(k)+"\n");
             }
             writer.close();
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

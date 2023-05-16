@@ -15,6 +15,7 @@ import org.eqasim.ile_de_france.mode_choice.utilities.estimators.IDFBikeUtilityE
 import org.eqasim.ile_de_france.mode_choice.utilities.estimators.IDFCarUtilityEstimator;
 import org.eqasim.ile_de_france.mode_choice.utilities.predictors.IDFPersonPredictor;
 import org.eqasim.ile_de_france.mode_choice.utilities.predictors.IDFSpatialPredictor;
+import org.matsim.contribs.discrete_mode_choice.model.tour_based.SelectedToursRecorder;
 import org.matsim.core.config.CommandLine;
 import org.matsim.core.config.CommandLine.ConfigurationException;
 
@@ -50,7 +51,7 @@ public class IDFModeChoiceModule extends AbstractEqasimExtension {
 		bind(IDFSpatialPredictor.class);
 
 		bind(ModeParameters.class).to(IDFModeParameters.class);
-		addControlerListenerBinding().to(SelectedToursRecorder.class).asEagerSingleton();
+
 	}
 
 	@Provides

@@ -1,13 +1,15 @@
-package org.eqasim.ile_de_france.mode_choice;
+package org.matsim.contribs.discrete_mode_choice.model.tour_based;
 
 import com.google.inject.Inject;
 import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.PlanElement;
-import org.matsim.contribs.discrete_mode_choice.model.TourSelectorEvent;
-import org.matsim.contribs.discrete_mode_choice.model.TourSelectorEventHandler;
+import org.matsim.contribs.discrete_mode_choice.model.tour_based.TourSelectorEvent;
+import org.matsim.contribs.discrete_mode_choice.model.tour_based.TourSelectorEventHandler;
+import org.matsim.contribs.discrete_mode_choice.model.tour_based.DefaultTourCandidate;
 import org.matsim.contribs.discrete_mode_choice.model.tour_based.TourCandidate;
 import org.matsim.contribs.discrete_mode_choice.model.trip_based.candidates.DefaultRoutedTripCandidate;
+import org.matsim.contribs.discrete_mode_choice.model.trip_based.candidates.DefaultTripCandidate;
 import org.matsim.contribs.discrete_mode_choice.model.trip_based.candidates.TripCandidate;
 import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.controler.MatsimServices;
@@ -15,7 +17,6 @@ import org.matsim.core.controler.events.BeforeMobsimEvent;
 import org.matsim.core.controler.events.IterationStartsEvent;
 import org.matsim.core.controler.listener.BeforeMobsimListener;
 import org.matsim.core.controler.listener.IterationStartsListener;
-import org.matsim.core.population.io.PopulationWriterHandler;
 import org.matsim.core.utils.collections.Tuple;
 import org.matsim.core.utils.io.MatsimXmlWriter;
 
@@ -52,6 +53,7 @@ public class SelectedToursRecorder extends MatsimXmlWriter implements TourSelect
     private void writeTourSelectorEvent(TourSelectorEvent tourSelectorEvent) {
         List<Tuple<String, String>> attributes = new ArrayList<>();
         attributes.add(Tuple.of("person", tourSelectorEvent.getPerson().getId().toString()));
+        attributes.add(Tuple.of("status", tourSelectorEvent.getStatus()));
         this.writeStartTag(TourSelectorEvent.EVENT_TYPE, attributes);
         this.writeTourCandidate(tourSelectorEvent.getSelected(), "selected");
         for(TourCandidate tourCandidate: tourSelectorEvent.getCandidates()) {
@@ -63,7 +65,18 @@ public class SelectedToursRecorder extends MatsimXmlWriter implements TourSelect
         for(TourCandidate tourCandidate: tourSelectorEvent.getCandidatesExcludedAfterEstimation()) {
             this.writeTourCandidate(tourCandidate, "excludedAfterEstimation");
         }
+        for(List<String> tourModes: tourSelectorEvent.getTourModesExcludedBeforeEstimation()) {
+            this.writeTourCandidate(this.tourModesToCandidate(tourModes), "excludedBeforeEstimation");
+        }
         this.writeEndTag(TourSelectorEvent.EVENT_TYPE);
+    }
+
+    private TourCandidate tourModesToCandidate(List<String> tourModes) {
+        List<TripCandidate> tripCandidates = new ArrayList<>();
+        for(String mode: tourModes) {
+            tripCandidates.add(new DefaultTripCandidate(0, mode, 0));
+        }
+        return new DefaultTourCandidate(0, tripCandidates);
     }
 
     private void writeTourCandidate(TourCandidate tourCandidate, String status) {

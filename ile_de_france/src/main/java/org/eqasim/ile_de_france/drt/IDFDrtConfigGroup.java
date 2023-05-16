@@ -10,8 +10,7 @@ public class IDFDrtConfigGroup extends ReflectiveConfigGroupWithConfigurablePara
 
     public static final String USE_FEEDER = "useFeeder";
 
-
-
+    public static final String OVERRIDE_PCU = "overridePcu";
 
     public IDFDrtConfigGroup() {
         super(GROUP_NAME);
@@ -21,6 +20,8 @@ public class IDFDrtConfigGroup extends ReflectiveConfigGroupWithConfigurablePara
     }
 
     private boolean useFeeder = false;
+
+    private Double overridePcu = 1.0;
 
     @Nullable
     DrtRejectionPenaltyProviderConfigGroup drtRejectionPenaltyProvider;
@@ -34,6 +35,16 @@ public class IDFDrtConfigGroup extends ReflectiveConfigGroupWithConfigurablePara
     @StringSetter(USE_FEEDER)
     public void setUsingFeeder(boolean useFeeder) {
         this.useFeeder = useFeeder;
+    }
+
+    @StringGetter(OVERRIDE_PCU)
+    public Double getOverridePcu() {
+        return this.overridePcu;
+    }
+
+    @StringSetter(OVERRIDE_PCU)
+    public void setOverridePcu(double overridePcu) {
+        this.overridePcu = overridePcu;
     }
 
     @Nullable

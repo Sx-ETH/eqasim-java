@@ -12,6 +12,7 @@ import org.matsim.core.router.costcalculators.TravelDisutilityModule;
 import org.matsim.core.scenario.ScenarioByInstanceModule;
 import org.matsim.core.scoring.functions.CharyparNagelScoringFunctionModule;
 import org.matsim.core.trafficmonitoring.TravelTimeCalculatorModule;
+import org.matsim.core.utils.timing.TimeInterpretationModule;
 
 public class InjectorBuilder {
 	private final Scenario scenario;
@@ -38,6 +39,7 @@ public class InjectorBuilder {
 		AbstractModule standardModule = new AbstractModule() {
 			@Override
 			public void install() {
+				install(new TimeInterpretationModule());
 				install(new EventsManagerModule());
 				install(new TripRouterModule());
 				install(new CharyparNagelScoringFunctionModule());
