@@ -16,7 +16,23 @@ import java.io.IOException;
 import java.util.*;
 
 public class DrtFixedZoneMetrics {
+    /*
+    *  - computes and stores data from a fixed zonal system for all iteration data
+     *
+    *
+    *
+    * */
+
+    public ArrayList<Map<String, DataStats[]>> getDataZonalAndTimeBinWaitingTimes() {
+        return iterationZonalAndTimeBinWaitingTime;
+    }
+
     private final ArrayList<Map<String, DataStats[]>> iterationZonalAndTimeBinWaitingTime = new ArrayList<>();
+
+    public ArrayList<Map<Integer, DataStats[]>> getDataDistanceAndTimeBinDelayFactor() {
+        return iterationDistanceAndTimeBinDelayFactor;
+    }
+
     private final ArrayList<Map<Integer, DataStats[]>> iterationDistanceAndTimeBinDelayFactor = new ArrayList<>();
     private final FixedDrtZonalSystem zones;
     private final int timeBinSize_min;
@@ -213,93 +229,6 @@ public class DrtFixedZoneMetrics {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    public double getDelayFactorFromDistanceAndTimeBinMoving(int distanceBin, int timeBin, DrtModeChoiceConfigGroup.Feedback feedback,
-                                                             int movingWindow) {
-        double total = 0;
-        int count = 0;
-        int startIteration = Math.max(0, iterationDistanceAndTimeBinDelayFactor.size() - movingWindow);
-        for (int i = startIteration; i < iterationDistanceAndTimeBinDelayFactor.size(); i++) {
-            if (!(iterationDistanceAndTimeBinDelayFactor.get(i).get(distanceBin) == null ||
-                    timeBin >= iterationDistanceAndTimeBinDelayFactor.get(i).get(distanceBin).length ||
-                    Double.isNaN(iterationDistanceAndTimeBinDelayFactor.get(i).get(distanceBin)[timeBin].getStat(feedback)))) {
-                total += iterationDistanceAndTimeBinDelayFactor.get(i).get(distanceBin)[timeBin].getStat(feedback);
-                count++;
-            }
-        }
-        return total / count;
-    }
-
-    public double getDelayFactorFromDistanceAndTimeBinSuccessive(int distanceBin, int timeBin, DrtModeChoiceConfigGroup.Feedback feedback,
-                                                                 double msaWeight) {
-        double delayFactor = Double.NaN;
-        for (Map<Integer, DataStats[]> integerMap : iterationDistanceAndTimeBinDelayFactor) {
-            if (!(integerMap.get(distanceBin) == null ||
-                    timeBin >= integerMap.get(distanceBin).length ||
-                    Double.isNaN(integerMap.get(distanceBin)[timeBin].getStat(feedback)))) {
-                if (Double.isNaN(delayFactor)) {
-                    delayFactor = integerMap.get(distanceBin)[timeBin].getStat(feedback);
-                } else {
-                    delayFactor = delayFactor * (1 - msaWeight) + integerMap.get(distanceBin)[timeBin].getStat(feedback) * msaWeight;
-                }
-            }
-        }
-        return delayFactor;
-
-    }
-
-    public double getDelayFactorFromDistanceAndTimeBinIteration(int distanceBin, int timeBin, DrtModeChoiceConfigGroup.Feedback feedback) {
-        int nIteration = iterationDistanceAndTimeBinDelayFactor.size() - 1;
-        if (iterationDistanceAndTimeBinDelayFactor.get(nIteration).get(distanceBin) == null ||
-                timeBin >= iterationDistanceAndTimeBinDelayFactor.get(nIteration).get(distanceBin).length ||
-                Double.isNaN(iterationDistanceAndTimeBinDelayFactor.get(nIteration).get(distanceBin)[timeBin].getStat(feedback))) {
-            return Double.NaN;
-        }
-        return iterationDistanceAndTimeBinDelayFactor.get(nIteration).get(distanceBin)[timeBin].getStat(feedback);
-    }
-
-    public double getWaitTimeFromZoneAndTimeBinMoving(String zone, int timeBin, DrtModeChoiceConfigGroup.Feedback feedback,
-                                                      int movingWindow) {
-        double total = 0;
-        int count = 0;
-        int startIteration = Math.max(0, iterationZonalAndTimeBinWaitingTime.size() - movingWindow);
-        for (int i = startIteration; i < iterationZonalAndTimeBinWaitingTime.size(); i++) {
-            if (!(iterationZonalAndTimeBinWaitingTime.get(i).get(zone) == null ||
-                    timeBin >= iterationZonalAndTimeBinWaitingTime.get(i).get(zone).length ||
-                    Double.isNaN(iterationZonalAndTimeBinWaitingTime.get(i).get(zone)[timeBin].getStat(feedback)))) {
-                total += iterationZonalAndTimeBinWaitingTime.get(i).get(zone)[timeBin].getStat(feedback);
-                count++;
-            }
-        }
-        return total / count;
-    }
-
-    public double getWaitTimeFromZoneAndTimeBinSuccessive(String zone, int timeBin, DrtModeChoiceConfigGroup.Feedback feedback,
-                                                          double msaWeight) {
-        double waitTime = Double.NaN;
-        for (Map<String, DataStats[]> stringMap : iterationZonalAndTimeBinWaitingTime) {
-            if (!(stringMap.get(zone) == null ||
-                    timeBin >= stringMap.get(zone).length ||
-                    Double.isNaN(stringMap.get(zone)[timeBin].getStat(feedback)))) {
-                if (Double.isNaN(waitTime)) {
-                    waitTime = stringMap.get(zone)[timeBin].getStat(feedback);
-                } else {
-                    waitTime = waitTime * (1 - msaWeight) + stringMap.get(zone)[timeBin].getStat(feedback) * msaWeight;
-                }
-            }
-        }
-        return waitTime;
-    }
-
-    public double getWaitTimeFromZoneAndTimeBinIteration(String zone, int timeBin, DrtModeChoiceConfigGroup.Feedback feedback) {
-        int nIteration = iterationZonalAndTimeBinWaitingTime.size() - 1;
-        if (iterationZonalAndTimeBinWaitingTime.get(nIteration).get(zone) == null ||
-                timeBin >= iterationZonalAndTimeBinWaitingTime.get(nIteration).get(zone).length ||
-                Double.isNaN(iterationZonalAndTimeBinWaitingTime.get(nIteration).get(zone)[timeBin].getStat(feedback))) {
-            return Double.NaN;
-        }
-        return iterationZonalAndTimeBinWaitingTime.get(nIteration).get(zone)[timeBin].getStat(feedback);
     }
 
     public void calculateAndAddMetrics(Set<DrtTripData> drtTripData) {
