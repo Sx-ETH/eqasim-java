@@ -7,10 +7,12 @@ import org.eqasim.switzerland.drt.travel_times.zonal.DrtFixedZoneMetrics;
 import java.util.ArrayList;
 import java.util.Map;
 
-public class Markov {
+public class Markov implements Smoothing {
 
     //wait time
-    public static double getZonalWaitTime(DrtFixedZoneMetrics drtZoneMetricData, String zone, int timeBin, DrtModeChoiceConfigGroup.Feedback feedback) {
+    @Override
+    public double getZonalWaitTime(DrtFixedZoneMetrics drtZoneMetricData, String zone, int timeBin,
+                                   DrtModeChoiceConfigGroup.Feedback feedback) {
         ArrayList<Map<String, DataStats[]>> iterationZonalAndTimeBinWaitingTime = drtZoneMetricData.getDataZonalAndTimeBinWaitingTimes();
         int nIteration = iterationZonalAndTimeBinWaitingTime.size() - 1;
         if (iterationZonalAndTimeBinWaitingTime.get(nIteration).get(zone) == null ||
@@ -22,7 +24,9 @@ public class Markov {
     }
 
     //delay factor
-    public static double getDelayFactor(DrtFixedZoneMetrics drtZoneMetricData, int distanceBin, int timeBin, DrtModeChoiceConfigGroup.Feedback feedback) {
+    @Override
+    public double getDelayFactor(DrtFixedZoneMetrics drtZoneMetricData, int distanceBin, int timeBin,
+                                 DrtModeChoiceConfigGroup.Feedback feedback) {
         ArrayList<Map<Integer, DataStats[]>> iterationDistanceAndTimeBinDelayFactor = drtZoneMetricData.getDataDistanceAndTimeBinDelayFactor();
         int nIteration = iterationDistanceAndTimeBinDelayFactor.size() - 1;
         if (iterationDistanceAndTimeBinDelayFactor.get(nIteration).get(distanceBin) == null ||
@@ -31,5 +35,12 @@ public class Markov {
             return Double.NaN;
         }
         return iterationDistanceAndTimeBinDelayFactor.get(nIteration).get(distanceBin)[timeBin].getStat(feedback);
+    }
+
+    //dynamic wait time
+    @Override
+    public double getDynamicWaitTime(Double dynamicWaitTime, DrtFixedZoneMetrics drtZoneMetricData, String zone,
+                                     int timeBin, DrtModeChoiceConfigGroup.Feedback feedback) {
+        return dynamicWaitTime;
     }
 }

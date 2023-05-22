@@ -7,14 +7,21 @@ import org.eqasim.switzerland.drt.travel_times.zonal.DrtFixedZoneMetrics;
 import java.util.ArrayList;
 import java.util.Map;
 
-public class MovingWindow {
+public class MovingWindow implements Smoothing {
+    private final int movingWindow;
+
+    public MovingWindow(int movingWindow) {
+        this.movingWindow = movingWindow;
+    }
+
     //wait time zonal
-    public static double getZonalWaitTime(DrtFixedZoneMetrics drtZoneMetricData, String zone, int timeBin, DrtModeChoiceConfigGroup.Feedback feedback,
-                                          int movingWindow) {
+    @Override
+    public double getZonalWaitTime(DrtFixedZoneMetrics drtZoneMetricData, String zone, int timeBin,
+                                   DrtModeChoiceConfigGroup.Feedback feedback) {
         ArrayList<Map<String, DataStats[]>> iterationZonalAndTimeBinWaitingTime = drtZoneMetricData.getDataZonalAndTimeBinWaitingTimes();
         double total = 0;
         int count = 0;
-        int startIteration = Math.max(0, iterationZonalAndTimeBinWaitingTime.size() - movingWindow);
+        int startIteration = Math.max(0, iterationZonalAndTimeBinWaitingTime.size() - this.movingWindow);
         for (int i = startIteration; i < iterationZonalAndTimeBinWaitingTime.size(); i++) {
             if (!(iterationZonalAndTimeBinWaitingTime.get(i).get(zone) == null ||
                     timeBin >= iterationZonalAndTimeBinWaitingTime.get(i).get(zone).length ||
@@ -25,14 +32,16 @@ public class MovingWindow {
         }
         return total / count;
     }
+
     //wait time dynamic
-    public static double getDynamicWaitTime(Double dynamicWaitTime, DrtFixedZoneMetrics drtZoneMetricData, String zone, int timeBin, DrtModeChoiceConfigGroup.Feedback feedback,
-                                            int movingWindow) {
+    @Override
+    public double getDynamicWaitTime(Double dynamicWaitTime, DrtFixedZoneMetrics drtZoneMetricData, String zone,
+                                     int timeBin, DrtModeChoiceConfigGroup.Feedback feedback) {
         ArrayList<Map<String, DataStats[]>> iterationZonalAndTimeBinWaitingTime = drtZoneMetricData.getDataZonalAndTimeBinWaitingTimes();
         double total = 0;
         int count = 0;
-        int startIteration = Math.max(0, iterationZonalAndTimeBinWaitingTime.size() - movingWindow);
-        for (int i = startIteration; i < iterationZonalAndTimeBinWaitingTime.size()-1; i++) {
+        int startIteration = Math.max(0, iterationZonalAndTimeBinWaitingTime.size() - this.movingWindow);
+        for (int i = startIteration; i < iterationZonalAndTimeBinWaitingTime.size() - 1; i++) {
             if (!(iterationZonalAndTimeBinWaitingTime.get(i).get(zone) == null ||
                     timeBin >= iterationZonalAndTimeBinWaitingTime.get(i).get(zone).length ||
                     Double.isNaN(iterationZonalAndTimeBinWaitingTime.get(i).get(zone)[timeBin].getStat(feedback)))) {
@@ -40,18 +49,19 @@ public class MovingWindow {
                 count++;
             }
         }
-        total = total+ dynamicWaitTime;
+        total = total + dynamicWaitTime;
         return total / (count + 1);
     }
 
 
     //delay time
-    public static double getDelayFactor(DrtFixedZoneMetrics drtZoneMetricData, int distanceBin, int timeBin, DrtModeChoiceConfigGroup.Feedback feedback,
-                                        int movingWindow) {
+    @Override
+    public double getDelayFactor(DrtFixedZoneMetrics drtZoneMetricData, int distanceBin, int timeBin,
+                                 DrtModeChoiceConfigGroup.Feedback feedback) {
         ArrayList<Map<Integer, DataStats[]>> iterationDistanceAndTimeBinDelayFactor = drtZoneMetricData.getDataDistanceAndTimeBinDelayFactor();
         double total = 0;
         int count = 0;
-        int startIteration = Math.max(0, iterationDistanceAndTimeBinDelayFactor.size() - movingWindow);
+        int startIteration = Math.max(0, iterationDistanceAndTimeBinDelayFactor.size() - this.movingWindow);
         for (int i = startIteration; i < iterationDistanceAndTimeBinDelayFactor.size(); i++) {
             if (!(iterationDistanceAndTimeBinDelayFactor.get(i).get(distanceBin) == null ||
                     timeBin >= iterationDistanceAndTimeBinDelayFactor.get(i).get(distanceBin).length ||

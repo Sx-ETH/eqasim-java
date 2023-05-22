@@ -1,7 +1,12 @@
 package org.eqasim.switzerland.drt.travel_times;
 
 import org.eqasim.core.simulation.mode_choice.AbstractEqasimExtension;
-import org.eqasim.switzerland.drt.mode_choice.DrtDistanceConstraint;
+import org.eqasim.switzerland.drt.config_group.DrtMetricSmootheningParamSet;
+import org.eqasim.switzerland.drt.config_group.DrtModeChoiceConfigGroup;
+import org.eqasim.switzerland.drt.travel_times.smoothing.Markov;
+import org.eqasim.switzerland.drt.travel_times.smoothing.MovingWindow;
+import org.eqasim.switzerland.drt.travel_times.smoothing.Smoothing;
+import org.eqasim.switzerland.drt.travel_times.smoothing.SuccessiveAverage;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.contrib.drt.run.DrtConfigGroup;
 
@@ -9,10 +14,12 @@ public class SwissDrtTravelTimeModule extends AbstractEqasimExtension {
 
     private final DrtConfigGroup drtConfig;
     private final Scenario scenario;
+    private final DrtModeChoiceConfigGroup drtModeChoiceConfigGroup;
 
-    public SwissDrtTravelTimeModule(DrtConfigGroup drtConfig, Scenario scenario) {
+    public SwissDrtTravelTimeModule(DrtConfigGroup drtConfig, Scenario scenario, DrtModeChoiceConfigGroup drtModeChoiceConfigGroup) {
         this.drtConfig = drtConfig;
         this.scenario = scenario;
+        this.drtModeChoiceConfigGroup = drtModeChoiceConfigGroup;
     }
 
     @Override
@@ -28,5 +35,22 @@ public class SwissDrtTravelTimeModule extends AbstractEqasimExtension {
         bind(DrtPredictions.class).asEagerSingleton();
 
         binder().requestStaticInjection(TravelTimeUpdates.class);
+
+        DrtMetricSmootheningParamSet drtMetricSmootheningParamSet = drtModeChoiceConfigGroup.getDrtMetricSmootheningParamSet();
+        Smoothing smoothing;
+        switch (drtMetricSmootheningParamSet.getSmootheningType()) {
+            case Markov:
+                smoothing = new Markov();
+                break;
+            case MovingAverage:
+                smoothing = new MovingWindow(drtMetricSmootheningParamSet.getMovingWindow());
+                break;
+            case SuccessiveAverage:
+                smoothing = new SuccessiveAverage(drtMetricSmootheningParamSet.getMsaWeight());
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown smoothening type: " + drtMetricSmootheningParamSet.getSmootheningType());
+        }
+        bind(Smoothing.class).toInstance(smoothing);
     }
 }
