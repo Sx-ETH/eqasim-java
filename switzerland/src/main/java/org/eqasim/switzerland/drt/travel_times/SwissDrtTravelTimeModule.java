@@ -28,6 +28,5 @@ public class SwissDrtTravelTimeModule extends AbstractEqasimExtension {
         bind(DrtPredictions.class).asEagerSingleton();
 
         binder().requestStaticInjection(TravelTimeUpdates.class);
-        bindTripConstraintFactory(DrtDistanceConstraint.NAME).to(DrtDistanceConstraint.Factory.class);
     }
 }
