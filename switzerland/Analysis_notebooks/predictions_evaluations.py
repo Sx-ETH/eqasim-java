@@ -79,11 +79,13 @@ def plot_multiple_actual_vs_fitted(plot_list, metric):
             predicted_labels = merged.travelTime_min_pred.values
         errors = true_labels - predicted_labels
 
-        current_description = pd.Series(errors).describe()
+        current_description = pd.Series(errors).describe(percentiles=[0.25, 0.5, 0.75, 0.95, 0.99])
         # Add mse, rmse, mae
         current_description['MSE'] = np.mean(errors**2)
         current_description['RMSE'] = np.sqrt(current_description['MSE'])
         current_description['MAE'] = np.mean(np.abs(errors))
+        # Add percentage of errors below 0
+        current_description['% errors < 0'] = np.sum(errors < 0)/len(errors) * 100
         current_description = pd.DataFrame(current_description).T
         full_title = title + ' on iteration '+str(iteration)
         current_description['title'] = full_title
@@ -154,3 +156,17 @@ def plot_actual_vs_fitted_travelTime(data, iteration=-1):
     plt.tight_layout()
     plt.show()
     
+def plot_iteration_avg_wait_time(plot_list, start_time=0, end_time=24):
+    plt.figure(figsize=(15,15))
+    for idx, (title, data, _) in enumerate(plot_list):
+        y = []
+        for df in data['drt_trips_stats']:
+            df = df[(df.startTime >= start_time*3600) & (df.startTime <= end_time*3600)]
+            y.append(df.waitTime.mean()/60)
+        x = np.arange(len(y))
+        plt.plot(x, y, label=title)
+    plt.xlabel('Iteration')
+    plt.ylabel('Average Wait Time (min)')
+    plt.title('Average Wait Time per Iteration')
+    plt.legend()
+    plt.show()
