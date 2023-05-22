@@ -46,7 +46,7 @@ def read_output(output_directory, last_iter=-1):
         link2zones_csv = link2zones_csv.set_index('link_id')
         link2zones = {}
         for link_id, zone in link2zones_csv.iterrows():
-            link2zones[link_id] = zone.zone.item()
+            link2zones[link_id] = zone.zone
         fixed_zones = gpd.read_file(os.path.join(output_directory,'drt_FixedZones.shp'))
         d['link2zones'] = link2zones
         d['fixedZones'] = fixed_zones

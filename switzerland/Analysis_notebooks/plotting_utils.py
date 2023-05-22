@@ -1242,6 +1242,14 @@ def get_stats_table(it_drt_trip_stats):
     stats.loc[("Average detour factor (time wise)", ""), "Value"] = it_drt_trip_stats.delayFactor.mean()
     return stats
 
+def get_multiple_stats_table(dictionary):
+    tables = []
+    for key, value in dictionary.items():
+        t = get_stats_table(value)
+        t.rename(columns={'Value': key}, inplace=True)
+        tables.append(t)
+    return pd.concat(tables, axis=1)
+
 
 
 def plot_difference_estimated_router(data, iteration=-1):
