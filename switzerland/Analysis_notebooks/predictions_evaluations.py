@@ -114,6 +114,7 @@ def plot_multiple_actual_vs_fitted(plot_list, metric):
     description = description.set_index('title')
     display(description)
     plt.show()
+    return description
 
 def plot_actual_vs_fitted_travelTime(data, iteration=-1):
     iteration = len(data['drt_predictions'])-1 if iteration == -1 else iteration
