@@ -7,11 +7,17 @@ import org.eqasim.switzerland.drt.travel_times.zonal.DrtFixedZoneMetrics;
 import java.util.ArrayList;
 import java.util.Map;
 
-public class SuccessiveAverage {
+public class SuccessiveAverage implements Smoothing {
+    private final double msaWeight;
+
+    public SuccessiveAverage(double msaWeight) {
+        this.msaWeight = msaWeight;
+    }
 
     //wait time zonal
-    public static double getZonalWaitTime(DrtFixedZoneMetrics drtZoneMetricData, String zone, int timeBin, DrtModeChoiceConfigGroup.Feedback feedback,
-                                          double msaWeight) {
+    @Override
+    public double getZonalWaitTime(DrtFixedZoneMetrics drtZoneMetricData, String zone, int timeBin,
+                                   DrtModeChoiceConfigGroup.Feedback feedback) {
         ArrayList<Map<String, DataStats[]>> iterationZonalAndTimeBinWaitingTime = drtZoneMetricData.getDataZonalAndTimeBinWaitingTimes();
         double waitTime = Double.NaN;
         for (Map<String, DataStats[]> stringMap : iterationZonalAndTimeBinWaitingTime) {
@@ -21,19 +27,21 @@ public class SuccessiveAverage {
                 if (Double.isNaN(waitTime)) {
                     waitTime = stringMap.get(zone)[timeBin].getStat(feedback);
                 } else {
-                    waitTime = waitTime * (1 - msaWeight) + stringMap.get(zone)[timeBin].getStat(feedback) * msaWeight;
+                    waitTime = waitTime * (1 - this.msaWeight) + stringMap.get(zone)[timeBin].getStat(feedback) * this.msaWeight;
                 }
             }
         }
         return waitTime;
     }
 
-    public static double getDynamicWaitTime(Double dynamicWaitTime, DrtFixedZoneMetrics drtZoneMetricData, String zone, int timeBin, DrtModeChoiceConfigGroup.Feedback feedback,
-                                            double msaWeight) {
+    //wait time dynamic
+    @Override
+    public double getDynamicWaitTime(Double dynamicWaitTime, DrtFixedZoneMetrics drtZoneMetricData, String zone, int timeBin,
+                                     DrtModeChoiceConfigGroup.Feedback feedback) {
         //dynamicWaitTime is the value of the last iteration
         ArrayList<Map<String, DataStats[]>> iterationZonalAndTimeBinWaitingTime = drtZoneMetricData.getDataZonalAndTimeBinWaitingTimes();
         double waitTime = Double.NaN;
-        for(int i= 0; i<iterationZonalAndTimeBinWaitingTime.size()-1; i++){
+        for (int i = 0; i < iterationZonalAndTimeBinWaitingTime.size() - 1; i++) {
             Map<String, DataStats[]> stringMap = iterationZonalAndTimeBinWaitingTime.get(i);
             if (!(stringMap.get(zone) == null ||
                     timeBin >= stringMap.get(zone).length ||
@@ -41,19 +49,20 @@ public class SuccessiveAverage {
                 if (Double.isNaN(waitTime)) {
                     waitTime = stringMap.get(zone)[timeBin].getStat(feedback);
                 } else {
-                    waitTime = waitTime * (1 - msaWeight) + stringMap.get(zone)[timeBin].getStat(feedback) * msaWeight;
+                    waitTime = waitTime * (1 - this.msaWeight) + stringMap.get(zone)[timeBin].getStat(feedback) * this.msaWeight;
                 }
             }
 
         }
-        waitTime = waitTime*(1 - msaWeight) + dynamicWaitTime*msaWeight;
+        waitTime = waitTime * (1 - this.msaWeight) + dynamicWaitTime * this.msaWeight;
 
         return waitTime;
     }
 
     //delay time
-    public static double getDelayFactor(DrtFixedZoneMetrics drtZoneMetricData, int distanceBin, int timeBin, DrtModeChoiceConfigGroup.Feedback feedback,
-                                        double msaWeight) {
+    @Override
+    public double getDelayFactor(DrtFixedZoneMetrics drtZoneMetricData, int distanceBin, int timeBin,
+                                 DrtModeChoiceConfigGroup.Feedback feedback) {
         ArrayList<Map<Integer, DataStats[]>> iterationDistanceAndTimeBinDelayFactor = drtZoneMetricData.getDataDistanceAndTimeBinDelayFactor();
         double delayFactor = Double.NaN;
         for (Map<Integer, DataStats[]> integerMap : iterationDistanceAndTimeBinDelayFactor) {
@@ -63,7 +72,7 @@ public class SuccessiveAverage {
                 if (Double.isNaN(delayFactor)) {
                     delayFactor = integerMap.get(distanceBin)[timeBin].getStat(feedback);
                 } else {
-                    delayFactor = delayFactor * (1 - msaWeight) + integerMap.get(distanceBin)[timeBin].getStat(feedback) * msaWeight;
+                    delayFactor = delayFactor * (1 - this.msaWeight) + integerMap.get(distanceBin)[timeBin].getStat(feedback) * this.msaWeight;
                 }
             }
         }
@@ -71,7 +80,4 @@ public class SuccessiveAverage {
 
     }
 
-    public double getDynamicWaitTime(){
-        return Double.NaN;
-    }
 }

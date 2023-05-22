@@ -180,7 +180,8 @@ public class SwissDrtConfigurator extends SwitzerlandConfigurator {
 
         //consider drt zones generation
         controller.addOverridingModule(new DrtModeZonalSystemModule(DrtConfigGroup.getSingleModeDrtConfig(config)));
-        controller.addOverridingModule(new SwissDrtTravelTimeModule(DrtConfigGroup.getSingleModeDrtConfig(config), scenario));
+        controller.addOverridingModule(new SwissDrtTravelTimeModule(DrtConfigGroup.getSingleModeDrtConfig(config), scenario,
+                (DrtModeChoiceConfigGroup) config.getModules().get(DrtModeChoiceConfigGroup.GROUP_NAME)));
 
         /*if (!config.qsim().getVehiclesSource().name().equals("defaultVehicle")) {
             controller.addOverridingModule(new AbstractModule() {

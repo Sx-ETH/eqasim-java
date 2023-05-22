@@ -2,11 +2,12 @@ package org.eqasim.switzerland.drt.travel_times;
 
 import com.google.inject.Inject;
 import org.apache.log4j.Logger;
-import org.eqasim.switzerland.drt.config_group.*;
+import org.eqasim.switzerland.drt.config_group.DrtDynamicSystemParamSet;
+import org.eqasim.switzerland.drt.config_group.DrtMetricCalculationParamSet;
+import org.eqasim.switzerland.drt.config_group.DrtModeChoiceConfigGroup;
+import org.eqasim.switzerland.drt.config_group.DrtZonalSystemParamSet;
 import org.eqasim.switzerland.drt.travel_times.dynamic.DynamicWaitTimeMetrics;
-import org.eqasim.switzerland.drt.travel_times.smoothing.Markov;
-import org.eqasim.switzerland.drt.travel_times.smoothing.MovingWindow;
-import org.eqasim.switzerland.drt.travel_times.smoothing.SuccessiveAverage;
+import org.eqasim.switzerland.drt.travel_times.smoothing.Smoothing;
 import org.eqasim.switzerland.drt.travel_times.zonal.*;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
@@ -56,15 +57,17 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
     private DataStats globalDelayFactor = null;
 
     private DynamicWaitTimeMetrics dynamicWaitTimeMetrics = null;
+    private Smoothing smoothing;
 
 
     @Inject
     public TravelTimeUpdates(DrtTimeTracker trackedTimes,
-                             Config config, DrtPredictions drtPredictions, Network network) {
+                             Config config, DrtPredictions drtPredictions, Network network, Smoothing smoothing) {
         this.trackedTimes = trackedTimes;
         this.config = config;
         this.drtPredictions = drtPredictions;
         this.network = network;
+        this.smoothing = smoothing;
     }
 
     private static void writeGlobalStats(DataStats globalWaitingTime, DataStats globalDelayFactor, String outputPath)
@@ -143,7 +146,7 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
         DrtModeChoiceConfigGroup drtDmcConfig = (DrtModeChoiceConfigGroup) config.getModules().get(DrtModeChoiceConfigGroup.GROUP_NAME);
         if (drtDmcConfig.isUseDelayFactor()) {
             DrtModeChoiceConfigGroup.Feedback feedback = drtDmcConfig.getFeedBackMethod();
-            double delayFactor = Double.NaN;
+            double delayFactor;
             if (drtDmcConfig.getDrtMetricCalculationParamSet().getMethod() == DrtMetricCalculationParamSet.Method.Global) {
                 delayFactor = this.globalDelayFactor.getStat(feedback);
             } else {
@@ -153,19 +156,7 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
                 int distanceBin = this.drtDistanceBinUtils.getBinIndex(euclideanDistance);
 
                 int timeBin = this.drtTimeUtils.getBinIndex(departureTime);
-                DrtMetricSmootheningParamSet smootheningParamSet = drtDmcConfig.getDrtMetricSmootheningParamSet();
-                switch(smootheningParamSet.getSmootheningType()){
-                    case IterationBased:
-                        delayFactor = Markov.getDelayFactor(fixedZoneMetrics, distanceBin, timeBin, feedback);
-                        break;
-                    case MovingAverage:
-                        delayFactor = MovingWindow.getDelayFactor(fixedZoneMetrics,distanceBin, timeBin, feedback, smootheningParamSet.getMovingWindow());
-                        break;
-                    case SuccessiveAverage:
-                        delayFactor =
-                                SuccessiveAverage.getDelayFactor(fixedZoneMetrics, distanceBin, timeBin, feedback, smootheningParamSet.getMsaWeight());
-                        break;
-                }
+                delayFactor = this.smoothing.getDelayFactor(fixedZoneMetrics, distanceBin, timeBin, feedback);
             }
             if (Double.isNaN(delayFactor)) {
                 //logger.warn("No delay factor for specific distance and time bin found. Falling back to global delay factor.");
@@ -190,21 +181,8 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
             } else {
                 int timeBin = this.drtTimeUtils.getBinIndex(departureTime);
                 String zone = zones.getZoneForLinkId(route.getStartLinkId());
-                DrtMetricSmootheningParamSet smootheningParamSet = drtDmcConfig.getDrtMetricSmootheningParamSet();
                 if (drtDmcConfig.getDrtMetricCalculationParamSet().getSpatialType() == DrtMetricCalculationParamSet.SpatialType.ZonalSystem) {
-
-                    switch(smootheningParamSet.getSmootheningType()){
-                        case IterationBased:
-                            waitTime = Markov.getZonalWaitTime(fixedZoneMetrics, zone, timeBin, feedback);
-                            break;
-                        case MovingAverage:
-                            waitTime = MovingWindow.getZonalWaitTime(fixedZoneMetrics,zone, timeBin, feedback, smootheningParamSet.getMovingWindow());
-                            break;
-                        case SuccessiveAverage:
-                            waitTime =
-                                    SuccessiveAverage.getZonalWaitTime(fixedZoneMetrics, zone, timeBin, feedback, smootheningParamSet.getMsaWeight());
-                            break;
-                    }
+                    waitTime = this.smoothing.getZonalWaitTime(fixedZoneMetrics, zone, timeBin, feedback);
                 } else if (drtDmcConfig.getDrtMetricCalculationParamSet().getSpatialType() == DrtMetricCalculationParamSet.SpatialType.DynamicSystem) {
                     //get type of dynamic system
                     DrtDynamicSystemParamSet dynamicParams = drtDmcConfig.getDrtMetricCalculationParamSet().getDrtDynamicSystemParamSet();
@@ -217,21 +195,7 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
 
                     double avgWaitTimeIter = dynamicWaitTimeMetrics.getDynamicWaitTimeForTimeBin(route, timeBin, dynamicType, kValue, radius, kShare, kMax, feedback, decayType);
 
-                    switch(smootheningParamSet.getSmootheningType()){
-
-                        case IterationBased:
-                            //get location and time bin of the route and departure time
-                            waitTime = avgWaitTimeIter;
-                            break;
-                        case MovingAverage:
-                            //weird implementation for now - toDo maybe correct how moving average is implemented and think a workaround for dynamic
-                            waitTime = MovingWindow.getDynamicWaitTime(avgWaitTimeIter, fixedZoneMetrics,zone, timeBin, feedback, smootheningParamSet.getMovingWindow());
-                            break;
-                        case SuccessiveAverage:
-                            waitTime =
-                                    SuccessiveAverage.getDynamicWaitTime(avgWaitTimeIter, fixedZoneMetrics, zone, timeBin, feedback, smootheningParamSet.getMsaWeight());
-                            break;
-                    }
+                    waitTime = this.smoothing.getDynamicWaitTime(avgWaitTimeIter, fixedZoneMetrics, zone, timeBin, feedback);
 
 
                 }
