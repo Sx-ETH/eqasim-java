@@ -14,9 +14,9 @@ public class DrtMetricSmootheningParamSet extends ReflectiveConfigGroupWithConfi
     public static final String SMOOTHENING_TYPE = "smootheningType";
 
     //options are IterationBased, MovingAverage, SuccessiveAverage
-    public enum SmootheningType {IterationBased, MovingAverage, SuccessiveAverage}
+    public enum SmootheningType {Markov, MovingAverage, SuccessiveAverage}
 
-    private SmootheningType smootheningType = SmootheningType.IterationBased;
+    private SmootheningType smootheningType = SmootheningType.Markov;
 
     @PositiveOrZero
     private double msaWeight = 0.9;
