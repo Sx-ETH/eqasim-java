@@ -1,12 +1,10 @@
-package org.eqasim.ile_de_france.drt.mode_choice.utilities.drt_rejection_penalty;
+package org.eqasim.core.components.drt.mode_choice.utilities.drt_rejection_penalty;
 
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.IdMap;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.contrib.dvrp.passenger.PassengerRequestRejectedEvent;
-import org.matsim.contrib.dvrp.passenger.PassengerRequestRejectedEventHandler;
 import org.matsim.contrib.dvrp.passenger.PassengerRequestSubmittedEvent;
-import org.matsim.contrib.dvrp.passenger.PassengerRequestSubmittedEventHandler;
 
 public class PersonLevelRejectionTracker extends RejectionTracker {
 	private IdMap<Person, Integer> numberOfRequests = new IdMap<>(Person.class);

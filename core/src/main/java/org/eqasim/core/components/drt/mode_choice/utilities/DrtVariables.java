@@ -1,4 +1,4 @@
-package org.eqasim.ile_de_france.drt.mode_choice.utilities;
+package org.eqasim.core.components.drt.mode_choice.utilities;
 
 import org.eqasim.core.simulation.mode_choice.utilities.variables.BaseVariables;
 

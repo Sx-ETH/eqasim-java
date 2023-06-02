@@ -1,4 +1,4 @@
-package org.eqasim.ile_de_france.drt.mode_choice.utilities;
+package org.eqasim.core.components.drt.mode_choice.utilities;
 
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
