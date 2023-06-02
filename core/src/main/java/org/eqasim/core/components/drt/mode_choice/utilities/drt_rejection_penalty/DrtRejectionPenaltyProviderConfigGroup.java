@@ -1,4 +1,4 @@
-package org.eqasim.ile_de_france.drt.mode_choice.utilities.drt_rejection_penalty;
+package org.eqasim.core.components.drt.mode_choice.utilities.drt_rejection_penalty;
 
 import org.matsim.contrib.util.ReflectiveConfigGroupWithConfigurableParameterSets;
 import org.matsim.core.config.ConfigGroup;

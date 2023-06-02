@@ -1,12 +1,15 @@
 package org.eqasim.ile_de_france.drt;
 
-import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import org.eqasim.core.analysis.PersonAnalysisFilter;
 import org.eqasim.core.components.config.EqasimConfigGroup;
+import org.eqasim.core.components.drt.mode_choice.utilities.DrtPredictor;
+import org.eqasim.core.components.drt.mode_choice.utilities.DrtPredictorInterface;
+import org.eqasim.ile_de_france.drt.mode_choice.utilities.DrtUtilityEstimator;
+import org.eqasim.core.components.drt.mode_choice.utilities.drt_rejection_penalty.*;
 import org.eqasim.core.simulation.mode_choice.AbstractEqasimExtension;
 import org.eqasim.core.simulation.mode_choice.ParameterDefinition;
 import org.eqasim.core.simulation.mode_choice.cost.CostModel;
@@ -15,20 +18,15 @@ import org.eqasim.ile_de_france.drt.mode_choice.IDFDrtModeAvailability;
 import org.eqasim.ile_de_france.drt.mode_choice.cost.DrtCostModel;
 import org.eqasim.ile_de_france.drt.mode_choice.parameters.IDFDrtCostParameters;
 import org.eqasim.ile_de_france.drt.mode_choice.parameters.IDFDrtModeParameters;
-import org.eqasim.ile_de_france.drt.mode_choice.utilities.*;
-import org.eqasim.ile_de_france.drt.mode_choice.utilities.drt_rejection_penalty.*;
 import org.eqasim.ile_de_france.feeder.FeederConstraint;
 import org.eqasim.ile_de_france.feeder.FeederUtilityEstimator;
 import org.eqasim.ile_de_france.mode_choice.parameters.IDFCostParameters;
 import org.eqasim.ile_de_france.mode_choice.parameters.IDFModeParameters;
 import org.matsim.api.core.v01.Id;
-import org.matsim.contrib.dvrp.run.AbstractDvrpModeModule;
 import org.matsim.contrib.dvrp.run.DvrpMode;
 import org.matsim.contrib.dvrp.run.DvrpModes;
 import org.matsim.core.config.CommandLine;
 import org.matsim.core.config.ConfigGroup;
-import org.matsim.core.controler.AbstractModule;
-import org.matsim.core.modal.ModalAnnotationCreator;
 import org.matsim.vehicles.VehicleType;
 import org.matsim.vehicles.VehicleUtils;
 
@@ -58,12 +56,13 @@ public class IDFDrtModule extends AbstractEqasimExtension {
 		bindCostModel("drt").to(DrtCostModel.class);
 		DrtRejectionPenaltyProviderConfigGroup drtRejectionPenaltyProviderConfigGroup = configGroup.getDrtRejectionPenaltyProviderConfig();
 		if(drtRejectionPenaltyProviderConfigGroup != null && drtRejectionPenaltyProviderConfigGroup.getPenaltyProviderParams() instanceof DrtRejectionsLinearPenaltyProviderConfigGroup) {
-			bind(DrtRejectionsLinearPenaltyProviderConfigGroup.class).toInstance((DrtRejectionsLinearPenaltyProviderConfigGroup) drtRejectionPenaltyProviderConfigGroup.getPenaltyProviderParams());
+			this.install(new DrtRejectionsPenaltyModule(drtRejectionPenaltyProviderConfigGroup));
+			/*bind(DrtRejectionsLinearPenaltyProviderConfigGroup.class).toInstance((DrtRejectionsLinearPenaltyProviderConfigGroup) drtRejectionPenaltyProviderConfigGroup.getPenaltyProviderParams());
 			bind(DrtRejectionsLinearPenaltyProvider.class).asEagerSingleton();
 			bind(DrtRejectionPenaltyProvider.class).to(DrtRejectionsLinearPenaltyProvider.class).asEagerSingleton();
 			addControlerListenerBinding().to(DrtRejectionsLinearPenaltyProvider.class).asEagerSingleton();
 			bind(RejectionTracker.class).asEagerSingleton();
-			addEventHandlerBinding().to(RejectionTracker.class).asEagerSingleton();
+			addEventHandlerBinding().to(RejectionTracker.class).asEagerSingleton();*/
 		} else {
 			bind(DrtRejectionPenaltyProvider.class).to(NoRejectionsPenalty.class).asEagerSingleton();
 		}

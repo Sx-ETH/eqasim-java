@@ -1,10 +1,13 @@
 package org.eqasim.ile_de_france.drt.mode_choice.utilities;
 
 import com.google.inject.Inject;
+import org.eqasim.core.components.drt.mode_choice.utilities.DrtPredictorInterface;
+import org.eqasim.core.components.drt.mode_choice.utilities.DrtVariables;
+import org.eqasim.core.components.drt.mode_choice.utilities.DrtVariablesComputedEvent;
 import org.eqasim.core.simulation.mode_choice.utilities.UtilityEstimator;
 import org.eqasim.core.simulation.mode_choice.utilities.estimators.EstimatorUtils;
 import org.eqasim.ile_de_france.drt.mode_choice.parameters.IDFDrtModeParameters;
-import org.eqasim.ile_de_france.drt.mode_choice.utilities.drt_rejection_penalty.DrtRejectionPenaltyProvider;
+import org.eqasim.core.components.drt.mode_choice.utilities.drt_rejection_penalty.DrtRejectionPenaltyProvider;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.contribs.discrete_mode_choice.model.DiscreteModeChoiceTrip;

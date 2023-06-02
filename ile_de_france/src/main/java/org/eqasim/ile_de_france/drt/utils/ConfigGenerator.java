@@ -1,11 +1,10 @@
 package org.eqasim.ile_de_france.drt.utils;
 
-import jogamp.graph.font.typecast.ot.table.ID;
 import org.apache.commons.io.FileUtils;
 import org.eqasim.ile_de_france.drt.IDFDrtConfigGroup;
 import org.eqasim.ile_de_france.drt.IDFDrtConfigurator;
-import org.eqasim.ile_de_france.drt.mode_choice.utilities.drt_rejection_penalty.DrtRejectionPenaltyProviderConfigGroup;
-import org.eqasim.ile_de_france.drt.mode_choice.utilities.drt_rejection_penalty.DrtRejectionsLinearPenaltyProviderConfigGroup;
+import org.eqasim.core.components.drt.mode_choice.utilities.drt_rejection_penalty.DrtRejectionPenaltyProviderConfigGroup;
+import org.eqasim.core.components.drt.mode_choice.utilities.drt_rejection_penalty.DrtRejectionsLinearPenaltyProviderConfigGroup;
 import org.matsim.core.config.CommandLine;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
@@ -17,7 +16,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Map;
 
 public class ConfigGenerator {
 

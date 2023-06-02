@@ -4,7 +4,6 @@ import com.google.inject.Key;
 import com.google.inject.Provides;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
-import jdk.jfr.Name;
 import org.eqasim.core.simulation.mode_choice.epsilon.EpsilonAdapter;
 import org.eqasim.core.simulation.mode_choice.epsilon.EpsilonProvider;
 import org.eqasim.ile_de_france.drt.mode_choice.utilities.DrtUtilityEstimator;

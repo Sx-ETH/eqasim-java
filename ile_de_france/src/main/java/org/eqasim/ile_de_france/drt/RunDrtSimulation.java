@@ -79,7 +79,7 @@ public class RunDrtSimulation {
             });
         }
 
-        { // Add overrides for Corsica + DRT
+        {
             IDFDrtConfigGroup idfDrtConfigGroup = (IDFDrtConfigGroup) config.getModules().get(IDFDrtConfigGroup.GROUP_NAME);
             controller.addOverridingModule(new IDFDrtModule(cmd, idfDrtConfigGroup));
             controller.addOverridingModule(new DvrpAnalsisModule());
