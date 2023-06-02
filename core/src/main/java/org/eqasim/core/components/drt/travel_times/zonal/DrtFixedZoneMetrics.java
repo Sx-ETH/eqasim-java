@@ -2,7 +2,6 @@ package org.eqasim.core.components.drt.travel_times.zonal;
 
 
 import org.apache.log4j.Logger;
-import org.eqasim.core.components.drt.config_group.DrtModeChoiceConfigGroup;
 import org.eqasim.core.components.drt.travel_times.DataStats;
 import org.eqasim.core.components.drt.travel_times.DrtDistanceBinUtils;
 import org.eqasim.core.components.drt.travel_times.DrtTimeUtils;
@@ -19,8 +18,12 @@ public class DrtFixedZoneMetrics {
     /*
      *  - computes and stores data from a fixed zonal system for all iteration data
      *
+     *
+     *
      * */
+
     private final ArrayList<Map<String, DataStats[]>> iterationZonalAndTimeBinWaitingTime = new ArrayList<>();
+
     private final ArrayList<Map<Integer, DataStats[]>> iterationDistanceAndTimeBinDelayFactor = new ArrayList<>();
     private final FixedDrtZonalSystem zones;
     private final int timeBinSize_min;
