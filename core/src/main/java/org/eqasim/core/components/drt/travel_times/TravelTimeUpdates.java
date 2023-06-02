@@ -2,10 +2,12 @@ package org.eqasim.core.components.drt.travel_times;
 
 import com.google.inject.Inject;
 import org.apache.log4j.Logger;
+import org.eqasim.core.components.drt.config_group.DrtDynamicSystemParamSet;
+import org.eqasim.core.components.drt.config_group.DrtMetricCalculationParamSet;
+import org.eqasim.core.components.drt.config_group.DrtModeChoiceConfigGroup;
+import org.eqasim.core.components.drt.config_group.DrtZonalSystemParamSet;
 import org.eqasim.core.components.drt.travel_times.dynamic.DynamicWaitTimeMetrics;
 import org.eqasim.core.components.drt.travel_times.smoothing.Smoothing;
-import org.eqasim.core.components.drt.travel_times.zonal.*;
-import org.eqasim.core.components.drt.config_group.*;
 import org.eqasim.core.components.drt.travel_times.zonal.*;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
@@ -326,50 +328,3 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
         }
     }
 }
-
-//    public double getWaitTime_sec(DrtRoute route, double departureTime) {
-//        DrtModeChoiceConfigGroup drtDmcConfig = (DrtModeChoiceConfigGroup) config.getModules().get(DrtModeChoiceConfigGroup.GROUP_NAME);
-//        if (drtDmcConfig.isUseWaitTime()) {
-//            DrtModeChoiceConfigGroup.Feedback feedback = drtDmcConfig.getFeedBackMethod();
-//            double waitTime = Double.NaN;
-//            if (drtDmcConfig.getDrtMetricCalculationParamSet().getMethod() == DrtMetricCalculationParamSet.Method.Global) {
-//                waitTime = this.globalWaitingTime.getStat(feedback);
-//            } else {
-//                int timeBin = this.drtTimeUtils.getBinIndex(departureTime);
-//                if (drtDmcConfig.getDrtMetricCalculationParamSet().getSpatialType() == DrtMetricCalculationParamSet.SpatialType.ZonalSystem) {
-//                    String zone = zones.getZoneForLinkId(route.getStartLinkId());
-//                    DrtMetricSmootheningParamSet smootheningParamSet = drtDmcConfig.getDrtMetricSmootheningParamSet();
-//                    if (smootheningParamSet.getSmootheningType() == DrtMetricSmootheningParamSet.SmootheningType.IterationBased) {
-//                        waitTime = fixedZoneMetrics.getWaitTimeFromZoneAndTimeBinIteration(zone, timeBin, feedback);
-//                    } else if (smootheningParamSet.getSmootheningType() == DrtMetricSmootheningParamSet.SmootheningType.MovingAverage) {
-//                        waitTime = fixedZoneMetrics.getWaitTimeFromZoneAndTimeBinMoving(zone, timeBin, feedback, smootheningParamSet.getMovingWindow());
-//                    } else if (smootheningParamSet.getSmootheningType() == DrtMetricSmootheningParamSet.SmootheningType.SuccessiveAverage) {
-//                        waitTime = fixedZoneMetrics.getWaitTimeFromZoneAndTimeBinSuccessive(zone, timeBin, feedback, smootheningParamSet.getMsaWeight());
-//                    }
-//                } else if (drtDmcConfig.getDrtMetricCalculationParamSet().getSpatialType() == DrtMetricCalculationParamSet.SpatialType.DynamicSystem) {
-//                    //get type of dynamic system
-//                    DrtDynamicSystemParamSet dynamicParams = drtDmcConfig.getDrtMetricCalculationParamSet().getDrtDynamicSystemParamSet();
-//                    DrtDynamicSystemParamSet.Type dynamicType = dynamicParams.getType();
-//                    int kValue = dynamicParams.getKvalue();
-//                    double radius = dynamicParams.getRadius();
-//                    double kShare = dynamicParams.getkShare();
-//                    int kMax = dynamicParams.getkMax(); //ToDo need to come up with a suitable reason for choosing a max number of Kvalue
-//                    DrtDynamicSystemParamSet.DecayType decayType = dynamicParams.getDecayType();
-//
-//                    //get location and time bin of the route and departure time
-//                    waitTime = dynamicWaitTimeMetrics.getDynamicWaitTimeForTimeBin(route, timeBin, dynamicType, kValue, radius, kShare, kMax, feedback, decayType);
-//
-//                }
-//            }
-//            if (Double.isNaN(waitTime)) {
-//                //logger.warn("No waiting time data for specific zone and time bin found, falling back to global waiting time");
-//                if (Double.isNaN(globalWaitingTime.getStat(feedback))) {
-//                    //logger.warn("No global waiting time data, returning maxWaitTime");
-//                    return route.getMaxWaitTime();
-//                }
-//                return globalWaitingTime.getStat(feedback);
-//            }
-//            return waitTime;
-//        }
-//        return route.getMaxWaitTime();
-//    }
