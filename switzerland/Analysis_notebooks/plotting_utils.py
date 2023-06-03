@@ -1203,7 +1203,7 @@ def plot_waiting_time_multiple_distance_bins(data,  min_distance, max_distance, 
     
     plt.show()
 
-def get_stats_table(it_drt_trip_stats):
+def get_stats_table(output_dict, iteration):
     index_list = [("Number of rides", ""),
                     ("Wait time (min)", "Mean"),
                     ("Wait time (min)", "Median"),
@@ -1219,9 +1219,10 @@ def get_stats_table(it_drt_trip_stats):
                     ("Travel time (min)", "Max"),
                     #("Mean distance (km)", ""),
                     ("Mean direct distance (km)", ""),
-                    ("Average detour factor (time wise)", "")
+                    ("Average detour factor (time wise)", ""),
+                    ("Total execution time", ""),
                   ]
-
+    it_drt_trip_stats = output_dict['drt_trips_stats'][iteration]
     index = pd.MultiIndex.from_tuples(index_list)
     stats = pd.DataFrame(index=index)
     stats.loc[("Number of rides", ""), "Value"] = len(it_drt_trip_stats)
@@ -1240,13 +1241,14 @@ def get_stats_table(it_drt_trip_stats):
     #stats.loc[("Mean distance (km)", ""), "Value"] = it_drt_trip_stats.distance.mean() / 1000
     stats.loc[("Mean direct distance (km)", ""), "Value"] = it_drt_trip_stats.euclideanDistance.mean() / 1000
     stats.loc[("Average detour factor (time wise)", ""), "Value"] = it_drt_trip_stats.delayFactor.mean()
+    stats.loc[("Total execution time", ""), "Value"] = str(pd.to_timedelta(output_dict['stopwatch']['iteration']).sum())
     return stats
 
-def get_multiple_stats_table(dictionary):
+def get_multiple_stats_table(l):
     tables = []
-    for key, value in dictionary.items():
-        t = get_stats_table(value)
-        t.rename(columns={'Value': key}, inplace=True)
+    for title, output_dict, iteration in l:
+        t = get_stats_table(output_dict, iteration)
+        t.rename(columns={'Value': title + " (it." + str(iteration) + ")"}, inplace=True)
         tables.append(t)
     return pd.concat(tables, axis=1)
 

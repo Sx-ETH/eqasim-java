@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
+
 
 def combine_predictions_and_stats(predictions, stats):
     predictions = predictions.copy(deep=True)
@@ -175,16 +177,28 @@ def get_avg_wait_time_per_iteration(drt_trips_stats, start_time_h, end_time_h, f
     iterations = np.arange(len(wait_times))
     return iterations, wait_times
 
-def plot_iteration_avg_wait_time(plot_list, predictions=False):
-    def set_axis_labels_and_title(ax, title):
+def get_ntrips_per_iteration(drt_trips_stats, start_time_h, end_time_h):
+    ntrips = []
+    for df in drt_trips_stats:
+        if start_time_h <= end_time_h:
+            df = df[(df.startTime >= start_time_h*3600) & (df.startTime <= end_time_h*3600)]
+        else:
+            # If end_time_h is smaller than start_time_h, then we have to go through midnight
+            df = df[(df.startTime >= start_time_h*3600) | (df.startTime <= end_time_h*3600)]
+        ntrips.append(len(df))
+    iterations = np.arange(len(ntrips))
+    return iterations, ntrips
+
+def plot_iteration_avg_wait_time(plot_list):
+    def set_axis_labels_and_title(ax, title, average):
         ax.set_xlabel('Iteration', fontsize=12)
-        ax.set_ylabel('Average Wait Time (min)', fontsize=12)
+        if average:
+            ax.set_ylabel('Average Wait Time (min)', fontsize=12)
+        else:
+            ax.set_ylabel('Number of trips', fontsize=12)
         ax.set_title(title, fontsize=12)
         ax.legend()
-
-    fig, axes = plt.subplots(nrows=3, ncols=2,figsize=(12, 15))#, sharex=True, sharey=True)
-    hours_pairs = [(7, 9), (9, 11), (11, 15), (15, 19), (19, 7)]
-    for idx, (title, data, color, ls) in enumerate(plot_list):
+    def get_params(predictions):
         if not predictions:
             data_dfs = data['drt_trips_stats']
             field = 'waitTime'
@@ -193,19 +207,120 @@ def plot_iteration_avg_wait_time(plot_list, predictions=False):
             data_dfs = data['drt_predictions']
             field = 'waitingTime_min'
             scale = 1
+        return data_dfs, field, scale
+    fig, axes = plt.subplots(nrows=6, ncols=3,figsize=(13, 25))#, sharex=True, sharey=True)
+
+    hours_pairs = [(7, 9), (9, 11), (11, 15), (15, 19), (19, 7)]
+    for idx, (title, data, color, ls) in enumerate(plot_list):
+        data_dfs, field, scale = get_params(False)
         # Plot average wait time per iteration for all times
         iterations, wait_times = get_avg_wait_time_per_iteration(data_dfs, 0, 24, field, scale)
         ax = axes[0][0]
         ax.plot(iterations, wait_times, color=color, ls=ls, label=title)
-        set_axis_labels_and_title(ax, 'All times')
+        set_axis_labels_and_title(ax, 'Average wait time of all times', True)
+
+        data_dfs, field, scale = get_params(True)
+        iterations, wait_times = get_avg_wait_time_per_iteration(data_dfs, 0, 24, field, scale)
+        ax = axes[0][1]
+        ax.plot(iterations, wait_times, color=color, ls=ls, label=title)
+        set_axis_labels_and_title(ax, 'Average predicted wait time of all times', True)
+        ax.sharey(axes[0][0])
+
+        iterations, ntrips = get_ntrips_per_iteration(data['drt_trips_stats'], 0, 24)
+        ax = axes[0][2]
+        ax.plot(iterations, ntrips, color=color, ls=ls, label=title)
+        set_axis_labels_and_title(ax, 'Number of trips of all times', False)
+        ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda x, pos: f'{x / 1000:.0f}K'))
+
 
         for index, (start_time_h, end_time_h) in enumerate(hours_pairs, start=1):
-            ax_row = index//2
-            ax_col = index%2
+            data_dfs, field, scale = get_params(False)
             iterations, wait_times = get_avg_wait_time_per_iteration(data_dfs, start_time_h, end_time_h, field, scale)
-            ax = axes[ax_row][ax_col]
+            ax = axes[index][0]
             ax.plot(iterations, wait_times, color=color, ls=ls, label=title)
-            set_axis_labels_and_title(ax, f'{start_time_h}h-{end_time_h}h')
+            set_axis_labels_and_title(ax, f'Average wait time of {start_time_h}h-{end_time_h}h', True)
+            
+            data_dfs, field, scale = get_params(True)
+            iterations, wait_times = get_avg_wait_time_per_iteration(data_dfs, start_time_h, end_time_h, field, scale)
+            ax = axes[index][1]
+            ax.plot(iterations, wait_times, color=color, ls=ls, label=title)
+            set_axis_labels_and_title(ax, f'Average predicted wait time of {start_time_h}h-{end_time_h}h', True)
+            ax.sharey(axes[index][0])
+
+            iterations, ntrips = get_ntrips_per_iteration(data['drt_trips_stats'], start_time_h, end_time_h)
+            ax = axes[index][2]
+            ax.plot(iterations, ntrips, color=color, ls=ls, label=title)
+            set_axis_labels_and_title(ax, f'Number of trips of {start_time_h}h-{end_time_h}h', False)
+            ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda x, pos: f'{x / 1000:.0f}K'))
+
+
+    plt.tight_layout()
+    plt.show()
+
+def plot_iteration_avg_travel_time(plot_list):
+    def set_axis_labels_and_title(ax, title, average):
+        ax.set_xlabel('Iteration', fontsize=12)
+        if average:
+            ax.set_ylabel('Average Travel Time (min)', fontsize=12)
+        else:
+            ax.set_ylabel('Number of trips', fontsize=12)
+        ax.set_title(title, fontsize=12)
+        ax.legend()
+    def get_params(predictions):
+        if not predictions:
+            data_dfs = data['drt_trips_stats']
+            field = 'totalTravelTime'
+            scale = 60
+        else:
+            data_dfs = data['drt_predictions']
+            field = 'travelTime_min'
+            scale = 1
+        return data_dfs, field, scale
+    fig, axes = plt.subplots(nrows=6, ncols=3,figsize=(13, 25))#, sharex=True, sharey=True)
+
+    hours_pairs = [(7, 9), (9, 11), (11, 15), (15, 19), (19, 7)]
+    for idx, (title, data, color, ls) in enumerate(plot_list):
+        data_dfs, field, scale = get_params(False)
+        # Plot average wait time per iteration for all times
+        iterations, wait_times = get_avg_wait_time_per_iteration(data_dfs, 0, 24, field, scale)
+        ax = axes[0][0]
+        ax.plot(iterations, wait_times, color=color, ls=ls, label=title)
+        set_axis_labels_and_title(ax, 'Average travel time of all times', True)
+
+        data_dfs, field, scale = get_params(True)
+        iterations, wait_times = get_avg_wait_time_per_iteration(data_dfs, 0, 24, field, scale)
+        ax = axes[0][1]
+        ax.plot(iterations, wait_times, color=color, ls=ls, label=title)
+        set_axis_labels_and_title(ax, 'Average predicted travel time of all times', True)
+        ax.sharey(axes[0][0])
+
+        iterations, ntrips = get_ntrips_per_iteration(data['drt_trips_stats'], 0, 24)
+        ax = axes[0][2]
+        ax.plot(iterations, ntrips, color=color, ls=ls, label=title)
+        set_axis_labels_and_title(ax, 'Number of trips of all times', False)
+        ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda x, pos: f'{x / 1000:.0f}K'))
+
+
+        for index, (start_time_h, end_time_h) in enumerate(hours_pairs, start=1):
+            data_dfs, field, scale = get_params(False)
+            iterations, wait_times = get_avg_wait_time_per_iteration(data_dfs, start_time_h, end_time_h, field, scale)
+            ax = axes[index][0]
+            ax.plot(iterations, wait_times, color=color, ls=ls, label=title)
+            set_axis_labels_and_title(ax, f'Average travel time of {start_time_h}h-{end_time_h}h', True)
+            
+            data_dfs, field, scale = get_params(True)
+            iterations, wait_times = get_avg_wait_time_per_iteration(data_dfs, start_time_h, end_time_h, field, scale)
+            ax = axes[index][1]
+            ax.plot(iterations, wait_times, color=color, ls=ls, label=title)
+            set_axis_labels_and_title(ax, f'Average predicted travel time of {start_time_h}h-{end_time_h}h', True)
+            ax.sharey(axes[index][0])
+
+            iterations, ntrips = get_ntrips_per_iteration(data['drt_trips_stats'], start_time_h, end_time_h)
+            ax = axes[index][2]
+            ax.plot(iterations, ntrips, color=color, ls=ls, label=title)
+            set_axis_labels_and_title(ax, f'Number of trips of {start_time_h}h-{end_time_h}h', False)
+            ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda x, pos: f'{x / 1000:.0f}K'))
+
 
     plt.tight_layout()
     plt.show()
