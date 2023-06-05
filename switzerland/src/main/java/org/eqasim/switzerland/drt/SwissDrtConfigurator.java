@@ -3,6 +3,8 @@ package org.eqasim.switzerland.drt;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import org.eqasim.core.components.config.EqasimConfigGroup;
 import org.eqasim.core.components.drt.config_group.*;
+import org.eqasim.core.components.drt.mode_choice.utilities.drt_rejection_penalty.DrtRejectionPenaltyProviderConfigGroup;
+import org.eqasim.core.components.drt.mode_choice.utilities.drt_rejection_penalty.DrtRejectionsPenaltyModule;
 import org.eqasim.core.components.drt.travel_times.SwissDrtTravelTimeModule;
 import org.eqasim.core.simulation.calibration.CalibrationConfigGroup;
 import org.eqasim.switzerland.SwitzerlandConfigurator;
@@ -49,7 +51,8 @@ public class SwissDrtConfigurator extends SwitzerlandConfigurator {
                 new CalibrationConfigGroup(), //
                 new DvrpConfigGroup(), //
                 new MultiModeDrtConfigGroup(), //
-                new DrtModeChoiceConfigGroup()
+                new DrtModeChoiceConfigGroup(), //
+                new DrtRejectionPenaltyProviderConfigGroup()
 
         };
     }
@@ -177,6 +180,7 @@ public class SwissDrtConfigurator extends SwitzerlandConfigurator {
         });
 
         controller.addOverridingModule(new SwissDrtModeChoiceModule(cmd));
+        controller.addOverridingModule(new DrtRejectionsPenaltyModule((DrtRejectionPenaltyProviderConfigGroup) config.getModules().get(DrtRejectionPenaltyProviderConfigGroup.SET_NAME)));
 
         //consider drt zones generation
         controller.addOverridingModule(new DrtModeZonalSystemModule(DrtConfigGroup.getSingleModeDrtConfig(config)));

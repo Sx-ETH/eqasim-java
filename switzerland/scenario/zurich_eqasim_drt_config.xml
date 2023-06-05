@@ -665,31 +665,54 @@
 	</module>
 
 	<module name="DrtModeChoiceModule" >
-		<param name="feedbackMethod" value="average" />
+		<!-- Possible values: average, median, min, p_5, p_25, p_75, p_95, max, weightedAverage -->
+		<param name="feedbackMethod" value="weightedAverage" />
 		<param name="isUseDelayFactor" value="true" />
 		<param name="isUseWaitTime" value="true" />
 		<param name="writeDetailedStats" value="true" />
 		<parameterset type="drtMetricCalculationSettings" >
-			<param name="distanceBin" value="500.0" />
+			<param name="distanceBin" value="1000" />
+			<param name="lastBinStartDistance" value="10000" />
+			<!-- Possible values: SpatioTemporal, Spatio, Temporal, Global -->
 			<param name="method" value="SpatioTemporal" />
-			<param name="spatialType" value="zonalSystem" />
-			<param name="timeBinMin" value="30.0" />
+			<!-- Possible values: ZonalSystem, DynamicSystem -->
+			<param name="spatialType" value="DynamicSystem" />
+			<param name="timeBinMin" value="30" />
 			<parameterset type="dynamicSystem" >
+				<!-- Possible values: POWER_DECAY, INVERSE_DECAY, EXPONENTIAL_DECAY, SPATIAL_CORRELATION -->
+				<param name="decayType" value="EXPONENTIAL_DECAY" />
+				<param name="kMax" value="2000" />
+				<param name="kShare" value="0.1" />
 				<param name="kvalue" value="0" />
-				<param name="type" value="KNN_CP" />
+				<param name="radius" value="0.0" />
+				<!-- Possible values: KNN_CN, KNN_PN, FD -->
+				<param name="type" value="KNN_PN" />
 			</parameterset>
 			<parameterset type="zonalSystem" >
 				<param name="cellSize" value="500" />
 				<param name="shapefile" value="" />
+				<!-- Possible values: Hexagon, Square -->
 				<param name="zoneShape" value="Hexagon" />
+				<!-- Possible values: GridFromNetwork, Shapefile -->
 				<param name="zonesGeneration" value="GridFromNetwork" />
 			</parameterset>
 		</parameterset>
 		<parameterset type="drtMetricSmootheningSettings" >
 			<param name="movingWindow" value="5" />
-			<param name="msaWeight" value="0.0" />
-			<param name="smootheningType" value="IterationBased" />
+			<param name="msaWeight" value="0.9" />
+			<!-- Possible values: IterationBased, MovingAverage, SuccessiveAverage -->
+			<param name="smootheningType" value="Markov" />
 		</parameterset>
 	</module>
+
+	<module name="drtRejectionPenaltyProvider" >
+		<parameterset type="drtRejectionsLinearPenaltyProvider" >
+			<param name="alpha" value="0.3" />
+			<param name="enableBackwardAdjustment" value="false" />
+			<param name="initialRejectionPenalty" value="0.0" />
+			<param name="targetRejectionProbability" value="0.05" />
+		</parameterset>
+	</module>
+
 
 </config>
