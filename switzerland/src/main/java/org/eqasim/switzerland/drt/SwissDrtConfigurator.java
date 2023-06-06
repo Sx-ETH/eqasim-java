@@ -11,6 +11,10 @@ import org.eqasim.switzerland.drt.mode_choice.cost.DrtCostModel;
 import org.eqasim.switzerland.drt.mode_choice.utilities.AstraDrtUtilityEstimator;
 import org.eqasim.switzerland.drt.travel_times.SwissDrtTravelTimeModule;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.population.Leg;
+import org.matsim.api.core.v01.population.Person;
+import org.matsim.api.core.v01.population.Plan;
+import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.contrib.drt.analysis.zonal.DrtModeZonalSystemModule;
 import org.matsim.contrib.drt.analysis.zonal.DrtZonalSystemParams;
 import org.matsim.contrib.drt.optimizer.insertion.DrtInsertionSearchParams;
@@ -31,6 +35,7 @@ import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
 import org.matsim.core.config.groups.QSimConfigGroup;
 import org.matsim.core.controler.Controler;
+import org.matsim.core.router.TripStructureUtils;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -166,6 +171,33 @@ public class SwissDrtConfigurator extends SwitzerlandConfigurator {
         scenario.getPopulation().getFactory().getRouteFactories().setRouteFactory(DrtRoute.class,
                 new DrtRouteFactory());
 
+        //correct output_plans file of previous run if used
+        for (final Person person : scenario.getPopulation().getPersons().values()) {
+            Plan plantoremove = null;
+            for (final Plan plan : person.getPlans()) {
+                if (person.getSelectedPlan() != plan) {
+                    plantoremove = plan;
+                    continue;
+                }
+                for (final TripStructureUtils.Trip trip : TripStructureUtils.getTrips(plan)) {
+                    for (final PlanElement pe : trip.getTripElements()) {
+                        if (pe instanceof Leg) {
+                            Leg leg = ((Leg) pe);
+
+                            if (leg.getMode().equals("walk") & pe.getAttributes().getAttribute("routingMode").equals("drt")) {
+                                //For iteration run continuation, drt walk trips do have a
+                                // General RouteImpl routing type and triggers an error
+                                leg.setRoute(null);
+                                pe.getAttributes().putAttribute("routingMode", "drt");
+                            }
+                        }
+                    }
+                }
+
+            }
+
+            person.getPlans().remove(plantoremove);
+        }
     }
 
 

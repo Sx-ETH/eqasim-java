@@ -49,12 +49,6 @@ public class RunDrtSimulation {
         configurator.adjustDrtScenario(scenario);
         AstraConfigurator.adjustScenario(scenario);
 
-
-        //does it adjust the scenario
-        for (Person person : scenario.getPopulation().getPersons().values()) {
-            person.getAttributes().getAttribute("householdIncome");
-        }
-
         Controler controller = new Controler(scenario);
         configurator.configureController(controller);
 
