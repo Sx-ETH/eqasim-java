@@ -50,6 +50,9 @@ def read_output(output_directory, last_iter=-1):
         fixed_zones = gpd.read_file(os.path.join(output_directory,'drt_FixedZones.shp'))
         d['link2zones'] = link2zones
         d['fixedZones'] = fixed_zones
+    #Read stopwatch.txt
+    stopwatch = pd.read_csv(os.path.join(output_directory,'stopwatch.txt'), sep='\t')
+    d['stopwatch'] = stopwatch
     
     return d
 

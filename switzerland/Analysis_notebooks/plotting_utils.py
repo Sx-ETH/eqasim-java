@@ -1305,3 +1305,13 @@ def plot_drt_trips_origin(data, iteration=-1):
         trip_stats, geometry=gpd.points_from_xy(trip_stats.startX, trip_stats.startY))
     gdf.crs = 'EPSG:2056'
     gdf.plot()
+
+def plot_bar_total_execution_time(list):
+    plt.figure(figsize=(15,10))
+    for name, data, _ in list:
+        total_time = pd.to_timedelta(data['stopwatch']['iteration']).sum()
+        #plot in days
+        plt.bar(name, total_time.total_seconds()/ 3600 / 24, label=name)
+    plt.ylabel('Total execution time (days)')
+    plt.xticks(rotation=45)
+    plt.show()
