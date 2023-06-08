@@ -1,7 +1,6 @@
 package org.eqasim.switzerland.drt;
 
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
-import com.google.inject.name.Names;
 import org.eqasim.core.components.config.EqasimConfigGroup;
 import org.eqasim.core.components.drt.config_group.*;
 import org.eqasim.core.components.drt.mode_choice.utilities.drt_rejection_penalty.DrtRejectionPenaltyProviderConfigGroup;
@@ -13,9 +12,7 @@ import org.eqasim.switzerland.drt.mode_choice.SwissDrtModeAvailability;
 import org.eqasim.switzerland.drt.mode_choice.SwissDrtModeChoiceModule;
 import org.eqasim.switzerland.drt.mode_choice.cost.DrtCostModel;
 import org.eqasim.switzerland.drt.mode_choice.utilities.AstraDrtUtilityEstimator;
-import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
@@ -31,20 +28,16 @@ import org.matsim.contrib.drt.run.DrtConfigs;
 import org.matsim.contrib.drt.run.MultiModeDrtConfigGroup;
 import org.matsim.contrib.drt.run.MultiModeDrtModule;
 import org.matsim.contrib.dvrp.run.DvrpConfigGroup;
-import org.matsim.contrib.dvrp.run.DvrpModes;
 import org.matsim.contrib.dvrp.run.DvrpModule;
 import org.matsim.contrib.dvrp.run.DvrpQSimComponents;
-import org.matsim.contrib.dvrp.vrpagent.VrpAgentSourceQSimModule;
 import org.matsim.contribs.discrete_mode_choice.modules.config.DiscreteModeChoiceConfigGroup;
 import org.matsim.core.config.CommandLine;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
 import org.matsim.core.config.groups.QSimConfigGroup;
-import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
 import org.matsim.core.router.TripStructureUtils;
-import org.matsim.vehicles.VehicleType;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -208,7 +201,6 @@ public class SwissDrtConfigurator extends SwitzerlandConfigurator {
 
             person.getPlans().remove(plantoremove);
         }
-
     }
 
 
@@ -227,17 +219,18 @@ public class SwissDrtConfigurator extends SwitzerlandConfigurator {
         controller.addOverridingModule(new SwissDrtTravelTimeModule(DrtConfigGroup.getSingleModeDrtConfig(config), scenario,
                 (DrtModeChoiceConfigGroup) config.getModules().get(DrtModeChoiceConfigGroup.GROUP_NAME)));
 
-        if (!config.qsim().getVehiclesSource().name().equals("defaultVehicle")) {
+        /*if (!config.qsim().getVehiclesSource().name().equals("defaultVehicle")) {
             controller.addOverridingModule(new AbstractModule() {
 
                 @Override
                 public void install() {
                     bind(VehicleType.class).annotatedWith(DvrpModes.mode("drt")).toInstance(scenario.getVehicles().getVehicleTypes().get(Id.create(TransportMode.drt, VehicleType.class)));
-                    /*bind(VehicleType.class).annotatedWith(new VrpAgentSourceQSimModule("drt").getModalInstance(VehicleType.class))
+                    bind(VehicleType.class).annotatedWith(new VrpAgentSourceQSimModule("drt").getModalInstance(VehicleType.class))
                             .toInstance(
-                                    scenario.getVehicles().getVehicleTypes().get(Id.create(TransportMode.drt, VehicleType.class)));*/
+                                    scenario.getVehicles().getVehicleTypes().get(Id.create(TransportMode.drt, VehicleType.class)));
                 }
-            });}
+            });
+        }*/
 
 
     }
