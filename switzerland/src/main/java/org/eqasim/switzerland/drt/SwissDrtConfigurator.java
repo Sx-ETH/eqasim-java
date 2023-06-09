@@ -32,6 +32,7 @@ import org.matsim.contribs.discrete_mode_choice.modules.config.DiscreteModeChoic
 import org.matsim.core.config.CommandLine;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigGroup;
+import org.matsim.core.config.groups.ControlerConfigGroup;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
 import org.matsim.core.config.groups.QSimConfigGroup;
 import org.matsim.core.controler.Controler;
@@ -173,31 +174,33 @@ public class SwissDrtConfigurator extends SwitzerlandConfigurator {
                 new DrtRouteFactory());
 
         //correct output_plans file of previous run if used
-        for (final Person person : scenario.getPopulation().getPersons().values()) {
-            Plan plantoremove = null;
-            for (final Plan plan : person.getPlans()) {
-                if (person.getSelectedPlan() != plan) {
-                    plantoremove = plan;
-                    continue;
-                }
-                for (final TripStructureUtils.Trip trip : TripStructureUtils.getTrips(plan)) {
-                    for (final PlanElement pe : trip.getTripElements()) {
-                        if (pe instanceof Leg) {
-                            Leg leg = ((Leg) pe);
+        if (((ControlerConfigGroup) scenario.getConfig().getModules().get("controler")).getFirstIteration() > 0) {
+            for (final Person person : scenario.getPopulation().getPersons().values()) {
+                Plan plantoremove = null;
+                for (final Plan plan : person.getPlans()) {
+                    if (person.getSelectedPlan() != plan) {
+                        plantoremove = plan;
+                        continue;
+                    }
+                    for (final TripStructureUtils.Trip trip : TripStructureUtils.getTrips(plan)) {
+                        for (final PlanElement pe : trip.getTripElements()) {
+                            if (pe instanceof Leg) {
+                                Leg leg = ((Leg) pe);
 
-                            if (leg.getMode().equals("walk") & pe.getAttributes().getAttribute("routingMode").equals("drt")) {
-                                //For iteration run continuation, drt walk trips do have a
-                                // General RouteImpl routing type and triggers an error
-                                leg.setRoute(null);
-                                pe.getAttributes().putAttribute("routingMode", "drt");
+                                if (leg.getMode().equals("walk") & pe.getAttributes().getAttribute("routingMode").equals("drt")) {
+                                    //For iteration run continuation, drt walk trips do have a
+                                    // General RouteImpl routing type and triggers an error
+                                    leg.setRoute(null);
+                                    pe.getAttributes().putAttribute("routingMode", "drt");
+                                }
                             }
                         }
                     }
+
                 }
 
+                person.getPlans().remove(plantoremove);
             }
-
-            person.getPlans().remove(plantoremove);
         }
     }
 
