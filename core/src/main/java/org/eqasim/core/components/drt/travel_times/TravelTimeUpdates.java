@@ -253,6 +253,35 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
             this.drtPredictions.clearTripPredictions();
         }
 
+        String filename = "drt_simulatedTrips.csv";
+        String outputDir = event.getServices().getControlerIO().getIterationFilename(event.getIteration(), filename);
+        BufferedWriter writer = IOUtils.getBufferedWriter(outputDir);
+        try {
+            String header = "personId;startTime;startLink;endLink;waitTime_min;travelTime_min\n";
+            writer.write(header);
+            // Simulate the replanning to get the predicted values
+            for (DrtTripData drtTrip : drtTrips) {
+                DrtRoute route = generateRouteFromTripData(drtTrip);
+                double departureTime = drtTrip.startTime;
+                double waitTime_sec = getWaitTime_sec(route, departureTime);
+                double travelTime_sec = getTravelTime_sec(route, departureTime);
+
+                String line = String.format("%s;%s;%s;%s;%s;%s\n", drtTrip.personId, drtTrip.startTime, drtTrip.startLinkId, drtTrip.endLinkId, waitTime_sec / 60, travelTime_sec / 60);
+                writer.write(line);
+            }
+            writer.flush();
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private DrtRoute generateRouteFromTripData(DrtTripData drtTrip) {
+        DrtRoute route = new DrtRoute(drtTrip.startLinkId, drtTrip.endLinkId);
+        route.setDirectRideTime(drtTrip.estimatedUnsharedTime);
+        route.setMaxWaitTime(600);
+        route.setTravelTime(240 + 1.5 * drtTrip.estimatedUnsharedTime);
+        return route;
     }
 
     // We need to create the zones on startup in case we use the zonal average wait time
