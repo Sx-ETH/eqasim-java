@@ -78,7 +78,7 @@ public class GenerateFixedDRTDemand {
         System.out.println("Finished outputting population file");
         System.out.println("Starting creating DRT vehicles");
 
-        String vehiclesOutputFile = outputDirectory + "/fixed_demand_" + drtDemand + "_drt_vehicles.xml.gz";
+        String vehiclesOutputFile = outputDirectory + "/fixed_demand_" + drtDemand + "_drt_vehicles.xml";
         int tripsPerVehicle = Integer.parseInt(cmd.getOptionStrict("tripsPerVehicle"));
 
         String vehicle_name = "drt";
