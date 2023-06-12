@@ -257,7 +257,7 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
         String outputDir = event.getServices().getControlerIO().getIterationFilename(event.getIteration(), filename);
         BufferedWriter writer = IOUtils.getBufferedWriter(outputDir);
         try {
-            String header = "personId;startTime;startLink;endLink;waitTime_min;travelTime_min\n";
+            String header = "personId;startTime;startLink;endLink;predicted_waitTime;predicted_travelTime;real_waiTime;real_travelTime\n";
             writer.write(header);
             // Simulate the replanning to get the predicted values
             for (DrtTripData drtTrip : drtTrips) {
@@ -266,7 +266,7 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
                 double waitTime_sec = getWaitTime_sec(route, departureTime);
                 double travelTime_sec = getTravelTime_sec(route, departureTime);
 
-                String line = String.format("%s;%s;%s;%s;%s;%s\n", drtTrip.personId, drtTrip.startTime, drtTrip.startLinkId, drtTrip.endLinkId, waitTime_sec / 60, travelTime_sec / 60);
+                String line = String.format("%s;%s;%s;%s;%s;%s;%s;%s\n", drtTrip.personId, drtTrip.startTime, drtTrip.startLinkId, drtTrip.endLinkId, waitTime_sec, travelTime_sec, drtTrip.waitTime, drtTrip.totalTravelTime);
                 writer.write(line);
             }
             writer.flush();
