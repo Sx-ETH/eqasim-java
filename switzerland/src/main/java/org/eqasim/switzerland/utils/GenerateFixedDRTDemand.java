@@ -70,6 +70,7 @@ public class GenerateFixedDRTDemand {
         for (int i = 0; i < drtDemand; i++) {
             Leg leg = candidateLegs.get(i);
             leg.setMode("drt");
+            leg.setRoute(null);
         }
 
         String outputfile = outputDirectory + "/fixed_demand_" + drtDemand + "_population.xml.gz";
