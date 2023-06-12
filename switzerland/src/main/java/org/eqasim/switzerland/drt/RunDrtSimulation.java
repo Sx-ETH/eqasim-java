@@ -3,6 +3,7 @@ package org.eqasim.switzerland.drt;
 import org.eqasim.core.simulation.mode_choice.EqasimModeChoiceModule;
 import org.eqasim.switzerland.mode_choice.SwissModeChoiceModule;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.contrib.drt.run.DrtConfigGroup;
 import org.matsim.core.config.CommandLine;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
@@ -18,7 +19,7 @@ public class RunDrtSimulation {
                         "", "", "", "",
                         "") //
                 .allowPrefixes("mode-choice-parameter", "cost-parameter") //
-                .allowOptions("output-path")
+                .allowOptions("output-path", "lastIteration", "flowCapacityFactor", "storageCapacityFactor", "drt_vehicles")
                 .build();
 
 
@@ -36,6 +37,18 @@ public class RunDrtSimulation {
                 : config.controler().getOutputDirectory();
 
         config.controler().setOutputDirectory(output_path);
+
+        int lastIteration = cmd.getOption("lastIteration").isPresent() ? Integer.parseInt(cmd.getOption("lastIteration").get())
+                : config.controler().getLastIteration();
+        config.controler().setLastIteration(lastIteration);
+
+        double flowCapacityFactor = cmd.getOption("flowCapacityFactor").isPresent() ? Double.parseDouble(cmd.getOption("flowCapacityFactor").get())
+                : config.qsim().getFlowCapFactor();
+        config.qsim().setFlowCapFactor(flowCapacityFactor);
+
+        double storageCapacityFactor = cmd.getOption("storageCapacityFactor").isPresent() ? Double.parseDouble(cmd.getOption("storageCapacityFactor").get())
+                : config.qsim().getStorageCapFactor();
+        config.qsim().setStorageCapFactor(storageCapacityFactor);
 
         config.controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.deleteDirectoryIfExists);
 
@@ -57,6 +70,10 @@ public class RunDrtSimulation {
 
         // Configure controller for DRT adding dvrp and drt modules
         SwissDrtConfigurator.configureController(controller, cmd, config, scenario);
+
+        String drt_vehicles = cmd.getOption("drt_vehicles").isPresent() ? cmd.getOption("drt_vehicles").get()
+                : ((DrtConfigGroup) config.getModules().get("multiModeDrt").getParameterSets("drt").iterator().next()).getVehiclesFile();
+        ((DrtConfigGroup) config.getModules().get("multiModeDrt").getParameterSets("drt").iterator().next()).setVehiclesFile(drt_vehicles);
 
         controller.run();
     }
