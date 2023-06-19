@@ -13,8 +13,11 @@ public class DataStats {
     private double p_75 = Double.NaN;
     private double p_95 = Double.NaN;
     private double max = Double.NaN;
+    private double std = Double.NaN;
+    private int nTrips = 0;
 
     private double weightedAvg = Double.NaN;
+    private double weightedStd = Double.NaN;
 
     private DrtDynamicSystemParamSet.DecayType decayType = null;
 
@@ -35,7 +38,10 @@ public class DataStats {
         this.p_75 = descStats.getPercentile(75);
         this.p_95 = descStats.getPercentile(95);
         this.max = descStats.getMax();
+        this.std = descStats.getStandardDeviation();
+        this.nTrips = stats.length;
         this.weightedAvg = this.avg; //To feedback weighted average for delay factor that does not have dynamic implementation
+        this.weightedStd = this.std;
     }
 
     public DataStats(double[] stats, double[] distances, DrtDynamicSystemParamSet.DecayType decayType) {
@@ -49,40 +55,52 @@ public class DataStats {
         this.p_75 = descStats.getPercentile(75);
         this.p_95 = descStats.getPercentile(95);
         this.max = descStats.getMax();
-        this.weightedAvg = getWeightedAverage(stats, distances);
+        this.std = descStats.getStandardDeviation();
+        this.nTrips = stats.length;
+        calculateWeightedStats(stats, distances);
     }
 
-    private double getWeightedAverage(double[] stats, double[] distances) {
+    private void calculateWeightedStats(double[] stats, double[] distances) {
         double avgSum = 0.0;
         double weightSum = 0.0;
+        double[] weights = new double[stats.length];
+        double weightsSquaredSum = 0.0;
+        double weightedSquaredValuesSum = 0.0;
         for (int i = 0; i < stats.length; i++) {
             // The distances are in meters, so we need to convert them to kilometers
             double d = distances[i] / 1000.0;
             switch (decayType) {
                 case POWER_DECAY:
-                    avgSum += stats[i] * Math.pow(d, -2);
-                    weightSum += Math.pow(d, -2);
+                    weights[i] = Math.pow(d, -2);
                     break;
                 case INVERSE_DECAY:
-                    avgSum += stats[i] * Math.pow(d, -1);
-                    weightSum += Math.pow(d, -1);
+                    weights[i] = Math.pow(d, -1);
                     break;
                 case EXPONENTIAL_DECAY:
-                    avgSum += stats[i] * Math.exp(-d);
-                    weightSum += Math.exp(-d);
+                    weights[i] = Math.exp(-d);
                     break;
                 case SPATIAL_CORRELATION:
                     //ToDo
                     break;
             }
+            avgSum += stats[i] * weights[i];
+            weightSum += weights[i];
+            weightsSquaredSum += Math.pow(weights[i], 2);
+            weightedSquaredValuesSum += Math.pow(stats[i], 2) * weights[i];
         }
-        return avgSum / weightSum;
+        this.weightedAvg = avgSum / weightSum;
+
+        double a = (weightedSquaredValuesSum / weightSum) - Math.pow(this.weightedAvg, 2);
+        double b = Math.pow(weightSum, 2) / (Math.pow(weightSum, 2) - weightsSquaredSum);
+        this.weightedStd = Math.sqrt(a * b); //Computed using Case I from http://seismo.berkeley.edu/~kirchner/Toolkits/Toolkit_12.pdf to have unbiased estimate
+
         //powerDecay = Sum (value * distance^-2);
         //inverseDecay = Sum (value * 1/distance);
         //exponentialDecay = Sum (value * e^ - distance);
         //spatialCorrelation = *some formula;
 
     }
+
 
     public double getStat(DrtModeChoiceConfigGroup.Feedback stat) {
         switch (stat) {
@@ -107,6 +125,18 @@ public class DataStats {
             default:
                 return Double.NaN;
         }
+    }
+
+    public double getStd() {
+        return std;
+    }
+
+    public double getNTrips() {
+        return nTrips;
+    }
+
+    public double getWeightedStd() {
+        return weightedStd;
     }
 
     public static String getCSVHeader(String separator) {

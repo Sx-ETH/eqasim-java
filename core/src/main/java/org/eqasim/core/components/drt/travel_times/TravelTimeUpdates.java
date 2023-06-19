@@ -2,11 +2,9 @@ package org.eqasim.core.components.drt.travel_times;
 
 import com.google.inject.Inject;
 import org.apache.log4j.Logger;
-import org.eqasim.core.components.drt.config_group.DrtDynamicSystemParamSet;
-import org.eqasim.core.components.drt.config_group.DrtMetricCalculationParamSet;
-import org.eqasim.core.components.drt.config_group.DrtModeChoiceConfigGroup;
-import org.eqasim.core.components.drt.config_group.DrtZonalSystemParamSet;
+import org.eqasim.core.components.drt.config_group.*;
 import org.eqasim.core.components.drt.travel_times.dynamic.DynamicWaitTimeMetrics;
+import org.eqasim.core.components.drt.travel_times.smoothing.Markov;
 import org.eqasim.core.components.drt.travel_times.smoothing.Smoothing;
 import org.eqasim.core.components.drt.travel_times.zonal.*;
 import org.matsim.api.core.v01.Id;
@@ -171,6 +169,30 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
         return route.getMaxTravelTime();
     }
 
+    public DataStats getTravelTimeStats(DrtRoute route, double departureTime) {
+        DrtModeChoiceConfigGroup drtDmcConfig = (DrtModeChoiceConfigGroup) config.getModules().get(DrtModeChoiceConfigGroup.GROUP_NAME);
+        if (drtDmcConfig.isUseDelayFactor()) {
+            DrtModeChoiceConfigGroup.Feedback feedback = drtDmcConfig.getFeedBackMethod();
+            DataStats delayFactorStats;
+            if (drtDmcConfig.getDrtMetricCalculationParamSet().getMethod() == DrtMetricCalculationParamSet.Method.Global) {
+                delayFactorStats = this.globalDelayFactor;
+            } else {
+                Link startLink = this.network.getLinks().get(route.getStartLinkId());
+                Link endLink = this.network.getLinks().get(route.getEndLinkId());
+                double euclideanDistance = CoordUtils.calcEuclideanDistance(startLink.getCoord(), endLink.getCoord());
+                int distanceBin = this.drtDistanceBinUtils.getBinIndex(euclideanDistance);
+
+                int timeBin = this.drtTimeUtils.getBinIndex(departureTime);
+                delayFactorStats = Markov.getDelayFactorStats(fixedZoneMetrics, distanceBin, timeBin);
+            }
+            if (Double.isNaN(delayFactorStats.getStat(feedback))) {
+                return globalDelayFactor;
+            }
+            return delayFactorStats;
+        }
+        return new DataStats(route.getMaxTravelTime());
+    }
+
     public double getWaitTime_sec(DrtRoute route, double departureTime) {
         DrtModeChoiceConfigGroup drtDmcConfig = (DrtModeChoiceConfigGroup) config.getModules().get(DrtModeChoiceConfigGroup.GROUP_NAME);
         if (drtDmcConfig.isUseWaitTime()) {
@@ -193,8 +215,8 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
                     int kMax = dynamicParams.getkMax(); //ToDo need to come up with a suitable reason for choosing a max number of Kvalue
                     DrtDynamicSystemParamSet.DecayType decayType = dynamicParams.getDecayType();
 
-                    double avgWaitTimeIter = dynamicWaitTimeMetrics.getDynamicWaitTimeForTimeBin(route, timeBin, dynamicType, kValue, radius, kShare, kMax, feedback, decayType);
-
+                    DataStats avgWaitTimeIterStats = dynamicWaitTimeMetrics.getDynamicWaitTimeForTimeBin(route, timeBin, dynamicType, kValue, radius, kShare, kMax, decayType);
+                    double avgWaitTimeIter = avgWaitTimeIterStats.getStat(feedback);
                     waitTime = this.smoothing.getDynamicWaitTime(avgWaitTimeIter, fixedZoneMetrics, zone, timeBin, feedback);
 
 
@@ -212,6 +234,43 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
             return waitTime;
         }
         return route.getMaxWaitTime();
+    }
+
+    public DataStats getWaitTimeStats(DrtRoute route, double departureTime) {
+        DrtModeChoiceConfigGroup drtDmcConfig = (DrtModeChoiceConfigGroup) config.getModules().get(DrtModeChoiceConfigGroup.GROUP_NAME);
+        if (drtDmcConfig.isUseWaitTime()) {
+            DrtModeChoiceConfigGroup.Feedback feedback = drtDmcConfig.getFeedBackMethod();
+            DataStats waitTimeStats = new DataStats();
+            if (drtDmcConfig.getDrtMetricCalculationParamSet().getMethod() == DrtMetricCalculationParamSet.Method.Global) {
+                waitTimeStats = this.globalWaitingTime;
+            } else {
+                int timeBin = this.drtTimeUtils.getBinIndex(departureTime);
+                String zone = zones.getZoneForLinkId(route.getStartLinkId());
+                if (drtDmcConfig.getDrtMetricCalculationParamSet().getSpatialType() == DrtMetricCalculationParamSet.SpatialType.ZonalSystem) {
+                    waitTimeStats = Markov.getZonalWaitTimeStats(fixedZoneMetrics, zone, timeBin);
+                } else if (drtDmcConfig.getDrtMetricCalculationParamSet().getSpatialType() == DrtMetricCalculationParamSet.SpatialType.DynamicSystem) {
+                    //get type of dynamic system
+                    DrtDynamicSystemParamSet dynamicParams = drtDmcConfig.getDrtMetricCalculationParamSet().getDrtDynamicSystemParamSet();
+                    DrtDynamicSystemParamSet.Type dynamicType = dynamicParams.getType();
+                    int kValue = dynamicParams.getKvalue();
+                    double radius = dynamicParams.getRadius();
+                    double kShare = dynamicParams.getkShare();
+                    int kMax = dynamicParams.getkMax(); //ToDo need to come up with a suitable reason for choosing a max number of Kvalue
+                    DrtDynamicSystemParamSet.DecayType decayType = dynamicParams.getDecayType();
+
+                    DataStats avgWaitTimeIterStats = dynamicWaitTimeMetrics.getDynamicWaitTimeForTimeBin(route, timeBin, dynamicType, kValue, radius, kShare, kMax, decayType);
+                    waitTimeStats = Markov.getDynamicWaitTimeStats(avgWaitTimeIterStats, fixedZoneMetrics, zone, timeBin);
+
+
+                }
+
+            }
+            if (Double.isNaN(waitTimeStats.getStat(feedback))) {
+                return globalWaitingTime;
+            }
+            return waitTimeStats;
+        }
+        return new DataStats(route.getMaxWaitTime());
     }
 
     @Override
@@ -253,11 +312,48 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
             this.drtPredictions.clearTripPredictions();
         }
 
+        if (drtDmcConfig.getDrtMetricSmootheningParamSet().getSmootheningType() != DrtMetricSmootheningParamSet.SmootheningType.Markov) {
+            throw new RuntimeException("Only Markov smoothening is supported at the moment for the simulation of the trips");
+        }
         String filename = "drt_simulatedTrips.csv";
         String outputDir = event.getServices().getControlerIO().getIterationFilename(event.getIteration(), filename);
         BufferedWriter writer = IOUtils.getBufferedWriter(outputDir);
         try {
-            String header = "personId;startTime;startLink;endLink;predicted_waitTime;predicted_travelTime;real_waiTime;real_travelTime\n";
+            String header = "";//""personId;startTime;startLink;endLink;real_waiTime;real_travelTime;predicted_waitTime;predicted_travelTime;real_waiTime;real_travelTime\n";
+            header += "personId;";
+            header += "startTime;";
+            header += "startLink;";
+            header += "endLink;";
+            header += "waitTime_real;";
+            header += "travelTime_real;";
+            header += "waitTime_predicted;";
+            header += "travelTime_predicted;";
+            header += "waitTime_avg;";
+            header += "waitTime_std;";
+            header += "waitTime_weightedAvg;";
+            header += "waitTime_weightedStd;";
+            header += "waitTime_min;";
+            header += "waitTime_p5;";
+            header += "waitTime_p25;";
+            header += "waitTime_median;";
+            header += "waitTime_p75;";
+            header += "waitTime_p95;";
+            header += "waitTime_max;";
+            header += "waitTime_nTrips;";
+
+            header += "delayFactor_avg;";
+            header += "delayFactor_std;";
+            header += "delayFactor_weightedAvg;";
+            header += "delayFactor_weightedStd;";
+            header += "delayFactor_min;";
+            header += "delayFactor_p5;";
+            header += "delayFactor_p25;";
+            header += "delayFactor_median;";
+            header += "delayFactor_p75;";
+            header += "delayFactor_p95;";
+            header += "delayFactor_max;";
+            header += "delayFactor_nTrips\n";
+
             writer.write(header);
             // Simulate the replanning to get the predicted values
             for (DrtTripData drtTrip : drtTrips) {
@@ -265,9 +361,42 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
                 double departureTime = drtTrip.startTime;
                 double waitTime_sec = getWaitTime_sec(route, departureTime);
                 double travelTime_sec = getTravelTime_sec(route, departureTime);
+                DataStats waitTimeStats = getWaitTimeStats(route, departureTime);
+                DataStats travelTimeStats = getTravelTimeStats(route, departureTime);
 
-                String line = String.format("%s;%s;%s;%s;%s;%s;%s;%s\n", drtTrip.personId, drtTrip.startTime, drtTrip.startLinkId, drtTrip.endLinkId, waitTime_sec, travelTime_sec, drtTrip.waitTime, drtTrip.totalTravelTime);
-                writer.write(line);
+                writer.write(drtTrip.personId + ";");
+                writer.write(drtTrip.startTime + ";");
+                writer.write(drtTrip.startLinkId + ";");
+                writer.write(drtTrip.endLinkId + ";");
+                writer.write(drtTrip.waitTime + ";");
+                writer.write(drtTrip.totalTravelTime + ";");
+                writer.write(waitTime_sec + ";");
+                writer.write(travelTime_sec + ";");
+                writer.write(waitTimeStats.getStat(DrtModeChoiceConfigGroup.Feedback.average) + ";");
+                writer.write(waitTimeStats.getStd() + ";");
+                writer.write(waitTimeStats.getStat(DrtModeChoiceConfigGroup.Feedback.weightedAverage) + ";");
+                writer.write(waitTimeStats.getWeightedStd() + ";");
+                writer.write(waitTimeStats.getStat(DrtModeChoiceConfigGroup.Feedback.min) + ";");
+                writer.write(waitTimeStats.getStat(DrtModeChoiceConfigGroup.Feedback.p_5) + ";");
+                writer.write(waitTimeStats.getStat(DrtModeChoiceConfigGroup.Feedback.p_25) + ";");
+                writer.write(waitTimeStats.getStat(DrtModeChoiceConfigGroup.Feedback.median) + ";");
+                writer.write(waitTimeStats.getStat(DrtModeChoiceConfigGroup.Feedback.p_75) + ";");
+                writer.write(waitTimeStats.getStat(DrtModeChoiceConfigGroup.Feedback.p_95) + ";");
+                writer.write(waitTimeStats.getStat(DrtModeChoiceConfigGroup.Feedback.max) + ";");
+                writer.write(waitTimeStats.getNTrips() + ";");
+
+                writer.write(travelTimeStats.getStat(DrtModeChoiceConfigGroup.Feedback.average) + ";");
+                writer.write(travelTimeStats.getStd() + ";");
+                writer.write(travelTimeStats.getStat(DrtModeChoiceConfigGroup.Feedback.weightedAverage) + ";");
+                writer.write(travelTimeStats.getWeightedStd() + ";");
+                writer.write(travelTimeStats.getStat(DrtModeChoiceConfigGroup.Feedback.min) + ";");
+                writer.write(travelTimeStats.getStat(DrtModeChoiceConfigGroup.Feedback.p_5) + ";");
+                writer.write(travelTimeStats.getStat(DrtModeChoiceConfigGroup.Feedback.p_25) + ";");
+                writer.write(travelTimeStats.getStat(DrtModeChoiceConfigGroup.Feedback.median) + ";");
+                writer.write(travelTimeStats.getStat(DrtModeChoiceConfigGroup.Feedback.p_75) + ";");
+                writer.write(travelTimeStats.getStat(DrtModeChoiceConfigGroup.Feedback.p_95) + ";");
+                writer.write(travelTimeStats.getStat(DrtModeChoiceConfigGroup.Feedback.max) + ";");
+                writer.write(travelTimeStats.getNTrips() + "\n");
             }
             writer.flush();
             writer.close();
