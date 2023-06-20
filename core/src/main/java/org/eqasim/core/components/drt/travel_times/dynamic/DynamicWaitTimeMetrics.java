@@ -1,7 +1,6 @@
 package org.eqasim.core.components.drt.travel_times.dynamic;
 
 import org.eqasim.core.components.drt.config_group.DrtDynamicSystemParamSet;
-import org.eqasim.core.components.drt.config_group.DrtModeChoiceConfigGroup;
 import org.eqasim.core.components.drt.travel_times.DataStats;
 import org.eqasim.core.components.drt.travel_times.DrtTimeUtils;
 import org.eqasim.core.components.drt.travel_times.DrtTripData;
@@ -57,9 +56,9 @@ public class DynamicWaitTimeMetrics {
         }
     }
 
-    public double getDynamicWaitTimeForTimeBin(DrtRoute route, int timeBin, DrtDynamicSystemParamSet.Type dynamicType, int kValue, double radius, double kShare, int kMax, DrtModeChoiceConfigGroup.Feedback feedback, DrtDynamicSystemParamSet.DecayType decayType) {
+    public DataStats getDynamicWaitTimeForTimeBin(DrtRoute route, int timeBin, DrtDynamicSystemParamSet.Type dynamicType, int kValue, double radius, double kShare, int kMax, DrtDynamicSystemParamSet.DecayType decayType) {
         if (timeBin >= quadTreesByTimeBins.size()) {
-            return Double.NaN;
+            return new DataStats();
         }
         //get the coordinates of the route
         Coord startLocation = network.getLinks().get(route.getStartLinkId()).getCoord();
@@ -67,7 +66,7 @@ public class DynamicWaitTimeMetrics {
         Collection<DrtTripData> waitTimes;
 
         if (quadTree.size() == 0) {
-            return Double.NaN;
+            return new DataStats();
         }
         switch (dynamicType) {
             case KNN_CN: //Todo make it not case sensitive maybe?
@@ -87,7 +86,7 @@ public class DynamicWaitTimeMetrics {
         Set<DrtTripData> waitTimesSet = new HashSet<>(waitTimes);
         //DataStats(double[] stats, double[] distances, DrtDynamicSystemParamSet.DecayType decayType)
         DataStats waitTimeStats = new DataStats(collectWaitTimes(waitTimesSet), collectDistances(waitTimesSet, startLocation), decayType);
-        return waitTimeStats.getStat(feedback);
+        return waitTimeStats;
 
     }
 
