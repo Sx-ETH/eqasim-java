@@ -6,14 +6,15 @@ import org.eqasim.core.components.drt.travel_times.DrtTimeUtils;
 import org.eqasim.core.components.drt.travel_times.DrtTripData;
 import org.eqasim.core.components.drt.utils.QuadTree;
 import org.matsim.api.core.v01.Coord;
+import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.contrib.drt.routing.DrtRoute;
+import org.matsim.contrib.dvrp.optimizer.Request;
 import org.matsim.core.network.NetworkUtils;
 
 import java.util.*;
 
-import static org.eqasim.core.components.drt.travel_times.zonal.DrtFixedZoneMetrics.collectDistances;
-import static org.eqasim.core.components.drt.travel_times.zonal.DrtFixedZoneMetrics.collectWaitTimes;
+import static org.eqasim.core.components.drt.travel_times.zonal.DrtFixedZoneMetrics.*;
 
 public class DynamicWaitTimeMetrics {
 
@@ -84,8 +85,9 @@ public class DynamicWaitTimeMetrics {
                 throw new RuntimeException(dynamicType + " as a dynamicType not valid, the options are KNN_CN, KNN_PN,fixedDistance");
         }
         Set<DrtTripData> waitTimesSet = new HashSet<>(waitTimes);
+        Id<Request>[] requestIds = collectRequestIds(waitTimesSet);
         //DataStats(double[] stats, double[] distances, DrtDynamicSystemParamSet.DecayType decayType)
-        DataStats waitTimeStats = new DataStats(collectWaitTimes(waitTimesSet), collectDistances(waitTimesSet, startLocation), decayType);
+        DataStats waitTimeStats = new DataStats(collectWaitTimes(waitTimesSet), collectDistances(waitTimesSet, startLocation), decayType, requestIds);
         return waitTimeStats;
 
     }

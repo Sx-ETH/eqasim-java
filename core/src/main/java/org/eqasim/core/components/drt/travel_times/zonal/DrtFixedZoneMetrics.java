@@ -7,6 +7,8 @@ import org.eqasim.core.components.drt.travel_times.DrtDistanceBinUtils;
 import org.eqasim.core.components.drt.travel_times.DrtTimeUtils;
 import org.eqasim.core.components.drt.travel_times.DrtTripData;
 import org.matsim.api.core.v01.Coord;
+import org.matsim.api.core.v01.Id;
+import org.matsim.contrib.dvrp.optimizer.Request;
 import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.core.utils.io.IOUtils;
 
@@ -129,6 +131,16 @@ public class DrtFixedZoneMetrics {
         return l;
     }
 
+    public static Id<Request>[] collectRequestIds(Set<DrtTripData> drtTrips) {
+        Id<Request>[] l = new Id[drtTrips.size()];
+        int i = 0;
+        for (DrtTripData drtTrip : drtTrips) {
+            l[i] = drtTrip.requestId;
+            ++i;
+        }
+        return l;
+    }
+
     public static Map<String, DataStats[]> calculateZonalAndTimeBinWaitingTime(Set<DrtTripData> drtTripData, FixedDrtZonalSystem zones, int timeBinSize_min) {
         Map<String, DataStats[]> zonalAndTimeBinWaitTime = new HashMap<>();
         Map<String, Set<DrtTripData>[]> assignedDrtTrips = assignDrtTripsToZonesAndTimeBin(drtTripData, zones, timeBinSize_min);
@@ -139,7 +151,8 @@ public class DrtFixedZoneMetrics {
             for (int i = 0; i < drtTripsByTimeBin.length; i++) {
                 Set<DrtTripData> drtTripsByTimeBinByZone = drtTripsByTimeBin[i];
                 double[] waitTimes = collectWaitTimes(drtTripsByTimeBinByZone);
-                zoneWaitingTimeByTimeBins[i] = new DataStats(waitTimes);
+                Id<Request>[] requestIds = collectRequestIds(drtTripsByTimeBinByZone);
+                zoneWaitingTimeByTimeBins[i] = new DataStats(waitTimes, requestIds);
             }
             zonalAndTimeBinWaitTime.put(zone, zoneWaitingTimeByTimeBins);
         }
@@ -158,7 +171,8 @@ public class DrtFixedZoneMetrics {
             for (int i = 0; i < drtTripsByTimeBin.length; i++) {
                 Set<DrtTripData> drtTripsByTimeBinByDistanceBin = drtTripsByTimeBin[i];
                 double[] delayFactors = collectDelayFactors(drtTripsByTimeBinByDistanceBin);
-                distanceBinDelayFactorByTimeBins[i] = new DataStats(delayFactors);
+                Id<Request>[] requestIds = collectRequestIds(drtTripsByTimeBinByDistanceBin);
+                distanceBinDelayFactorByTimeBins[i] = new DataStats(delayFactors, requestIds);
             }
             distanceAndTimeBinDelayFactor.put(distanceBin, distanceBinDelayFactorByTimeBins);
         }
@@ -167,12 +181,14 @@ public class DrtFixedZoneMetrics {
 
     public static DataStats calculateGlobalWaitingTime(Set<DrtTripData> drtTripData) {
         double[] waitTimes = collectWaitTimes(drtTripData);
-        return new DataStats(waitTimes);
+        Id<Request>[] requestIds = collectRequestIds(drtTripData);
+        return new DataStats(waitTimes, requestIds);
     }
 
     public static DataStats calculateGlobalDelayFactor(Set<DrtTripData> drtTripData) {
         double[] delayFactors = collectDelayFactors(drtTripData);
-        return new DataStats(delayFactors);
+        Id<Request>[] requestIds = collectRequestIds(drtTripData);
+        return new DataStats(delayFactors, requestIds);
     }
 
     private static void writeZonalAndTimeBinWaitingTime(Map<String, DataStats[]> zonalAndTimeBinWaitingTime,

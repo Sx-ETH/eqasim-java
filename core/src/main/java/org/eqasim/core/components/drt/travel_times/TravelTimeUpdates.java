@@ -363,6 +363,13 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
                 double travelTime_sec = getTravelTime_sec(route, departureTime);
                 DataStats waitTimeStats = getWaitTimeStats(route, departureTime);
                 DataStats travelTimeStats = getTravelTimeStats(route, departureTime);
+                DataStats cleanWaitTimeStats = DataStats.removeTripUsingRequestId(waitTimeStats, drtTrip.requestId);
+                DataStats cleanTravelTimeStats = DataStats.removeTripUsingRequestId(travelTimeStats, drtTrip.requestId);
+
+                boolean use_clean = true; // If true, we use the stats without the current trip
+                DataStats waitTimeStatsToUse = use_clean ? cleanWaitTimeStats : waitTimeStats;
+                DataStats travelTimeStatsToUse = use_clean ? cleanTravelTimeStats : travelTimeStats;
+
 
                 writer.write(drtTrip.personId + ";");
                 writer.write(drtTrip.startTime + ";");
@@ -372,31 +379,31 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
                 writer.write(drtTrip.totalTravelTime + ";");
                 writer.write(waitTime_sec + ";");
                 writer.write(travelTime_sec + ";");
-                writer.write(waitTimeStats.getStat(DrtModeChoiceConfigGroup.Feedback.average) + ";");
-                writer.write(waitTimeStats.getStd() + ";");
-                writer.write(waitTimeStats.getStat(DrtModeChoiceConfigGroup.Feedback.weightedAverage) + ";");
-                writer.write(waitTimeStats.getWeightedStd() + ";");
-                writer.write(waitTimeStats.getStat(DrtModeChoiceConfigGroup.Feedback.min) + ";");
-                writer.write(waitTimeStats.getStat(DrtModeChoiceConfigGroup.Feedback.p_5) + ";");
-                writer.write(waitTimeStats.getStat(DrtModeChoiceConfigGroup.Feedback.p_25) + ";");
-                writer.write(waitTimeStats.getStat(DrtModeChoiceConfigGroup.Feedback.median) + ";");
-                writer.write(waitTimeStats.getStat(DrtModeChoiceConfigGroup.Feedback.p_75) + ";");
-                writer.write(waitTimeStats.getStat(DrtModeChoiceConfigGroup.Feedback.p_95) + ";");
-                writer.write(waitTimeStats.getStat(DrtModeChoiceConfigGroup.Feedback.max) + ";");
-                writer.write(waitTimeStats.getNTrips() + ";");
+                writer.write(waitTimeStatsToUse.getStat(DrtModeChoiceConfigGroup.Feedback.average) + ";");
+                writer.write(waitTimeStatsToUse.getStd() + ";");
+                writer.write(waitTimeStatsToUse.getStat(DrtModeChoiceConfigGroup.Feedback.weightedAverage) + ";");
+                writer.write(waitTimeStatsToUse.getWeightedStd() + ";");
+                writer.write(waitTimeStatsToUse.getStat(DrtModeChoiceConfigGroup.Feedback.min) + ";");
+                writer.write(waitTimeStatsToUse.getStat(DrtModeChoiceConfigGroup.Feedback.p_5) + ";");
+                writer.write(waitTimeStatsToUse.getStat(DrtModeChoiceConfigGroup.Feedback.p_25) + ";");
+                writer.write(waitTimeStatsToUse.getStat(DrtModeChoiceConfigGroup.Feedback.median) + ";");
+                writer.write(waitTimeStatsToUse.getStat(DrtModeChoiceConfigGroup.Feedback.p_75) + ";");
+                writer.write(waitTimeStatsToUse.getStat(DrtModeChoiceConfigGroup.Feedback.p_95) + ";");
+                writer.write(waitTimeStatsToUse.getStat(DrtModeChoiceConfigGroup.Feedback.max) + ";");
+                writer.write(waitTimeStatsToUse.getNTrips() + ";");
 
-                writer.write(travelTimeStats.getStat(DrtModeChoiceConfigGroup.Feedback.average) + ";");
-                writer.write(travelTimeStats.getStd() + ";");
-                writer.write(travelTimeStats.getStat(DrtModeChoiceConfigGroup.Feedback.weightedAverage) + ";");
-                writer.write(travelTimeStats.getWeightedStd() + ";");
-                writer.write(travelTimeStats.getStat(DrtModeChoiceConfigGroup.Feedback.min) + ";");
-                writer.write(travelTimeStats.getStat(DrtModeChoiceConfigGroup.Feedback.p_5) + ";");
-                writer.write(travelTimeStats.getStat(DrtModeChoiceConfigGroup.Feedback.p_25) + ";");
-                writer.write(travelTimeStats.getStat(DrtModeChoiceConfigGroup.Feedback.median) + ";");
-                writer.write(travelTimeStats.getStat(DrtModeChoiceConfigGroup.Feedback.p_75) + ";");
-                writer.write(travelTimeStats.getStat(DrtModeChoiceConfigGroup.Feedback.p_95) + ";");
-                writer.write(travelTimeStats.getStat(DrtModeChoiceConfigGroup.Feedback.max) + ";");
-                writer.write(travelTimeStats.getNTrips() + "\n");
+                writer.write(travelTimeStatsToUse.getStat(DrtModeChoiceConfigGroup.Feedback.average) + ";");
+                writer.write(travelTimeStatsToUse.getStd() + ";");
+                writer.write(travelTimeStatsToUse.getStat(DrtModeChoiceConfigGroup.Feedback.weightedAverage) + ";");
+                writer.write(travelTimeStatsToUse.getWeightedStd() + ";");
+                writer.write(travelTimeStatsToUse.getStat(DrtModeChoiceConfigGroup.Feedback.min) + ";");
+                writer.write(travelTimeStatsToUse.getStat(DrtModeChoiceConfigGroup.Feedback.p_5) + ";");
+                writer.write(travelTimeStatsToUse.getStat(DrtModeChoiceConfigGroup.Feedback.p_25) + ";");
+                writer.write(travelTimeStatsToUse.getStat(DrtModeChoiceConfigGroup.Feedback.median) + ";");
+                writer.write(travelTimeStatsToUse.getStat(DrtModeChoiceConfigGroup.Feedback.p_75) + ";");
+                writer.write(travelTimeStatsToUse.getStat(DrtModeChoiceConfigGroup.Feedback.p_95) + ";");
+                writer.write(travelTimeStatsToUse.getStat(DrtModeChoiceConfigGroup.Feedback.max) + ";");
+                writer.write(travelTimeStatsToUse.getNTrips() + "\n");
             }
             writer.flush();
             writer.close();
