@@ -1,8 +1,12 @@
 package org.eqasim.core.components.drt.travel_times;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.eqasim.core.components.drt.config_group.DrtDynamicSystemParamSet;
 import org.eqasim.core.components.drt.config_group.DrtModeChoiceConfigGroup;
+import org.matsim.api.core.v01.Id;
+import org.matsim.contrib.dvrp.optimizer.Request;
+
 
 public class DataStats {
     private double avg = Double.NaN;
@@ -21,6 +25,12 @@ public class DataStats {
 
     private DrtDynamicSystemParamSet.DecayType decayType = null;
 
+    private Id<Request>[] requestIds = null;
+    private double[] stats = null;
+    private double[] distances = null;
+    private boolean useWeightedAvg = false;
+
+
     public DataStats() {
     }
 
@@ -28,7 +38,7 @@ public class DataStats {
         this.avg = avg;
     }
 
-    public DataStats(double[] stats) {
+    public DataStats(double[] stats, Id<Request>[] requestIds) {
         DescriptiveStatistics descStats = new DescriptiveStatistics(stats);
         this.avg = descStats.getMean();
         this.median = descStats.getPercentile(50);
@@ -42,10 +52,12 @@ public class DataStats {
         this.nTrips = stats.length;
         this.weightedAvg = this.avg; //To feedback weighted average for delay factor that does not have dynamic implementation
         this.weightedStd = this.std;
+        this.requestIds = requestIds;
+        this.useWeightedAvg = false;
+        this.stats = stats;
     }
 
-    public DataStats(double[] stats, double[] distances, DrtDynamicSystemParamSet.DecayType decayType) {
-        this.decayType = decayType;
+    public DataStats(double[] stats, double[] distances, DrtDynamicSystemParamSet.DecayType decayType, Id<Request>[] requestIds) {
         DescriptiveStatistics descStats = new DescriptiveStatistics(stats);
         this.avg = descStats.getMean();
         this.median = descStats.getPercentile(50);
@@ -57,7 +69,25 @@ public class DataStats {
         this.max = descStats.getMax();
         this.std = descStats.getStandardDeviation();
         this.nTrips = stats.length;
+
+        this.decayType = decayType;
         calculateWeightedStats(stats, distances);
+        this.requestIds = requestIds;
+        this.useWeightedAvg = true;
+        this.stats = stats;
+        this.distances = distances;
+    }
+
+    public static DataStats removeTripUsingRequestId(DataStats original, Id<Request> requestId) {
+        int i = ArrayUtils.indexOf(original.requestIds, requestId);
+        double newStats[] = ArrayUtils.remove(original.stats, i);
+        Id<Request> newRequestIds[] = ArrayUtils.remove(original.requestIds, i);
+        if (original.useWeightedAvg) {
+            double newDistances[] = ArrayUtils.remove(original.distances, i);
+            return new DataStats(newStats, newDistances, original.decayType, newRequestIds);
+        } else {
+            return new DataStats(newStats, newRequestIds);
+        }
     }
 
     private void calculateWeightedStats(double[] stats, double[] distances) {
