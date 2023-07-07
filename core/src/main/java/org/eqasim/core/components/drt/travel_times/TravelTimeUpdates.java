@@ -355,20 +355,30 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
             header += "delayFactor_nTrips\n";
 
             writer.write(header);
+            DrtModeChoiceConfigGroup.Feedback feedback = drtDmcConfig.getFeedBackMethod();
             // Simulate the replanning to get the predicted values
             for (DrtTripData drtTrip : drtTrips) {
                 DrtRoute route = generateRouteFromTripData(drtTrip);
                 double departureTime = drtTrip.startTime;
-                double waitTime_sec = getWaitTime_sec(route, departureTime);
-                double travelTime_sec = getTravelTime_sec(route, departureTime);
+                //double waitTime_sec = getWaitTime_sec(route, departureTime);
+                //double travelTime_sec = getTravelTime_sec(route, departureTime);
                 DataStats waitTimeStats = getWaitTimeStats(route, departureTime);
                 DataStats travelTimeStats = getTravelTimeStats(route, departureTime);
                 DataStats cleanWaitTimeStats = DataStats.removeTripUsingRequestId(waitTimeStats, drtTrip.requestId);
                 DataStats cleanTravelTimeStats = DataStats.removeTripUsingRequestId(travelTimeStats, drtTrip.requestId);
 
+
                 boolean use_clean = true; // If true, we use the stats without the current trip
                 DataStats waitTimeStatsToUse = use_clean ? cleanWaitTimeStats : waitTimeStats;
                 DataStats travelTimeStatsToUse = use_clean ? cleanTravelTimeStats : travelTimeStats;
+                if (waitTimeStatsToUse.getNTrips() == 0) {
+                    // Fall back to global stats
+                    waitTimeStatsToUse = this.globalWaitingTime;
+                }
+                if (travelTimeStatsToUse.getNTrips() == 0) {
+                    // Fall back to global stats
+                    travelTimeStatsToUse = this.globalDelayFactor;
+                }
 
 
                 writer.write(drtTrip.personId + ";");
@@ -377,8 +387,10 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
                 writer.write(drtTrip.endLinkId + ";");
                 writer.write(drtTrip.waitTime + ";");
                 writer.write(drtTrip.totalTravelTime + ";");
-                writer.write(waitTime_sec + ";");
-                writer.write(travelTime_sec + ";");
+
+                writer.write(waitTimeStatsToUse.getStat(feedback) + ";");
+                writer.write(travelTimeStatsToUse.getStat(feedback) + ";");
+
                 writer.write(waitTimeStatsToUse.getStat(DrtModeChoiceConfigGroup.Feedback.average) + ";");
                 writer.write(waitTimeStatsToUse.getStd() + ";");
                 writer.write(waitTimeStatsToUse.getStat(DrtModeChoiceConfigGroup.Feedback.weightedAverage) + ";");
