@@ -6,8 +6,11 @@ import org.eqasim.ile_de_france.drt.IDFDrtConfigGroup;
 import org.eqasim.ile_de_france.drt.mode_choice.IDFDrtModeAvailability;
 import org.eqasim.ile_de_france.drt.mode_choice.utilities.drt_rejection_penalty.DrtRejectionPenaltyProviderConfigGroup;
 import org.eqasim.ile_de_france.drt.mode_choice.utilities.drt_rejection_penalty.DrtRejectionsLinearPenaltyProviderConfigGroup;
+import org.matsim.contrib.drt.analysis.zonal.DrtZonalSystemParams;
 import org.matsim.contrib.drt.optimizer.insertion.DrtInsertionSearchParams;
-import org.matsim.contrib.drt.optimizer.insertion.selective.SelectiveInsertionSearchParams;
+import org.matsim.contrib.drt.optimizer.insertion.extensive.ExtensiveInsertionSearchParams;
+import org.matsim.contrib.drt.optimizer.rebalancing.RebalancingParams;
+import org.matsim.contrib.drt.optimizer.rebalancing.plusOne.PlusOneRebalancingStrategyParams;
 import org.matsim.contrib.drt.run.DrtConfigGroup;
 import org.matsim.contrib.drt.run.DrtConfigs;
 import org.matsim.contrib.drt.run.MultiModeDrtConfigGroup;
@@ -47,11 +50,25 @@ public class AdaptConfigForDrt {
         drtConfig.setMaxTravelTimeAlpha(1.5);
         drtConfig.setMaxTravelTimeBeta(300.0);
 
+        RebalancingParams rebalancingParams = new RebalancingParams();
+        PlusOneRebalancingStrategyParams plusOneRebalancingStrategyParams = new PlusOneRebalancingStrategyParams();
+        rebalancingParams.addParameterSet(plusOneRebalancingStrategyParams);
+        rebalancingParams.setInterval(1800);
+
+        drtConfig.addParameterSet(rebalancingParams);
 
         drtConfig.setVehiclesFile(vehiclesPath);
 
-        DrtInsertionSearchParams searchParams = new SelectiveInsertionSearchParams();
+
+        DrtInsertionSearchParams searchParams = new ExtensiveInsertionSearchParams();
         drtConfig.addDrtInsertionSearchParams(searchParams);
+
+        DrtZonalSystemParams drtZonalSystemParams = new DrtZonalSystemParams();
+        drtZonalSystemParams.setZonesGeneration(DrtZonalSystemParams.ZoneGeneration.GridFromNetwork);
+        drtZonalSystemParams.setCellSize(500.0);
+        drtZonalSystemParams.setTargetLinkSelection(DrtZonalSystemParams.TargetLinkSelection.mostCentral);
+        drtConfig.addParameterSet(drtZonalSystemParams);
+
 
         multiModeDrtConfig.addDrtConfig(drtConfig);
         DrtConfigs.adjustMultiModeDrtConfig(multiModeDrtConfig, config.planCalcScore(), config.plansCalcRoute());

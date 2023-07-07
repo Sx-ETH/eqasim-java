@@ -4,7 +4,7 @@ import org.eqasim.core.components.transit.EqasimTransitQSimModule;
 import org.eqasim.core.simulation.analysis.EqasimAnalysisModule;
 import org.eqasim.core.simulation.mode_choice.EqasimModeChoiceModule;
 import org.eqasim.ile_de_france.CbaUtils;
-import org.eqasim.ile_de_france.drt.analysis.DvrpAnalsisModule;
+import org.eqasim.ile_de_france.drt.analysis.DvrpAnalysisModule;
 import org.eqasim.ile_de_france.drt.mode_choice.DrtEpsilonModule;
 import org.eqasim.ile_de_france.feeder.FeederModule;
 import org.eqasim.ile_de_france.feeder.analysis.FeederAnalysisModule;
@@ -82,7 +82,7 @@ public class RunDrtSimulation {
         { // Add overrides for Corsica + DRT
             IDFDrtConfigGroup idfDrtConfigGroup = (IDFDrtConfigGroup) config.getModules().get(IDFDrtConfigGroup.GROUP_NAME);
             controller.addOverridingModule(new IDFDrtModule(cmd, idfDrtConfigGroup));
-            controller.addOverridingModule(new DvrpAnalsisModule());
+            controller.addOverridingModule(new DvrpAnalysisModule());
             if(idfDrtConfigGroup.isUsingFeeder()) {
                 controller.addOverridingModule(new FeederModule(null, scenario.getTransitSchedule()));
                 controller.addOverridingModule(new FeederAnalysisModule());
