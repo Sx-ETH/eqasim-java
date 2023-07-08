@@ -80,6 +80,9 @@ public class DataStats {
 
     public static DataStats removeTripUsingRequestId(DataStats original, Id<Request> requestId) {
         int i = ArrayUtils.indexOf(original.requestIds, requestId);
+        if (i == -1) {
+            return original;
+        }
         double newStats[] = ArrayUtils.remove(original.stats, i);
         Id<Request> newRequestIds[] = ArrayUtils.remove(original.requestIds, i);
         if (original.useWeightedAvg) {
