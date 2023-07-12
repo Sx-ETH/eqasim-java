@@ -5,7 +5,6 @@ import org.eqasim.core.components.drt.config_group.DrtModeChoiceConfigGroup;
 import org.eqasim.core.components.drt.travel_times.SwissDrtTravelTimeModule;
 import org.eqasim.switzerland.astra.estimators.AstraDrtUtilityEstimator;
 import org.eqasim.switzerland.drt.mode_choice.cost.DrtCostModel;
-import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
@@ -29,7 +28,6 @@ import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
 import org.matsim.core.config.groups.QSimConfigGroup;
 import org.matsim.core.controler.Controler;
 import org.matsim.core.router.TripStructureUtils;
-import org.matsim.households.Household;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -88,19 +86,8 @@ public class AstraDrtConfigurator extends AstraConfigurator {
     }
 
     public void adjustDrtScenario(Scenario scenario) {
-        // add bike and sp region
+        // add bike and sp region and household attributes
         this.adjustScenario(scenario);
-
-        //include household attributes to swiss population
-        for (Household household : scenario.getHouseholds().getHouseholds().values()) {
-            for (Id<Person> memberId : household.getMemberIds()) {
-                Person person = scenario.getPopulation().getPersons().get(memberId);
-
-                if (person != null) {
-                    person.getAttributes().putAttribute("householdIncome", household.getIncome().getIncome());
-                }
-            }
-        }
 
         //Add drt route factory
         scenario.getPopulation().getFactory().getRouteFactories().setRouteFactory(DrtRoute.class,

@@ -6,11 +6,14 @@ import org.eqasim.switzerland.astra.estimators.AstraBikeUtilityEstimator;
 import org.eqasim.switzerland.astra.estimators.AstraCarUtilityEstimator;
 import org.eqasim.switzerland.astra.estimators.AstraPtUtilityEstimator;
 import org.eqasim.switzerland.astra.estimators.AstraWalkUtilityEstimator;
+import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.TransportMode;
+import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.config.CommandLine;
 import org.matsim.core.config.Config;
 import org.matsim.core.controler.Controler;
+import org.matsim.households.Household;
 
 public class AstraConfigurator extends SwitzerlandConfigurator {
     public AstraConfigurator() {
@@ -34,6 +37,17 @@ public class AstraConfigurator extends SwitzerlandConfigurator {
 
     public void adjustScenario(Scenario scenario) {
         new SwitzerlandConfigurator().adjustScenario(scenario);
+        //include household attributes to swiss population
+        for (Household household : scenario.getHouseholds().getHouseholds().values()) {
+            for (Id<Person> memberId : household.getMemberIds()) {
+                Person person = scenario.getPopulation().getPersons().get(memberId);
+
+                if (person != null) {
+                    person.getAttributes().putAttribute("householdIncome", household.getIncome().getIncome());
+                }
+            }
+        }
+
     }
 
     public static void configureController(Controler controller, CommandLine commandLine) {
