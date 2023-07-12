@@ -1,24 +1,17 @@
-package org.eqasim.switzerland.drt;
+package org.eqasim.switzerland.astra;
 
-import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import org.eqasim.core.components.config.EqasimConfigGroup;
-import org.eqasim.core.components.drt.config_group.*;
+import org.eqasim.core.components.drt.config_group.DrtModeChoiceConfigGroup;
 import org.eqasim.core.components.drt.travel_times.SwissDrtTravelTimeModule;
-import org.eqasim.core.simulation.calibration.CalibrationConfigGroup;
-import org.eqasim.switzerland.SwitzerlandConfigurator;
-import org.eqasim.switzerland.drt.mode_choice.SwissDrtModeAvailability;
-import org.eqasim.switzerland.drt.mode_choice.SwissDrtModeChoiceModule;
+import org.eqasim.switzerland.astra.estimators.AstraDrtUtilityEstimator;
 import org.eqasim.switzerland.drt.mode_choice.cost.DrtCostModel;
-import org.eqasim.switzerland.drt.mode_choice.utilities.AstraDrtUtilityEstimator;
+import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
 import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.contrib.drt.analysis.zonal.DrtModeZonalSystemModule;
-import org.matsim.contrib.drt.analysis.zonal.DrtZonalSystemParams;
-import org.matsim.contrib.drt.optimizer.insertion.DrtInsertionSearchParams;
-import org.matsim.contrib.drt.optimizer.insertion.extensive.ExtensiveInsertionSearchParams;
 import org.matsim.contrib.drt.routing.DrtRoute;
 import org.matsim.contrib.drt.routing.DrtRouteFactory;
 import org.matsim.contrib.drt.run.DrtConfigGroup;
@@ -31,51 +24,35 @@ import org.matsim.contrib.dvrp.run.DvrpQSimComponents;
 import org.matsim.contribs.discrete_mode_choice.modules.config.DiscreteModeChoiceConfigGroup;
 import org.matsim.core.config.CommandLine;
 import org.matsim.core.config.Config;
-import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.groups.ControlerConfigGroup;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
 import org.matsim.core.config.groups.QSimConfigGroup;
 import org.matsim.core.controler.Controler;
 import org.matsim.core.router.TripStructureUtils;
+import org.matsim.households.Household;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-public class SwissDrtConfigurator extends SwitzerlandConfigurator {
-    public SwissDrtConfigurator() {
-
-    }
-
-    @Override
-    public ConfigGroup[] getConfigGroups() {
-        return new ConfigGroup[]{ //
-                new SwissRailRaptorConfigGroup(), //
-                new EqasimConfigGroup(), //
-                new DiscreteModeChoiceConfigGroup(), //
-                new CalibrationConfigGroup(), //
+public class AstraDrtConfigurator extends AstraConfigurator {
+    public AstraDrtConfigurator() {
+        this.configGroups.addAll(Arrays.asList( //
                 new DvrpConfigGroup(), //
                 new MultiModeDrtConfigGroup(), //
-                new DrtModeChoiceConfigGroup(), //
-                //new DrtRejectionPenaltyProviderConfigGroup()
-
-        };
+                new DrtModeChoiceConfigGroup()
+        ));
     }
 
+
     public static void configure(Config config) {
-        // General MATSim
-        config.qsim().setNumberOfThreads(Math.min(12, Runtime.getRuntime().availableProcessors()));
-        config.global().setNumberOfThreads(Runtime.getRuntime().availableProcessors());
+        AstraConfigurator.configure(config);
 
         // Set up drt modeparams for matsim scoring
         PlanCalcScoreConfigGroup.ModeParams modeParams = new PlanCalcScoreConfigGroup.ModeParams("drt");
         config.planCalcScore().addModeParams(modeParams);
 
-
-        // General eqasim
-
-        EqasimConfigGroup eqasimConfig = (EqasimConfigGroup) config.getModules().get(EqasimConfigGroup.GROUP_NAME);
-        eqasimConfig.setAnalysisInterval(config.controler().getWriteEventsInterval());
-
+        EqasimConfigGroup eqasimConfig = EqasimConfigGroup.get(config);
         // Add Drt Estimators
         eqasimConfig.setCostModel("drt", DrtCostModel.NAME);
         eqasimConfig.setEstimator("drt", AstraDrtUtilityEstimator.NAME); //todo configure to use astra or not.
@@ -83,7 +60,7 @@ public class SwissDrtConfigurator extends SwitzerlandConfigurator {
         DiscreteModeChoiceConfigGroup dmcConfig = DiscreteModeChoiceConfigGroup.getOrCreate(config);
 
         //Add mode availability that includes drt
-        dmcConfig.setModeAvailability(SwissDrtModeAvailability.NAME);
+        dmcConfig.setModeAvailability(AstraDrtModeAvailability.NAME);
 
         // Add DRT to cached modes
         Set<String> cachedModes = new HashSet<>();
@@ -110,64 +87,20 @@ public class SwissDrtConfigurator extends SwitzerlandConfigurator {
 
     }
 
-    public static void configureDrtTimeMetrics(Config config) {
-        DrtModeChoiceConfigGroup drtDmcConfig = (DrtModeChoiceConfigGroup) config.getModules().get(DrtModeChoiceConfigGroup.GROUP_NAME);
-        // drtDmcConfig.setFeedBackMethod("average");
+    public void adjustDrtScenario(Scenario scenario) {
+        // add bike and sp region
+        this.adjustScenario(scenario);
 
-        //...
-        if (drtDmcConfig.getDrtMetricCalculationParamSet() == null) {
-            DrtMetricCalculationParamSet calculationParamSet = new DrtMetricCalculationParamSet();
-            calculationParamSet.addParameterSet(new DrtZonalSystemParamSet());
-            calculationParamSet.addParameterSet(new DrtDynamicSystemParamSet());
-            drtDmcConfig.addParameterSet(calculationParamSet);
-        } else {
-            if (drtDmcConfig.getDrtMetricCalculationParamSet().getDrtZonalSystemParamSet() == null) {
-                DrtZonalSystemParamSet zonalSystemParamSet = new DrtZonalSystemParamSet();
-                drtDmcConfig.getDrtMetricCalculationParamSet().addParameterSet(zonalSystemParamSet);
-            }
-            if (drtDmcConfig.getDrtMetricCalculationParamSet().getDrtDynamicSystemParamSet() == null) {
-                DrtDynamicSystemParamSet dynamicSystemParamSet = new DrtDynamicSystemParamSet();
-                drtDmcConfig.getDrtMetricCalculationParamSet().addParameterSet(dynamicSystemParamSet);
-            }
-        }
-
-        if (drtDmcConfig.getDrtMetricSmootheningParamSet() == null) {
-            DrtMetricSmootheningParamSet smootheningParamSet = new DrtMetricSmootheningParamSet();
-            drtDmcConfig.addParameterSet(smootheningParamSet);
-        }
-
-        //can then set up other metrics here if needed or set them up within the if statements
-
-        //drtDmcConfig.getDrtMetricCalculationParamSet().setDistanceBin_m(500);
-        //..and so on
-    }
-
-    public static void configureDrt(Config config) {
-        MultiModeDrtConfigGroup multiModeDrtConfig = MultiModeDrtConfigGroup.get(config);
-        DrtConfigGroup drtConfig = DrtConfigGroup.getSingleModeDrtConfig(config);
-        drtConfig.setMode("drt");
-        drtConfig.setOperationalScheme(DrtConfigGroup.OperationalScheme.door2door);
-        drtConfig.setStopDuration(45.0);
-        drtConfig.setMaxWaitTime(600.0);
-        drtConfig.setMaxTravelTimeAlpha(1.5);
-        drtConfig.setMaxTravelTimeBeta(300.0);
-        drtConfig.setVehiclesFile("");
-
-        //consider drt zones generation for the average wait time
-        DrtZonalSystemParams zoneParams = drtConfig.getZonalSystemParams().orElseThrow();
-        zoneParams.setCellSize(500.0);
-        zoneParams.setZonesGeneration(DrtZonalSystemParams.ZoneGeneration.GridFromNetwork);
-
-        DrtInsertionSearchParams searchParams = new ExtensiveInsertionSearchParams(); //new SelectiveInsertionSearchParams();
-        drtConfig.addDrtInsertionSearchParams(searchParams);
-
-        multiModeDrtConfig.addDrtConfig(drtConfig);
-
-    }
-
-    public static void adjustDrtScenario(Scenario scenario) {
         //include household attributes to swiss population
-        new SwissDrtConfigurator().adjustScenario(scenario);
+        for (Household household : scenario.getHouseholds().getHouseholds().values()) {
+            for (Id<Person> memberId : household.getMemberIds()) {
+                Person person = scenario.getPopulation().getPersons().get(memberId);
+
+                if (person != null) {
+                    person.getAttributes().putAttribute("householdIncome", household.getIncome().getIncome());
+                }
+            }
+        }
 
         //Add drt route factory
         scenario.getPopulation().getFactory().getRouteFactories().setRouteFactory(DrtRoute.class,
@@ -204,36 +137,20 @@ public class SwissDrtConfigurator extends SwitzerlandConfigurator {
         }
     }
 
-
     public static void configureController(Controler controller, CommandLine cmd, Config config, Scenario scenario) {
+        AstraConfigurator.configureController(controller, cmd);
         controller.addOverridingModule(new DvrpModule());
         controller.addOverridingModule(new MultiModeDrtModule());
         controller.configureQSimComponents(components -> {
             DvrpQSimComponents.activateAllModes(MultiModeDrtConfigGroup.get(config)).configure(components);
         });
 
-        controller.addOverridingModule(new SwissDrtModeChoiceModule(cmd));
+        controller.addOverridingModule(new AstraDrtModule(cmd));
         //controller.addOverridingModule(new DrtRejectionsPenaltyModule((DrtRejectionPenaltyProviderConfigGroup) config.getModules().get(DrtRejectionPenaltyProviderConfigGroup.SET_NAME)));
 
         //consider drt zones generation
         controller.addOverridingModule(new DrtModeZonalSystemModule(DrtConfigGroup.getSingleModeDrtConfig(config)));
         controller.addOverridingModule(new SwissDrtTravelTimeModule(DrtConfigGroup.getSingleModeDrtConfig(config), scenario,
                 (DrtModeChoiceConfigGroup) config.getModules().get(DrtModeChoiceConfigGroup.GROUP_NAME)));
-
-        /*if (!config.qsim().getVehiclesSource().name().equals("defaultVehicle")) {
-            controller.addOverridingModule(new AbstractModule() {
-
-                @Override
-                public void install() {
-                    bind(VehicleType.class).annotatedWith(DvrpModes.mode("drt")).toInstance(scenario.getVehicles().getVehicleTypes().get(Id.create(TransportMode.drt, VehicleType.class)));
-                    bind(VehicleType.class).annotatedWith(new VrpAgentSourceQSimModule("drt").getModalInstance(VehicleType.class))
-                            .toInstance(
-                                    scenario.getVehicles().getVehicleTypes().get(Id.create(TransportMode.drt, VehicleType.class)));
-                }
-            });
-        }*/
-
-
     }
-
 }

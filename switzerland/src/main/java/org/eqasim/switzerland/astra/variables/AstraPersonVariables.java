@@ -1,4 +1,4 @@
-package org.eqasim.switzerland.drt.mode_choice.utilities.variables;
+package org.eqasim.switzerland.astra.variables;
 
 import org.eqasim.switzerland.mode_choice.utilities.variables.SwissPersonVariables;
 

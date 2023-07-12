@@ -1,15 +1,13 @@
-package org.eqasim.switzerland.drt.mode_choice.utilities.predictors;
+package org.eqasim.switzerland.astra.predictors;
 
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.eqasim.core.components.drt.travel_times.DrtPredictions;
+import org.eqasim.core.components.drt.travel_times.TravelTimeUpdates;
 import org.eqasim.core.simulation.mode_choice.cost.CostModel;
 import org.eqasim.core.simulation.mode_choice.utilities.predictors.CachedVariablePredictor;
 import org.eqasim.core.simulation.mode_choice.utilities.predictors.PredictorUtils;
-import org.eqasim.switzerland.drt.mode_choice.utilities.variables.DrtVariables;
-import org.eqasim.core.components.drt.travel_times.DrtPredictions;
-import org.eqasim.core.components.drt.travel_times.TravelTimeUpdates;
+import org.eqasim.switzerland.astra.variables.AstraDrtVariables;
 import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
@@ -20,15 +18,13 @@ import org.matsim.core.router.TripStructureUtils;
 
 import java.util.List;
 
-public class DrtPredictor extends CachedVariablePredictor<DrtVariables> {
-    private static final Logger log = LogManager.getLogger(DrtPredictor.class);
+public class AstraDrtPredictor extends CachedVariablePredictor<AstraDrtVariables> {
     private CostModel costModel;
-
     private final TravelTimeUpdates travelTimeUpdates;
     private DrtPredictions drtPredictions;
 
     @Inject
-    public DrtPredictor(@Named("drt") CostModel costModel, TravelTimeUpdates travelTimeUpdates, DrtPredictions drtPredictions) {
+    public AstraDrtPredictor(@Named("drt") CostModel costModel, TravelTimeUpdates travelTimeUpdates, DrtPredictions drtPredictions) {
 
         this.costModel = costModel;
         this.travelTimeUpdates = travelTimeUpdates;
@@ -36,7 +32,7 @@ public class DrtPredictor extends CachedVariablePredictor<DrtVariables> {
     }
 
     @Override
-    public DrtVariables predict(Person person, DiscreteModeChoiceTrip trip, List<? extends PlanElement> elements) {
+    public AstraDrtVariables predict(Person person, DiscreteModeChoiceTrip trip, List<? extends PlanElement> elements) {
         double travelTime_min = 0.0;
         double accessEgressTime_min = 0.0;
         double cost_MU = 0.0;
@@ -70,10 +66,8 @@ public class DrtPredictor extends CachedVariablePredictor<DrtVariables> {
                     throw new IllegalStateException("Encountered unknown mode in DrtPredictor: " + leg.getMode());
             }
         }
-
-
         // todo add rejection penalty based on some probability of rejections
 
-        return new DrtVariables(travelTime_min, cost_MU, euclideanDistance_km, waitingTime_min, accessEgressTime_min);
+        return new AstraDrtVariables(travelTime_min, cost_MU, euclideanDistance_km, waitingTime_min, accessEgressTime_min);
     }
 }

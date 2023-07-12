@@ -11,6 +11,11 @@ public class SwissDrtCostParameters extends SwissCostParameters {
 
         SwissDrtCostParameters parameters = new SwissDrtCostParameters();
 
+        parameters.carCost_CHF_km = 0.26;
+        parameters.ptCost_CHF_km = 0.6;
+        parameters.ptMinimumCost_CHF = 2.7;
+        parameters.ptRegionalRadius_km = 15.0;
+
         parameters.drtCost_CHF = 0; // 3;
         parameters.drtCost_CHF_km = 0.6; //0.56; //0.6 from sebastian for 4k fleet for 0 baseline fare in zurich city region
 

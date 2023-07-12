@@ -1,4 +1,4 @@
-package org.eqasim.switzerland.drt.mode_choice.utilities.predictors;
+package org.eqasim.switzerland.astra.predictors;
 
 import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Person;

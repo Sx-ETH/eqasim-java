@@ -1,4 +1,4 @@
-package org.eqasim.switzerland.drt.mode_choice;
+package org.eqasim.switzerland.astra;
 
 import org.eqasim.switzerland.mode_choice.SwissModeAvailability;
 import org.matsim.api.core.v01.TransportMode;
@@ -9,11 +9,14 @@ import org.matsim.contribs.discrete_mode_choice.model.mode_availability.ModeAvai
 import java.util.Collection;
 import java.util.List;
 
+public class AstraDrtModeAvailability implements ModeAvailability {
+    public static final String NAME = "AstraModeAvailability";
 
-public class SwissDrtModeAvailability implements ModeAvailability {
-    static public final String NAME = "ZurichDrtModeAvailability";
+    private final SwissModeAvailability delegate;
 
-    private final ModeAvailability delegate = new SwissModeAvailability();
+    public AstraDrtModeAvailability(SwissModeAvailability delegate) {
+        this.delegate = delegate;
+    }
 
     @Override
     public Collection<String> getAvailableModes(Person person, List<DiscreteModeChoiceTrip> trips) {
