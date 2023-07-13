@@ -46,7 +46,9 @@ public class AstraDrtUtilityEstimator implements UtilityEstimator {
 
     protected double estimateMonetaryCostUtility(AstraDrtVariables variables, AstraPersonVariables personVariables) {
         return parameters.betaCost_u_MU * EstimatorUtils.interaction(variables.euclideanDistance_km,
-                parameters.referenceEuclideanDistance_km, parameters.lambdaCostEuclideanDistance) * variables.cost_MU;
+                parameters.referenceEuclideanDistance_km, parameters.lambdaCostEuclideanDistance)
+                * EstimatorUtils.interaction(personVariables.householdIncome_MU, parameters.referenceHouseholdIncome_MU,
+                parameters.lambdaCostHouseholdIncome) * variables.cost_MU;
     }
 
     protected double estimateAccessEgressTimeUtility(AstraDrtVariables variables) {
