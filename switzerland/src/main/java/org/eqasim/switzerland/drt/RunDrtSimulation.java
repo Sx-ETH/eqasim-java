@@ -48,6 +48,7 @@ public class RunDrtSimulation {
 
         configurator.configureScenario(scenario);
         configurator.adjustDrtScenario(scenario);
+        configurator.adjustLinkSpeed(config, scenario);
 
         Controler controller = new Controler(scenario);
         configurator.configureController(controller);

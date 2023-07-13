@@ -41,6 +41,8 @@ public class AstraModule extends AbstractEqasimExtension {
 
         // Override parameter bindings
         bind(SwissModeParameters.class).to(AstraModeParameters.class);
+
+        bindTripConstraintFactory(InfiniteHeadwayConstraint.NAME).to(InfiniteHeadwayConstraint.Factory.class);
     }
 
     @Provides

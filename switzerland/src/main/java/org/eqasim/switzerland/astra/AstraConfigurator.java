@@ -9,6 +9,7 @@ import org.eqasim.switzerland.astra.estimators.AstraWalkUtilityEstimator;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.TransportMode;
+import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.config.CommandLine;
 import org.matsim.core.config.Config;
@@ -52,6 +53,29 @@ public class AstraConfigurator extends SwitzerlandConfigurator {
 
     public static void configureController(Controler controller, CommandLine commandLine) {
         controller.addOverridingModule(new AstraModule(commandLine));
+    }
+
+    public void adjustLinkSpeed(Config config, Scenario scenario) {
+        EqasimConfigGroup eqasimConfig = EqasimConfigGroup.get(config);
+
+        for (Link link : scenario.getNetwork().getLinks().values()) {
+            double maximumSpeed = link.getFreespeed();
+            boolean isMajor = true;
+
+            for (Link other : link.getToNode().getInLinks().values()) {
+                if (other.getCapacity() >= link.getCapacity()) {
+                    isMajor = false;
+                }
+            }
+
+            if (!isMajor && link.getToNode().getInLinks().size() > 1) {
+                double travelTime = link.getLength() / maximumSpeed;
+                travelTime += eqasimConfig.getCrossingPenalty();
+                link.setFreespeed(link.getLength() / travelTime);
+            }
+        }
+
+
     }
 
 

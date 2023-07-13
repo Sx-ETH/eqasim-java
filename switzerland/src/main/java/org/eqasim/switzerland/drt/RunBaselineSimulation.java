@@ -47,6 +47,7 @@ public class RunBaselineSimulation {
 
         configurator.configureScenario(scenario);
         configurator.adjustScenario(scenario);
+        configurator.adjustLinkSpeed(config, scenario);
 
         Controler controller = new Controler(scenario);
         configurator.configureController(controller);
