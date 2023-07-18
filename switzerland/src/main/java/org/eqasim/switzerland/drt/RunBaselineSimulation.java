@@ -15,12 +15,12 @@ import org.matsim.core.scenario.ScenarioUtils;
 public class RunBaselineSimulation {
     public static void main(String[] args) throws CommandLine.ConfigurationException {
         CommandLine cmd = new CommandLine.Builder(args) //
-                .requireOptions("config-path").allowOptions("drt-variables-estimator",
+                .requireOptions("config-path") //
+                .allowOptions("drt-variables-estimator",
                         "drtRejectionsPenaltyProvider", "use-am",
                         "", "", "", "",
                         "") //
-                .allowPrefixes("mode-choice-parameter", "cost-parameter") //
-                .allowOptions("output-path")
+                .allowPrefixes("mode-parameter", "cost-parameter") //
                 .build();
 
 
@@ -32,11 +32,6 @@ public class RunBaselineSimulation {
         Config config = ConfigUtils.loadConfig(config_path, configurator.getConfigGroups());
         configurator.configure(config);
         cmd.applyConfiguration(config);
-
-        String output_path = cmd.getOption("output-path").isPresent() ? cmd.getOption("output-path").get()
-                : config.controler().getOutputDirectory();
-
-        config.controler().setOutputDirectory(output_path);
 
         config.controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.deleteDirectoryIfExists);
 

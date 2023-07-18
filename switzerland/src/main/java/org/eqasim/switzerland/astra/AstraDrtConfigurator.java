@@ -43,7 +43,7 @@ public class AstraDrtConfigurator extends AstraConfigurator {
     }
 
 
-    public static void configure(Config config) {
+    public static void configure(Config config, CommandLine cmd) {
         AstraConfigurator.configure(config);
 
         // Set up drt modeparams for matsim scoring
@@ -78,7 +78,11 @@ public class AstraDrtConfigurator extends AstraConfigurator {
         multiModeDrtConfig = (MultiModeDrtConfigGroup) config.getModules().get(MultiModeDrtConfigGroup.GROUP_NAME);
 
         for (DrtConfigGroup drtConfigGroup : multiModeDrtConfig.getModalElements()) {
-            drtConfigGroup.setNumberOfThreads(config.global().getNumberOfThreads());
+            //drtConfigGroup.setNumberOfThreads(config.global().getNumberOfThreads());
+
+            if (cmd.getOption("drt-vehicle-file").isPresent()){
+            drtConfigGroup.setVehiclesFile(cmd.getOption("drt-vehicle-file").get());
+            }
         }
 
         DrtConfigs.adjustMultiModeDrtConfig(MultiModeDrtConfigGroup.get(config), config.planCalcScore(), config.plansCalcRoute());

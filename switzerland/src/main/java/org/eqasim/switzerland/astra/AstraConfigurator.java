@@ -30,7 +30,7 @@ public class AstraConfigurator extends SwitzerlandConfigurator {
     public static void configure(Config config) {
         // General MATSim
         config.qsim().setNumberOfThreads(Math.min(12, Runtime.getRuntime().availableProcessors()));
-        config.global().setNumberOfThreads(Runtime.getRuntime().availableProcessors());
+        //config.global().setNumberOfThreads(Runtime.getRuntime().availableProcessors());
 
         // General eqasim
         EqasimConfigGroup eqasimConfig = (EqasimConfigGroup) config.getModules().get(EqasimConfigGroup.GROUP_NAME);

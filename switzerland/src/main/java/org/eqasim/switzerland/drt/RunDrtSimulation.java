@@ -1,6 +1,7 @@
 package org.eqasim.switzerland.drt;
 
 import org.eqasim.core.components.drt.travel_times.TravelTimeConfigurator;
+import org.eqasim.core.simulation.analysis.EqasimAnalysisModule;
 import org.eqasim.core.simulation.mode_choice.EqasimModeChoiceModule;
 import org.eqasim.switzerland.astra.AstraDrtConfigurator;
 import org.eqasim.switzerland.mode_choice.SwissModeChoiceModule;
@@ -15,29 +16,24 @@ import org.matsim.core.scenario.ScenarioUtils;
 public class RunDrtSimulation {
     public static void main(String[] args) throws CommandLine.ConfigurationException {
         CommandLine cmd = new CommandLine.Builder(args) //
-                .requireOptions("config-path").allowOptions("drt-variables-estimator",
+                .requireOptions("config-path") //
+                .allowOptions("drt-vehicle-file",
+                        "drt-variables-estimator",
                         "drtRejectionsPenaltyProvider", "use-am",
                         "", "", "", "",
                         "") //
-                .allowPrefixes("mode-choice-parameter", "cost-parameter") //
-                .allowOptions("output-path")
+                .allowPrefixes("mode-parameter", "cost-parameter") //
                 .build();
 
 
         String config_path = cmd.getOptionStrict("config-path");
 
-
         AstraDrtConfigurator configurator = new AstraDrtConfigurator();
 
         Config config = ConfigUtils.loadConfig(config_path, configurator.getConfigGroups());
-        configurator.configure(config);
+        configurator.configure(config, cmd);
         cmd.applyConfiguration(config);
         new TravelTimeConfigurator().configureDrtTimeMetrics(config);
-
-        String output_path = cmd.getOption("output-path").isPresent() ? cmd.getOption("output-path").get()
-                : config.controler().getOutputDirectory();
-
-        config.controler().setOutputDirectory(output_path);
 
         config.controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.deleteDirectoryIfExists);
 
@@ -56,6 +52,7 @@ public class RunDrtSimulation {
 
         controller.addOverridingModule(new SwissModeChoiceModule(cmd));
         controller.addOverridingModule(new EqasimModeChoiceModule());
+        controller.addOverridingModule(new EqasimAnalysisModule());
 
         // Configure controller for DRT adding dvrp and drt modules
         AstraDrtConfigurator.configureController(controller, cmd, config, scenario);
