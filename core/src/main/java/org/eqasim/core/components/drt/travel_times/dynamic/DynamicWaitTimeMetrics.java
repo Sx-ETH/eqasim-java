@@ -20,17 +20,16 @@ public class DynamicWaitTimeMetrics {
 
     private List<QuadTree<DrtTripData>> quadTreesByTimeBins = null;
     private final Network network;
-    private final int timeBinSize_min;
+    private final DrtTimeUtils timeUtils;
 
-    public DynamicWaitTimeMetrics(Network network, int timeBinSize_min) {
+    public DynamicWaitTimeMetrics(Network network, DrtTimeUtils timeUtils) {
         this.network = network;
-        this.timeBinSize_min = timeBinSize_min;
+        this.timeUtils = timeUtils;
     }
 
     public void prepareDynamicLocationsAndTimeBins(Set<DrtTripData> drtTrips) {
 
-        DrtTimeUtils timeUtils = new DrtTimeUtils(this.timeBinSize_min);
-        int nTimeBins = timeUtils.getBinCount();
+        int nTimeBins = this.timeUtils.getBinCount();
 
         //get the bounding box for the quadtrees
         double[] bounds = NetworkUtils.getBoundingBox(network.getNodes().values());
@@ -46,7 +45,7 @@ public class DynamicWaitTimeMetrics {
             quadTreesByTimeBins.add(new QuadTree<>(bounds[0], bounds[1], bounds[2], bounds[3]));
         }
         for (DrtTripData drtTrip : drtTrips) {
-            int timeBin = timeUtils.getBinIndex(drtTrip.startTime);
+            int timeBin = this.timeUtils.getBinIndex(drtTrip.startTime);
 
             //get the quadtree from the time slot and add the corresponding drt trip
             quadTreesByTimeBins.get(timeBin).put(drtTrip.startCoord.getX(), drtTrip.startCoord.getY(), drtTrip);

@@ -2,9 +2,11 @@ package org.eqasim.core.components.drt.travel_times;
 
 public class DrtTimeUtils {
     private final double timeBinSize_min;
+    public final int nHours;
 
-    public DrtTimeUtils(double timeBinSize_min) {
+    public DrtTimeUtils(double timeBinSize_min, int nHours) {
         this.timeBinSize_min = timeBinSize_min;
+        this.nHours = nHours;
     }
 
     public int getBinIndex(double time) {
@@ -12,8 +14,7 @@ public class DrtTimeUtils {
     }
 
     public int getBinCount() {
-        // TODO: Get the number of hours from the config file?
-        return (int) Math.ceil((24 * 60) / this.timeBinSize_min);
+        return (int) Math.ceil((this.nHours * 60) / this.timeBinSize_min);
     }
 
 }

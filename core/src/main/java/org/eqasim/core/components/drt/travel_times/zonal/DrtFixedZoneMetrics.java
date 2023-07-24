@@ -26,21 +26,18 @@ public class DrtFixedZoneMetrics {
 
     private final ArrayList<Map<Integer, DataStats[]>> iterationDistanceAndTimeBinDelayFactor = new ArrayList<>();
     private final FixedDrtZonalSystem zones;
-    private final int timeBinSize_min;
-    private final int distanceBinSize_m;
-    private final int lastBinStartDistance_m;
+    private final DrtTimeUtils timeUtils;
+    private final DrtDistanceBinUtils distanceUtils;
+
     private static final Logger logger = Logger.getLogger(DrtFixedZoneMetrics.class);
 
-    public DrtFixedZoneMetrics(FixedDrtZonalSystem zones, int timeBinSize_min, int distanceBinSize_m, int lastBinStartDistance_m) {
+    public DrtFixedZoneMetrics(FixedDrtZonalSystem zones, DrtTimeUtils timeUtils, DrtDistanceBinUtils distanceUtils) {
         this.zones = zones;
-        this.timeBinSize_min = timeBinSize_min;
-        this.distanceBinSize_m = distanceBinSize_m;
-        this.lastBinStartDistance_m = lastBinStartDistance_m;
-
+        this.timeUtils = timeUtils;
+        this.distanceUtils = distanceUtils;
     }
 
-    private static Map<String, Set<DrtTripData>[]> assignDrtTripsToZonesAndTimeBin(Set<DrtTripData> drtTrips, FixedDrtZonalSystem zones, int timeBinSize_min) {
-        DrtTimeUtils timeUtils = new DrtTimeUtils(timeBinSize_min);
+    private static Map<String, Set<DrtTripData>[]> assignDrtTripsToZonesAndTimeBin(Set<DrtTripData> drtTrips, FixedDrtZonalSystem zones, DrtTimeUtils timeUtils) {
         int nTimeBins = timeUtils.getBinCount();
 
         Map<String, Set<DrtTripData>[]> drtTripsByZoneAndTimeBin = new HashMap<>();
@@ -65,12 +62,9 @@ public class DrtFixedZoneMetrics {
         return drtTripsByZoneAndTimeBin;
     }
 
-    private static Map<Integer, Set<DrtTripData>[]> assignDrtTripsToDistanceAndTimeBin(Set<DrtTripData> drtTrips, int distanceBinSize_m,
-                                                                                       int timeBinSize_min, int lastBinStartDistance_m) {
-        DrtTimeUtils timeUtils = new DrtTimeUtils(timeBinSize_min);
+    private static Map<Integer, Set<DrtTripData>[]> assignDrtTripsToDistanceAndTimeBin(Set<DrtTripData> drtTrips, DrtTimeUtils timeUtils,
+                                                                                       DrtDistanceBinUtils distanceUtils) {
         int nTimeBins = timeUtils.getBinCount();
-
-        DrtDistanceBinUtils distanceUtils = new DrtDistanceBinUtils(distanceBinSize_m, lastBinStartDistance_m);
         int nDistanceBins = distanceUtils.getBinCount();
 
         // The first index is the distance bin, the second index is the time bin (to be consistent with the other functions)
@@ -129,9 +123,9 @@ public class DrtFixedZoneMetrics {
         return l;
     }
 
-    public static Map<String, DataStats[]> calculateZonalAndTimeBinWaitingTime(Set<DrtTripData> drtTripData, FixedDrtZonalSystem zones, int timeBinSize_min) {
+    public static Map<String, DataStats[]> calculateZonalAndTimeBinWaitingTime(Set<DrtTripData> drtTripData, FixedDrtZonalSystem zones, DrtTimeUtils timeUtils) {
         Map<String, DataStats[]> zonalAndTimeBinWaitTime = new HashMap<>();
-        Map<String, Set<DrtTripData>[]> assignedDrtTrips = assignDrtTripsToZonesAndTimeBin(drtTripData, zones, timeBinSize_min);
+        Map<String, Set<DrtTripData>[]> assignedDrtTrips = assignDrtTripsToZonesAndTimeBin(drtTripData, zones, timeUtils);
 
         for (String zone : assignedDrtTrips.keySet()) {
             Set<DrtTripData>[] drtTripsByTimeBin = assignedDrtTrips.get(zone);
@@ -146,11 +140,11 @@ public class DrtFixedZoneMetrics {
         return zonalAndTimeBinWaitTime;
     }
 
-    public static Map<Integer, DataStats[]> calculateDistanceAndTimeBinDelayFactor(Set<DrtTripData> drtTripData, int distanceBinSize_m,
-                                                                                   int timeBinSize_min, int lastBinStartDistance_m) {
+    public static Map<Integer, DataStats[]> calculateDistanceAndTimeBinDelayFactor(Set<DrtTripData> drtTripData, DrtTimeUtils timeUtils,
+                                                                                   DrtDistanceBinUtils distanceUtils) {
         Map<Integer, DataStats[]> distanceAndTimeBinDelayFactor = new HashMap<>();
         Map<Integer, Set<DrtTripData>[]> assignedDrtTrips = assignDrtTripsToDistanceAndTimeBin(drtTripData,
-                distanceBinSize_m, timeBinSize_min, lastBinStartDistance_m);
+                timeUtils, distanceUtils);
 
         for (Integer distanceBin : assignedDrtTrips.keySet()) {
             Set<DrtTripData>[] drtTripsByTimeBin = assignedDrtTrips.get(distanceBin);
@@ -223,9 +217,9 @@ public class DrtFixedZoneMetrics {
     }
 
     public void calculateAndAddMetrics(Set<DrtTripData> drtTripData) {
-        iterationZonalAndTimeBinWaitingTime.add(calculateZonalAndTimeBinWaitingTime(drtTripData, this.zones, this.timeBinSize_min));
+        iterationZonalAndTimeBinWaitingTime.add(calculateZonalAndTimeBinWaitingTime(drtTripData, this.zones, this.timeUtils));
         iterationDistanceAndTimeBinDelayFactor.add(calculateDistanceAndTimeBinDelayFactor(drtTripData,
-                this.distanceBinSize_m, this.timeBinSize_min, this.lastBinStartDistance_m));
+                this.timeUtils, this.distanceUtils));
     }
 
     public ArrayList<Map<Integer, DataStats[]>> getDataDistanceAndTimeBinDelayFactor() {

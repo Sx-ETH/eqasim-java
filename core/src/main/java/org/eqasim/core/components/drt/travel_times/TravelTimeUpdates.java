@@ -271,10 +271,12 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
                 double endTime_s = qSimConfigGroup.getEndTime().seconds();
                 timeBinSize_min = (int) (endTime_s / 60);
             }
+            int nHours = (int) (this.config.qsim().getEndTime().seconds() / 3600);
+            this.drtTimeUtils = new DrtTimeUtils(timeBinSize_min, nHours);
 
             // We prepare the dynamicMetrics in case we want to use them
             if (drtDmcConfig.getDrtMetricCalculationParamSet().getSpatialType() == DrtMetricCalculationParamSet.SpatialType.DynamicSystem) {
-                this.dynamicWaitTimeMetrics = new DynamicWaitTimeMetrics(this.network, timeBinSize_min);
+                this.dynamicWaitTimeMetrics = new DynamicWaitTimeMetrics(this.network, this.drtTimeUtils);
             }
 
             // We prepare the fixedZoneMetrics because we will use them in any case (the DF is always calculated with them)
@@ -306,10 +308,8 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
                 distanceBinSize_m = -1;
             }
             int lastBinStartDistance_m = drtDmcConfig.getDrtMetricCalculationParamSet().getLastBinStartDistance_m();
-            this.fixedZoneMetrics = new DrtFixedZoneMetrics(this.zones, timeBinSize_min, distanceBinSize_m,
-                    lastBinStartDistance_m);
             this.drtDistanceBinUtils = new DrtDistanceBinUtils(distanceBinSize_m, lastBinStartDistance_m);
-            this.drtTimeUtils = new DrtTimeUtils(timeBinSize_min);
+            this.fixedZoneMetrics = new DrtFixedZoneMetrics(this.zones, this.drtTimeUtils, this.drtDistanceBinUtils);
         }
     }
 
