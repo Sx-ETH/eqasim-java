@@ -1,43 +1,27 @@
 package org.eqasim.ile_de_france.drt.analysis.run;
 
-import com.google.inject.Injector;
 import org.eqasim.core.components.transit.EqasimTransitQSimModule;
-import org.eqasim.core.components.transit.events.PublicTransitEvent;
-import org.eqasim.core.components.transit.events.PublicTransitEventMapper;
-import org.eqasim.core.misc.InjectorBuilder;
 import org.eqasim.core.simulation.analysis.EqasimAnalysisModule;
 import org.eqasim.core.simulation.mode_choice.EqasimModeChoiceModule;
 import org.eqasim.ile_de_france.CbaUtils;
 import org.eqasim.ile_de_france.drt.IDFDrtConfigGroup;
 import org.eqasim.ile_de_france.drt.IDFDrtConfigurator;
 import org.eqasim.ile_de_france.drt.IDFDrtModule;
-import org.eqasim.ile_de_france.drt.analysis.DvrpAnalsisModule;
+import org.eqasim.ile_de_france.drt.analysis.DvrpAnalysisModule;
 import org.eqasim.ile_de_france.feeder.FeederModule;
 import org.eqasim.ile_de_france.feeder.analysis.FeederAnalysisModule;
 import org.eqasim.ile_de_france.mode_choice.IDFModeChoiceModule;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.contrib.cba.CbaConfigGroup;
-import org.matsim.contrib.cba.CbaModule;
-import org.matsim.contrib.cba.analyzers.agentsAnalysis.AgentsAnalyzerConfigGroup;
-import org.matsim.contrib.cba.analyzers.drtAnalysis.DrtAnalyzerConfigGroup;
-import org.matsim.contrib.cba.analyzers.genericAnalysis.GenericAnalyzerConfigGroup;
-import org.matsim.contrib.cba.analyzers.privateVehiclesAnalysis.PrivateVehiclesAnalyzerConfigGroup;
-import org.matsim.contrib.cba.analyzers.ptAnalysis.PtAnalyzerConfigGroup;
 import org.matsim.contrib.drt.run.DrtConfigGroup;
 import org.matsim.contrib.drt.run.MultiModeDrtConfigGroup;
 import org.matsim.contrib.drt.run.MultiModeDrtModule;
 import org.matsim.contrib.dvrp.run.DvrpModule;
 import org.matsim.contrib.dvrp.run.DvrpQSimComponents;
-import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.config.CommandLine;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.controler.Controler;
-import org.matsim.core.controler.ExplodedConfigModule;
-import org.matsim.core.controler.NewControlerModule;
-import org.matsim.core.controler.corelisteners.ControlerDefaultCoreListenersModule;
-import org.matsim.core.events.MatsimEventsReader;
 import org.matsim.core.scenario.ScenarioUtils;
 
 public class RunCbaAnalysis {
@@ -129,7 +113,7 @@ public class RunCbaAnalysis {
         { // Add overrides for Corsica + DRT
             IDFDrtConfigGroup idfDrtConfigGroup = (IDFDrtConfigGroup) config.getModules().get(IDFDrtConfigGroup.GROUP_NAME);
             controller.addOverridingModule(new IDFDrtModule(cmd, idfDrtConfigGroup));
-            controller.addOverridingModule(new DvrpAnalsisModule());
+            controller.addOverridingModule(new DvrpAnalysisModule());
             if(idfDrtConfigGroup.isUsingFeeder()) {
                 controller.addOverridingModule(new FeederModule(null, scenario.getTransitSchedule()));
                 controller.addOverridingModule(new FeederAnalysisModule());
