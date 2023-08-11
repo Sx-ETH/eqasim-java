@@ -13,37 +13,37 @@ import org.matsim.core.controler.Controler;
 import org.matsim.core.scenario.ScenarioUtils;
 
 public class RunSimulation {
-	static public void main(String[] args) throws ConfigurationException {
-		CommandLine cmd = new CommandLine.Builder(args) //
-				.requireOptions("config-path")
-				.allowOptions("cba")//
-				.allowPrefixes("mode-choice-parameter", "cost-parameter") //
-				.build();
+    static public void main(String[] args) throws ConfigurationException {
+        CommandLine cmd = new CommandLine.Builder(args) //
+                .requireOptions("config-path")
+                .allowOptions("cba")//
+                .allowPrefixes("mode-choice-parameter", "cost-parameter") //
+                .build();
 
-		boolean cba = cmd.hasOption("cba") && Boolean.parseBoolean(cmd.getOptionStrict("cba"));
+        //boolean cba = cmd.hasOption("cba") && Boolean.parseBoolean(cmd.getOptionStrict("cba"));
 
-		IDFConfigurator configurator = new IDFConfigurator();
-		Config config = ConfigUtils.loadConfig(cmd.getOptionStrict("config-path"), configurator.getConfigGroups());
-		if(cba) {
+        IDFConfigurator configurator = new IDFConfigurator();
+        Config config = ConfigUtils.loadConfig(cmd.getOptionStrict("config-path"), configurator.getConfigGroups());
+		/*if(cba) {
 			CbaUtils.adaptConfig(config, false);
-		}
-		cmd.applyConfiguration(config);
+		}*/
+        cmd.applyConfiguration(config);
 
-		Scenario scenario = ScenarioUtils.createScenario(config);
-		configurator.configureScenario(scenario);
-		ScenarioUtils.loadScenario(scenario);
-		configurator.adjustScenario(scenario);
+        Scenario scenario = ScenarioUtils.createScenario(config);
+        configurator.configureScenario(scenario);
+        ScenarioUtils.loadScenario(scenario);
+        configurator.adjustScenario(scenario);
 
-		Controler controller = new Controler(scenario);
-		configurator.configureController(controller);
-		controller.addOverridingModule(new EqasimAnalysisModule());
-		controller.addOverridingModule(new EqasimModeChoiceModule());
-		controller.addOverridingModule(new IDFModeChoiceModule(cmd));
-		//Support of Epsilon utility estimators
-		controller.addOverridingModule(new EpsilonModule());
-		if(cba) {
+        Controler controller = new Controler(scenario);
+        configurator.configureController(controller);
+        controller.addOverridingModule(new EqasimAnalysisModule());
+        controller.addOverridingModule(new EqasimModeChoiceModule());
+        controller.addOverridingModule(new IDFModeChoiceModule(cmd));
+        //Support of Epsilon utility estimators
+        controller.addOverridingModule(new EpsilonModule());
+		/*if(cba) {
 			CbaUtils.adaptControler(controller);
-		}
-		controller.run();
-	}
+		}*/
+        controller.run();
+    }
 }

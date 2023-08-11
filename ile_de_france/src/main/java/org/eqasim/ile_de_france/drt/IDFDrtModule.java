@@ -8,7 +8,6 @@ import org.eqasim.core.analysis.PersonAnalysisFilter;
 import org.eqasim.core.components.config.EqasimConfigGroup;
 import org.eqasim.core.components.drt.mode_choice.utilities.DrtPredictor;
 import org.eqasim.core.components.drt.mode_choice.utilities.DrtPredictorInterface;
-import org.eqasim.ile_de_france.drt.mode_choice.utilities.DrtUtilityEstimator;
 import org.eqasim.core.components.drt.mode_choice.utilities.drt_rejection_penalty.*;
 import org.eqasim.core.simulation.mode_choice.AbstractEqasimExtension;
 import org.eqasim.core.simulation.mode_choice.ParameterDefinition;
@@ -18,6 +17,7 @@ import org.eqasim.ile_de_france.drt.mode_choice.IDFDrtModeAvailability;
 import org.eqasim.ile_de_france.drt.mode_choice.cost.DrtCostModel;
 import org.eqasim.ile_de_france.drt.mode_choice.parameters.IDFDrtCostParameters;
 import org.eqasim.ile_de_france.drt.mode_choice.parameters.IDFDrtModeParameters;
+import org.eqasim.ile_de_france.drt.mode_choice.utilities.DrtUtilityEstimator;
 import org.eqasim.ile_de_france.feeder.FeederConstraint;
 import org.eqasim.ile_de_france.feeder.FeederUtilityEstimator;
 import org.eqasim.ile_de_france.mode_choice.parameters.IDFCostParameters;
@@ -36,93 +36,94 @@ import java.util.Map;
 
 public class IDFDrtModule extends AbstractEqasimExtension {
 
-	private final IDFDrtConfigGroup configGroup;
+    private final IDFDrtConfigGroup configGroup;
 
 
-	private final CommandLine commandLine;
+    private final CommandLine commandLine;
 
 
-	public IDFDrtModule(CommandLine commandLine, IDFDrtConfigGroup configGroup) throws CommandLine.ConfigurationException {
-		this.commandLine = commandLine;
-		this.configGroup = configGroup;
-	}
+    public IDFDrtModule(CommandLine commandLine, IDFDrtConfigGroup configGroup) throws CommandLine.ConfigurationException {
+        this.commandLine = commandLine;
+        this.configGroup = configGroup;
+    }
 
-	@Override
-	protected void installEqasimExtension() {
-		// Configure mode availability
-		bindModeAvailability(IDFDrtModeAvailability.NAME).toInstance(new IDFDrtModeAvailability(this.configGroup.isUsingFeeder()));
-		// Configure choice alternative for DRT
-		bindUtilityEstimator("drt").to(DrtUtilityEstimator.class);
-		bindCostModel("drt").to(DrtCostModel.class);
-		DrtRejectionPenaltyProviderConfigGroup drtRejectionPenaltyProviderConfigGroup = configGroup.getDrtRejectionPenaltyProviderConfig();
-		if(drtRejectionPenaltyProviderConfigGroup != null && drtRejectionPenaltyProviderConfigGroup.getPenaltyProviderParams() instanceof DrtRejectionsLinearPenaltyProviderConfigGroup) {
-			this.install(new DrtRejectionsPenaltyModule(drtRejectionPenaltyProviderConfigGroup));
+    @Override
+    protected void installEqasimExtension() {
+        // Configure mode availability
+        bindModeAvailability(IDFDrtModeAvailability.NAME).toInstance(new IDFDrtModeAvailability(this.configGroup.isUsingFeeder()));
+        // Configure choice alternative for DRT
+        bindUtilityEstimator("drt").to(DrtUtilityEstimator.class);
+        bindCostModel("drt").to(DrtCostModel.class);
+        DrtRejectionPenaltyProviderConfigGroup drtRejectionPenaltyProviderConfigGroup = configGroup.getDrtRejectionPenaltyProviderConfig();
+        if (drtRejectionPenaltyProviderConfigGroup != null && drtRejectionPenaltyProviderConfigGroup.getPenaltyProviderParams() instanceof DrtRejectionsLinearPenaltyProviderConfigGroup) {
+            this.install(new DrtRejectionsPenaltyModule(drtRejectionPenaltyProviderConfigGroup));
+            throw new RuntimeException("DrtRejectionsPenaltyModule is activated");
 			/*bind(DrtRejectionsLinearPenaltyProviderConfigGroup.class).toInstance((DrtRejectionsLinearPenaltyProviderConfigGroup) drtRejectionPenaltyProviderConfigGroup.getPenaltyProviderParams());
 			bind(DrtRejectionsLinearPenaltyProvider.class).asEagerSingleton();
 			bind(DrtRejectionPenaltyProvider.class).to(DrtRejectionsLinearPenaltyProvider.class).asEagerSingleton();
 			addControlerListenerBinding().to(DrtRejectionsLinearPenaltyProvider.class).asEagerSingleton();
 			bind(RejectionTracker.class).asEagerSingleton();
 			addEventHandlerBinding().to(RejectionTracker.class).asEagerSingleton();*/
-		} else {
-			bind(DrtRejectionPenaltyProvider.class).to(NoRejectionsPenalty.class).asEagerSingleton();
-		}
-		bind(DrtPredictorInterface.class).to(DrtPredictor.class);
+        } else {
+            bind(DrtRejectionPenaltyProvider.class).to(NoRejectionsPenalty.class).asEagerSingleton();
+        }
+        bind(DrtPredictorInterface.class).to(DrtPredictor.class);
 
-		if(configGroup.isUsingFeeder()) {
-			bindUtilityEstimator("feeder").to(FeederUtilityEstimator.class);
-			bindTripConstraintFactory(FeederConstraint.NAME).to(FeederConstraint.Factory.class);
-		}
+        if (configGroup.isUsingFeeder()) {
+            bindUtilityEstimator("feeder").to(FeederUtilityEstimator.class);
+            bindTripConstraintFactory(FeederConstraint.NAME).to(FeederConstraint.Factory.class);
+        }
 
-		// Define filter for trip analysis
-		bind(PersonAnalysisFilter.class).to(DrtPersonAnalysisFilter.class);
+        // Define filter for trip analysis
+        bind(PersonAnalysisFilter.class).to(DrtPersonAnalysisFilter.class);
 
-		// Override parameter bindings
-		bind(ModeParameters.class).to(IDFDrtModeParameters.class);
-		bind(IDFModeParameters.class).to(IDFDrtModeParameters.class);
-		bind(IDFCostParameters.class).to(IDFDrtCostParameters.class);
+        // Override parameter bindings
+        bind(ModeParameters.class).to(IDFDrtModeParameters.class);
+        bind(IDFModeParameters.class).to(IDFDrtModeParameters.class);
+        bind(IDFCostParameters.class).to(IDFDrtCostParameters.class);
 
-		if(this.configGroup.getOverridePcu() != null) {
-			VehicleType vehicleType = VehicleUtils.createVehicleType(Id.create("Feeder", VehicleType.class));
-			vehicleType.setPcuEquivalents(this.configGroup.getOverridePcu());
-			bind(VehicleType.class).annotatedWith(DvrpModes.mode("drt")).toInstance(vehicleType);
-		}
-	}
+        if (this.configGroup.getOverridePcu() != null) {
+            VehicleType vehicleType = VehicleUtils.createVehicleType(Id.create("Feeder", VehicleType.class));
+            vehicleType.setPcuEquivalents(this.configGroup.getOverridePcu());
+            bind(VehicleType.class).annotatedWith(DvrpModes.mode("drt")).toInstance(vehicleType);
+        }
+    }
 
-	@Provides
-	@Singleton
-	public DrtCostModel provideDrtCostModel(IDFDrtCostParameters parameters) {
-		return new DrtCostModel(parameters);
-	}
+    @Provides
+    @Singleton
+    public DrtCostModel provideDrtCostModel(IDFDrtCostParameters parameters) {
+        return new DrtCostModel(parameters);
+    }
 
-	@Provides
-	@Singleton
-	public IDFDrtCostParameters provideCostParameters(EqasimConfigGroup config) throws URISyntaxException {
-		IDFDrtCostParameters parameters = IDFDrtCostParameters.buildDefault();
-		if (config.getCostParametersPath() != null) {
-			ParameterDefinition.applyFile(new File(ConfigGroup.getInputFileURL(getConfig().getContext(), config.getCostParametersPath()).toURI()), parameters);
-		}
+    @Provides
+    @Singleton
+    public IDFDrtCostParameters provideCostParameters(EqasimConfigGroup config) throws URISyntaxException {
+        IDFDrtCostParameters parameters = IDFDrtCostParameters.buildDefault();
+        if (config.getCostParametersPath() != null) {
+            ParameterDefinition.applyFile(new File(ConfigGroup.getInputFileURL(getConfig().getContext(), config.getCostParametersPath()).toURI()), parameters);
+        }
 
-		ParameterDefinition.applyCommandLine("cost-parameter", commandLine, parameters);
-		return parameters;
-	}
+        ParameterDefinition.applyCommandLine("cost-parameter", commandLine, parameters);
+        return parameters;
+    }
 
-	@Provides
-	@Singleton
-	public IDFDrtModeParameters provideModeParameters(EqasimConfigGroup config) throws URISyntaxException {
-		IDFDrtModeParameters parameters = IDFDrtModeParameters.buildDefault();
+    @Provides
+    @Singleton
+    public IDFDrtModeParameters provideModeParameters(EqasimConfigGroup config) throws URISyntaxException {
+        IDFDrtModeParameters parameters = IDFDrtModeParameters.buildDefault();
 
-		if (config.getModeParametersPath() != null) {
-			ParameterDefinition.applyFile(new File(ConfigGroup.getInputFileURL(getConfig().getContext(), config.getModeParametersPath()).toURI()), parameters);
-		}
+        if (config.getModeParametersPath() != null) {
+            ParameterDefinition.applyFile(new File(ConfigGroup.getInputFileURL(getConfig().getContext(), config.getModeParametersPath()).toURI()), parameters);
+        }
 
-		ParameterDefinition.applyCommandLine("mode-parameter", commandLine, parameters);
-		return parameters;
-	}
+        ParameterDefinition.applyCommandLine("mode-parameter", commandLine, parameters);
+        return parameters;
+    }
 
-	@Provides
-	@Named("drt")
-	public CostModel provideCarCostModel(Map<String, Provider<CostModel>> factory, EqasimConfigGroup config, @DvrpMode("drt") VehicleType vehicleType) {
-		return getCostModel(factory, config, "drt");
-	}
+    @Provides
+    @Named("drt")
+    public CostModel provideCarCostModel(Map<String, Provider<CostModel>> factory, EqasimConfigGroup config, @DvrpMode("drt") VehicleType vehicleType) {
+        return getCostModel(factory, config, "drt");
+    }
 
 }

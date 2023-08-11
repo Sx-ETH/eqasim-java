@@ -1,4 +1,4 @@
-package org.eqasim.ile_de_france;
+/*package org.eqasim.ile_de_france;
 
 import org.eqasim.core.simulation.analysis.EqasimAnalysisModule;
 import org.eqasim.core.simulation.mode_choice.EqasimModeChoiceModule;
@@ -67,4 +67,4 @@ public class RunCbaAnalysis {
         controller.run();
 
     }
-}
+}*/

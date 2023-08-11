@@ -1,14 +1,15 @@
 package org.eqasim.ile_de_france.drt;
 
+import org.eqasim.core.components.drt.config_group.DrtModeChoiceConfigGroup;
+import org.eqasim.core.components.drt.travel_times.SwissDrtTravelTimeModule;
+import org.eqasim.core.components.drt.travel_times.TravelTimeConfigurator;
 import org.eqasim.core.components.transit.EqasimTransitQSimModule;
 import org.eqasim.core.simulation.analysis.EqasimAnalysisModule;
 import org.eqasim.core.simulation.mode_choice.EqasimModeChoiceModule;
 import org.eqasim.ile_de_france.drt.analysis.DvrpAnalysisModule;
-import org.eqasim.ile_de_france.drt.mode_choice.DrtEpsilonModule;
 import org.eqasim.ile_de_france.feeder.FeederModule;
 import org.eqasim.ile_de_france.feeder.analysis.FeederAnalysisModule;
 import org.eqasim.ile_de_france.mode_choice.IDFModeChoiceModule;
-import org.eqasim.ile_de_france.mode_choice.epsilon.EpsilonModule;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.contrib.drt.run.DrtConfigGroup;
 import org.matsim.contrib.drt.run.MultiModeDrtConfigGroup;
@@ -22,7 +23,7 @@ import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.controler.Controler;
 import org.matsim.core.scenario.ScenarioUtils;
 
-public class RunDrtSimulation {
+public class RunDrtSimulationTravelTime {
     public static void main(String[] args) throws CommandLine.ConfigurationException {
         CommandLine cmd = new CommandLine.Builder(args) //
                 .requireOptions("config-path").allowOptions("drt-variables-estimator", "drtRejectionsPenaltyProvider", "use-am", "cba") //
@@ -40,6 +41,7 @@ public class RunDrtSimulation {
             CbaUtils.adaptConfig(config, true);
         }*/
         cmd.applyConfiguration(config);
+        new TravelTimeConfigurator().configureDrtTimeMetrics(config);
 
         MultiModeDrtConfigGroup multiModeDrtConfig;
 
@@ -53,9 +55,9 @@ public class RunDrtSimulation {
         }
 
         Scenario scenario = ScenarioUtils.createScenario(config);
-        configurator.configureScenario(scenario);
 
         ScenarioUtils.loadScenario(scenario);
+        configurator.configureScenario(scenario);
 
         Controler controller = new Controler(scenario);
         configurator.configureController(controller);
@@ -89,8 +91,13 @@ public class RunDrtSimulation {
         }
         {
             //Add support of Epsilon utility sstimators
-            controller.addOverridingModule(new EpsilonModule());
-            controller.addOverridingModule(new DrtEpsilonModule());
+            //controller.addOverridingModule(new EpsilonModule());
+            //controller.addOverridingModule(new DrtEpsilonModule());
+        }
+        {
+            // Add support of travel times module
+            controller.addOverridingModule(new SwissDrtTravelTimeModule(DrtConfigGroup.getSingleModeDrtConfig(config), scenario,
+                    (DrtModeChoiceConfigGroup) config.getModules().get(DrtModeChoiceConfigGroup.GROUP_NAME)));
         }
         /*if(cba) {
             CbaUtils.adaptControler(controller);

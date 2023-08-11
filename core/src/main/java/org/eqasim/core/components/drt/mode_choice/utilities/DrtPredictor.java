@@ -2,6 +2,8 @@ package org.eqasim.core.components.drt.mode_choice.utilities;
 
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
+import org.eqasim.core.components.drt.travel_times.DrtPredictions;
+import org.eqasim.core.components.drt.travel_times.TravelTimeUpdates;
 import org.eqasim.core.simulation.mode_choice.cost.CostModel;
 import org.eqasim.core.simulation.mode_choice.utilities.predictors.CachedVariablePredictor;
 import org.eqasim.core.simulation.mode_choice.utilities.predictors.PredictorUtils;
@@ -15,12 +17,17 @@ import org.matsim.core.router.TripStructureUtils;
 
 import java.util.List;
 
-public class DrtPredictor extends CachedVariablePredictor<DrtVariables> implements DrtPredictorInterface{
+public class DrtPredictor extends CachedVariablePredictor<DrtVariables> implements DrtPredictorInterface {
 	private CostModel costModel;
+	private final TravelTimeUpdates travelTimeUpdates;
+	private final DrtPredictions drtPredictions;
+
 
 	@Inject
-	public DrtPredictor(@Named("drt") CostModel costModel) {
+	public DrtPredictor(@Named("drt") CostModel costModel, TravelTimeUpdates travelTimeUpdates, DrtPredictions drtPredictions) {
 		this.costModel = costModel;
+		this.travelTimeUpdates = travelTimeUpdates;
+		this.drtPredictions = drtPredictions;
 	}
 
 	@Override
@@ -29,28 +36,35 @@ public class DrtPredictor extends CachedVariablePredictor<DrtVariables> implemen
 		double accessEgressTime_min = 0.0;
 		double cost_MU = 0.0;
 		double waitingTime_min = 0.0;
+		double maxTravelTime_min = 0.0;
+		double directRideTime_min = 0.0;
+		double euclideanDistance_km = PredictorUtils.calculateEuclideanDistance_km(trip);
 
 		for (Leg leg : TripStructureUtils.getLegs(elements)) {
 			switch (leg.getMode()) {
-			case TransportMode.walk:
-				accessEgressTime_min += leg.getTravelTime().seconds() / 60.0;
-				break;
-			case "drt":
-				DrtRoute route = (DrtRoute) leg.getRoute();
+				case TransportMode.walk:
+					accessEgressTime_min += leg.getTravelTime().seconds() / 60.0;
+					break;
+				case "drt":
+					DrtRoute route = (DrtRoute) leg.getRoute();
 
-				// We use worst case here
-				travelTime_min = route.getMaxTravelTime() / 60.0;
-				waitingTime_min = route.getMaxWaitTime() / 60.0;
+					travelTime_min = travelTimeUpdates.getTravelTime_sec(route, leg.getDepartureTime().seconds()) / 60.0;
+					waitingTime_min = travelTimeUpdates.getWaitTime_sec(route, leg.getDepartureTime().seconds()) / 60.0;
 
-				cost_MU = costModel.calculateCost_MU(person, trip, elements);
+					cost_MU = costModel.calculateCost_MU(person, trip, elements);
 
-				break;
-			default:
-				throw new IllegalStateException("Encountered unknown mode in DrtPredictor: " + leg.getMode());
+					maxTravelTime_min = route.getMaxTravelTime() / 60.0;
+					directRideTime_min = route.getDirectRideTime() / 60.0;
+
+					this.drtPredictions.addTripPrediction(travelTime_min, accessEgressTime_min, cost_MU, waitingTime_min,
+							euclideanDistance_km, maxTravelTime_min, directRideTime_min, leg.getRoute().getStartLinkId(),
+							leg.getDepartureTime().seconds(), person, trip);
+
+					break;
+				default:
+					throw new IllegalStateException("Encountered unknown mode in DrtPredictor: " + leg.getMode());
 			}
 		}
-
-		double euclideanDistance_km = PredictorUtils.calculateEuclideanDistance_km(trip);
 
 		return new DrtVariables(travelTime_min, cost_MU, euclideanDistance_km, waitingTime_min, accessEgressTime_min);
 	}
