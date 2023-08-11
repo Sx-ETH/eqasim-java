@@ -50,9 +50,9 @@ public class RunDrtSimulationTravelTime {
         }
         multiModeDrtConfig = (MultiModeDrtConfigGroup) config.getModules().get(MultiModeDrtConfigGroup.GROUP_NAME);
 
-        for (DrtConfigGroup drtConfigGroup : multiModeDrtConfig.getModalElements()) {
+        /*for (DrtConfigGroup drtConfigGroup : multiModeDrtConfig.getModalElements()) {
             drtConfigGroup.setNumberOfThreads(config.global().getNumberOfThreads());
-        }
+        }*/
 
         Scenario scenario = ScenarioUtils.createScenario(config);
 
