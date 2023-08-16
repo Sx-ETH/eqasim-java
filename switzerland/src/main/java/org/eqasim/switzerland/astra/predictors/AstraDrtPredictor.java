@@ -8,7 +8,9 @@ import org.eqasim.core.simulation.mode_choice.cost.CostModel;
 import org.eqasim.core.simulation.mode_choice.utilities.predictors.CachedVariablePredictor;
 import org.eqasim.core.simulation.mode_choice.utilities.predictors.PredictorUtils;
 import org.eqasim.switzerland.astra.variables.AstraDrtVariables;
+import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.TransportMode;
+import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.PlanElement;
@@ -40,6 +42,8 @@ public class AstraDrtPredictor extends CachedVariablePredictor<AstraDrtVariables
         double maxTravelTime_min = 0.0;
         double directRideTime_min = 0.0;
         double euclideanDistance_km = PredictorUtils.calculateEuclideanDistance_km(trip);
+        Id<Link> startLinkId = null;
+        double departureTime_s = 0.0;
 
         for (Leg leg : TripStructureUtils.getLegs(elements)) {
             switch (leg.getMode()) {
@@ -57,15 +61,18 @@ public class AstraDrtPredictor extends CachedVariablePredictor<AstraDrtVariables
                     maxTravelTime_min = route.getMaxTravelTime() / 60.0;
                     directRideTime_min = route.getDirectRideTime() / 60.0;
 
+                    startLinkId = route.getStartLinkId();
+                    departureTime_s = leg.getDepartureTime().seconds();
 
-                    this.drtPredictions.addTripPrediction(travelTime_min, accessEgressTime_min, cost_MU, waitingTime_min,
-                            euclideanDistance_km, maxTravelTime_min, directRideTime_min, leg.getRoute().getStartLinkId(),
-                            leg.getDepartureTime().seconds(), person, trip);
                     break;
                 default:
                     throw new IllegalStateException("Encountered unknown mode in DrtPredictor: " + leg.getMode());
             }
         }
+
+        this.drtPredictions.addTripPrediction(travelTime_min, accessEgressTime_min, cost_MU, waitingTime_min,
+                euclideanDistance_km, maxTravelTime_min, directRideTime_min, startLinkId,
+                departureTime_s, person, trip);
         // todo add rejection penalty based on some probability of rejections
 
         return new AstraDrtVariables(travelTime_min, cost_MU, euclideanDistance_km, waitingTime_min, accessEgressTime_min);
