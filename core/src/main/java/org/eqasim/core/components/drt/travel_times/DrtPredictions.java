@@ -11,6 +11,7 @@ import org.matsim.core.utils.io.IOUtils;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class DrtPredictions {
@@ -33,7 +34,7 @@ public class DrtPredictions {
 
     @Inject
     public DrtPredictions() {
-        this.tripPredictions = new ArrayList<DrtTripPrediction>();
+        this.tripPredictions = Collections.synchronizedList(new ArrayList<DrtTripPrediction>());
     }
 
     public void addTripPrediction(double travelTime_min, double accessEgressTime_min, double cost_MU, double waitingTime_min,
