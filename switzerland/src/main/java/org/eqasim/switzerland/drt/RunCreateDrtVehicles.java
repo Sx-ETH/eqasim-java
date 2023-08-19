@@ -1,5 +1,6 @@
-package org.eqasim.core.components.drt.utils;
+package org.eqasim.switzerland.drt;
 
+import org.eqasim.core.components.drt.utils.CreateDrtVehicles;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.Population;
