@@ -71,7 +71,11 @@ public class DrtPredictions {
                 writer.append(";");
                 writer.append(Integer.toString(prediction.trip.getIndex()));
                 writer.append(";");
-                writer.append(prediction.startLinkId.toString());
+                if (prediction.startLinkId == null) {
+                    writer.append("null");
+                } else {
+                    writer.append(prediction.startLinkId.toString());
+                }
                 writer.append(";");
                 writer.append(Double.toString(prediction.startTime));
                 writer.append(";");
