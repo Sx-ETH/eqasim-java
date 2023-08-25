@@ -21,9 +21,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class FixedDrtZonalSystem {
-    protected Map<Id<Link>, String> link2zone = new HashMap<>();
+    protected Map<Id<Link>, String> link2zone = new ConcurrentHashMap<>();
     protected Network network;
     protected Map<String, PreparedGeometry> zones = new HashMap<>();
     private static final Logger log = LogManager.getLogger(FixedDrtZonalSystem.class);
