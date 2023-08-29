@@ -70,8 +70,11 @@ def impute(df_points, df_zones, point_id_field, zone_id_field, fix_by_distance=F
 
     return pd.merge(df_original, df_points[[point_id_field, zone_id_field]], on=point_id_field, how="left")
 
-def get_metrics_for_zonal_plot(df, zones, zone_id, metrics=["waitTime"]):
-    joined_df = pd.merge(df, zones, on=zone_id, how="right") #merge on right to ensure all zones are showing
+def get_metrics_for_zonal_plot(df, zones, zone_id, metrics=["waitTime"], add_empty=True):
+    if add_empty:
+        joined_df = pd.merge(df, zones, on=zone_id, how="right") #merge on right to ensure all zones are showing
+    else:
+        joined_df = pd.merge(df, zones, on=zone_id, how="inner")
     
     ## computing metrics for plot
     mean_metrics = joined_df.groupby(zone_id)[metrics].mean().fillna(0).reset_index()
