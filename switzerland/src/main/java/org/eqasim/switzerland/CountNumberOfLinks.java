@@ -1,4 +1,4 @@
-package org.eqasim.core.tools;
+package org.eqasim.switzerland;
 
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Network;
