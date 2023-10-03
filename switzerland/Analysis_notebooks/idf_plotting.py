@@ -97,6 +97,25 @@ def plot_average_waitTime_per_timeBins(it_drt_trips_stats, zones, zones_id, add_
         plt.title(f"Time: {start}-{end}h")
     plt.show()
 
+def plot_average_waitTime_per_timeBins_custom(it_drt_trips_stats, zones, zones_id, add_empty=False, vmin=None, vmax=None):
+    hours_pairs = [(7, 10), (12,15)]
+
+    it_drt_trips_stats_gpd = convert_drt_legs_to_gpd(it_drt_trips_stats)
+    imputed = impute(it_drt_trips_stats_gpd, zones, "trip_id", zones_id,fix_by_distance=False).drop("geometry", axis=1)
+
+    plt.figure(figsize=(15, 8))
+
+    for i, (start, end) in enumerate(hours_pairs):
+        if start < end:
+            selected = imputed[(imputed["startTime"] >= start*3600) & (imputed["startTime"] < end*3600)]
+        else:
+            selected = imputed[(imputed["startTime"] >= start*3600) | (imputed["startTime"] < end*3600)]
+        metrics = get_metrics_for_zonal_plot(selected, zones, zones_id, ["waitTime"], add_empty=add_empty)
+        plt.subplot(1, 2, i+1)
+        plot_zonal_avg_helper(metrics, zones, "waitTime", "Average waiting time [min]", in_subplot=True, add_map=True, vmin=vmin, vmax=vmax)
+        plt.title(f"Time: {start}-{end}h")
+    plt.show()
+
 def plot_average_waitTime_per_fleeSize(data, add_empty=False, vmin=None, vmax=None):
     fleetSizes = list(data.keys())
     fleetSizes.sort()

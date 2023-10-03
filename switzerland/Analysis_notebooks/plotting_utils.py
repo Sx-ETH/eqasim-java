@@ -753,7 +753,7 @@ def plot_delay_factor_scatter(data, iteration=-1):
                 verticalalignment='top', horizontalalignment='right', bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
     plt.show()
 
-def plot_df_multiple_time_bins(data, start_time, end_time, bin_durations_min, iteration=-1, plot_estimated=True, plot_using_sum=True, filter_router_zeros=False, add_boxplots=False, showfliers=False):
+def plot_df_multiple_time_bins(data, start_time, end_time, bin_durations_min, iteration=-1, plot_estimated=True, plot_using_sum=True, filter_router_zeros=False, add_boxplots=False, showfliers=False, save=False, filename=None):
     """
     Plot the delay factor for multiple time bins
     data: dictionary with the output dataframes (must contain drt_trips_stats)
@@ -827,16 +827,19 @@ def plot_df_multiple_time_bins(data, start_time, end_time, bin_durations_min, it
 
         plt.legend(fontsize=12)
         plt.xlim(start_time*3600,end_time*3600)
-        plt.xticks(xticks, xticks_labels, fontsize=12)
-        plt.title('Delay Factor by departure time' + add_title + '\nTime bin = ' + str(time_bin) + ' min')
-        plt.ylabel('Delay Factor', fontsize=12)
-        plt.xlabel('Time of the day', fontsize=12)
+        plt.xticks(xticks, xticks_labels, fontsize=14)
+        plt.title('Delay Factor by departure time' + add_title + '\nTime bin = ' + str(time_bin) + ' min', fontsize=14)
+        plt.ylabel('Delay Factor', fontsize=14)
+        plt.xlabel('Time of the day', fontsize=14)
         plt.yticks(fontsize=12)
     
     plt.tight_layout()
+
+    if save:
+        plt.savefig(filename, dpi=300, bbox_inches='tight')
     plt.show()
         
-def plot_df_multiple_distance_bins(data,  min_distance, max_distance, bin_distances_m, iteration=-1, plot_estimated=True, plot_using_sum=True, filter_router_zeros=False, add_boxplots=False, showfliers=False):
+def plot_df_multiple_distance_bins(data,  min_distance, max_distance, bin_distances_m, iteration=-1, plot_estimated=True, plot_using_sum=True, filter_router_zeros=False, add_boxplots=False, showfliers=False, save=False, filename=None):
     """
     Plot the delay factor for multiple distance bins
     data: dictionary with the output dataframes (must contain drt_trips_stats)
@@ -904,13 +907,14 @@ def plot_df_multiple_distance_bins(data,  min_distance, max_distance, bin_distan
         ax.axhline(y=it_drt_trip_stats.delayFactor.median(), color="black",ls = '--', label='Median of all times', zorder=10, linewidth=1)
 
         plt.legend(fontsize=12, loc='upper left')
-        plt.title('Delay Factor by euclidean distance' + add_title + '\nDistance bin = ' + str(distance_bin) + 'm')
-        plt.xlabel('Euclidean distance (km)', fontsize=12)
-        plt.ylabel('Delay Factor', fontsize=12)
+        plt.title('Delay Factor by euclidean distance' + add_title + '\nDistance bin = ' + str(distance_bin) + 'm', fontsize=14)
+        plt.xlabel('Euclidean distance (km)', fontsize=14)
+        plt.ylabel('Delay Factor', fontsize=14)
         x_ticks = np.arange(0, max_distance + 1, 1000)
-        plt.xticks(x_ticks/1000, x_ticks/1000, fontsize=12)       
-        plt.yticks(fontsize=12)
-    
+        plt.xticks(x_ticks/1000, x_ticks/1000, fontsize=14)       
+        plt.yticks(fontsize=14)
+    if save:
+        plt.savefig(filename, dpi=300, bbox_inches='tight')
     plt.show()
 
 def get_data_for_boxplot_time_bin(it_drt_trip_stats, column, start_time, end_time, bin_duration_min):
@@ -1079,7 +1083,7 @@ def plot_waiting_time_scatter(data, iteration=-1):
 
 
 
-def plot_waiting_time_multiple_time_bins(data, start_time, end_time, bin_durations_min, iteration=-1, filter_router_zeros=False, add_boxplots=False, showfliers=False, ylim=None):
+def plot_waiting_time_multiple_time_bins(data, start_time, end_time, bin_durations_min, iteration=-1, filter_router_zeros=False, add_boxplots=False, showfliers=False, ylim=None, save=False, filename=None):
     """
     Plot the waiting time for multiple time bins
     data: dictionary with the output dataframes (must contain drt_trips_stats)
@@ -1129,11 +1133,11 @@ def plot_waiting_time_multiple_time_bins(data, start_time, end_time, bin_duratio
         plt.plot(waitTime_median.index.values, waitTime_median.values/60, marker,
                     color='navy',label='Median of wait time', linewidth=linewidth, zorder=10)
         plt.xlim(start_time*3600,end_time*3600)
-        plt.xticks(xticks, xticks_labels, fontsize=12)
-        plt.yticks(fontsize=12)
-        plt.title('Wait time by departure time' + add_title + '\nTime bin = ' + str(time_bin) + ' min')
-        plt.ylabel('Wait time (min)', fontsize=12)
-        plt.xlabel('Time of the day', fontsize=12)
+        plt.xticks(xticks, xticks_labels, fontsize=14)
+        plt.yticks(fontsize=14)
+        plt.title('Wait time by departure time' + add_title + '\nTime bin = ' + str(time_bin) + ' min', fontsize=14)
+        plt.ylabel('Wait time (min)', fontsize=14)
+        plt.xlabel('Time of the day', fontsize=14)
         plt.gca().set_ylim(bottom=0)
         if ylim is not None:
             plt.ylim(0,ylim)
@@ -1142,6 +1146,8 @@ def plot_waiting_time_multiple_time_bins(data, start_time, end_time, bin_duratio
         ax.axhline(y=it_drt_trip_stats.waitTime.median()/60, color="black",ls = '--', label='Median of all times', zorder=10, linewidth=1)
         plt.legend(loc='upper left', fontsize=12)
     
+    if save:
+        plt.savefig(filename, dpi=300, bbox_inches='tight')
     plt.show()
 
 def plot_waiting_time_multiple_distance_bins(data,  min_distance, max_distance, bin_distances_m, iteration=-1, filter_router_zeros=False, add_boxplots=False, showfliers=False, ylim=None):
@@ -1211,14 +1217,14 @@ def get_stats_table(output_dict, iteration):
                     ("Wait time (min)", "Mean"),
                     ("Wait time (min)", "Median"),
                     ("Wait time (min)", "Std"),
-                    ("Wait time (min)", "75-percentile"),
-                    ("Wait time (min)", "99-percentile"),
+                    ("Wait time (min)", "75-perc"),
+                    ("Wait time (min)", "99-perc"),
                     ("Wait time (min)", "Max"),
                     ("Travel time (min)", "Mean"),
                     ("Travel time (min)", "Median"),
                     ("Travel time (min)", "Std"),
-                    ("Travel time (min)", "75-percentile"),
-                    ("Travel time (min)", "99-percentile"),
+                    ("Travel time (min)", "75-perc"),
+                    ("Travel time (min)", "99-perc"),
                     ("Travel time (min)", "Max"),
                     #("Mean distance (km)", ""),
                     ("Mean direct distance (km)", ""),
@@ -1232,14 +1238,14 @@ def get_stats_table(output_dict, iteration):
     stats.loc[("Wait time (min)", "Mean"), "Value"] = it_drt_trip_stats.waitTime.mean() / 60
     stats.loc[("Wait time (min)", "Median"), "Value"] = it_drt_trip_stats.waitTime.median() / 60
     stats.loc[("Wait time (min)", "Std"), "Value"] = it_drt_trip_stats.waitTime.std() / 60
-    stats.loc[("Wait time (min)", "75-percentile"), "Value"] = it_drt_trip_stats.waitTime.quantile(0.75) / 60
-    stats.loc[("Wait time (min)", "99-percentile"), "Value"] = it_drt_trip_stats.waitTime.quantile(0.99) / 60
+    stats.loc[("Wait time (min)", "75-perc"), "Value"] = it_drt_trip_stats.waitTime.quantile(0.75) / 60
+    stats.loc[("Wait time (min)", "99-perc"), "Value"] = it_drt_trip_stats.waitTime.quantile(0.99) / 60
     stats.loc[("Wait time (min)", "Max"), "Value"] = it_drt_trip_stats.waitTime.max() / 60
     stats.loc[("Travel time (min)", "Mean"), "Value"] = it_drt_trip_stats.totalTravelTime.mean() / 60
     stats.loc[("Travel time (min)", "Median"), "Value"] = it_drt_trip_stats.totalTravelTime.median() / 60
     stats.loc[("Travel time (min)", "Std"), "Value"] = it_drt_trip_stats.totalTravelTime.std() / 60
-    stats.loc[("Travel time (min)", "75-percentile"), "Value"] = it_drt_trip_stats.totalTravelTime.quantile(0.75) / 60
-    stats.loc[("Travel time (min)", "99-percentile"), "Value"] = it_drt_trip_stats.totalTravelTime.quantile(0.99) / 60
+    stats.loc[("Travel time (min)", "75-perc"), "Value"] = it_drt_trip_stats.totalTravelTime.quantile(0.75) / 60
+    stats.loc[("Travel time (min)", "99-perc"), "Value"] = it_drt_trip_stats.totalTravelTime.quantile(0.99) / 60
     stats.loc[("Travel time (min)", "Max"), "Value"] = it_drt_trip_stats.totalTravelTime.max() / 60
     #stats.loc[("Mean distance (km)", ""), "Value"] = it_drt_trip_stats.distance.mean() / 1000
     stats.loc[("Mean direct distance (km)", ""), "Value"] = it_drt_trip_stats.euclideanDistance.mean() / 1000
@@ -1247,11 +1253,14 @@ def get_stats_table(output_dict, iteration):
     stats.loc[("Total execution time", ""), "Value"] = str(pd.to_timedelta(output_dict['stopwatch']['iteration']).sum())
     return stats
 
-def get_multiple_stats_table(l):
+def get_multiple_stats_table(l,add_iter=True):
     tables = []
     for title, output_dict, iteration in l:
         t = get_stats_table(output_dict, iteration)
-        t.rename(columns={'Value': title + " (it." + str(iteration) + ")"}, inplace=True)
+        if add_iter:
+            t.rename(columns={'Value': title + " (it." + str(iteration) + ")"}, inplace=True)
+        else:
+            t.rename(columns={'Value': title}, inplace=True)
         tables.append(t)
     return pd.concat(tables, axis=1)
 
