@@ -3,6 +3,7 @@ package org.eqasim.switzerland.astra;
 import org.eqasim.core.components.config.EqasimConfigGroup;
 import org.eqasim.core.components.drt.config_group.DrtModeChoiceConfigGroup;
 import org.eqasim.core.components.drt.travel_times.SwissDrtTravelTimeModule;
+import org.eqasim.core.components.transit.EqasimTransitQSimModule;
 import org.eqasim.switzerland.astra.estimators.AstraDrtUtilityEstimator;
 import org.eqasim.switzerland.drt.mode_choice.cost.DrtCostModel;
 import org.matsim.api.core.v01.Scenario;
@@ -80,8 +81,8 @@ public class AstraDrtConfigurator extends AstraConfigurator {
         for (DrtConfigGroup drtConfigGroup : multiModeDrtConfig.getModalElements()) {
             //drtConfigGroup.setNumberOfThreads(config.global().getNumberOfThreads());
 
-            if (cmd.getOption("drt-vehicle-file").isPresent()){
-            drtConfigGroup.setVehiclesFile(cmd.getOption("drt-vehicle-file").get());
+            if (cmd.getOption("drt-vehicle-file").isPresent()) {
+                drtConfigGroup.setVehiclesFile(cmd.getOption("drt-vehicle-file").get());
             }
         }
 
@@ -132,8 +133,11 @@ public class AstraDrtConfigurator extends AstraConfigurator {
         AstraConfigurator.configureController(controller, cmd);
         controller.addOverridingModule(new DvrpModule());
         controller.addOverridingModule(new MultiModeDrtModule());
+        Config finalConfig = config;
         controller.configureQSimComponents(components -> {
             DvrpQSimComponents.activateAllModes(MultiModeDrtConfigGroup.get(config)).configure(components);
+            // Need to re-do this as now it is combined with DRT (copied from IdF)
+            EqasimTransitQSimModule.configure(components, finalConfig);
         });
 
         controller.addOverridingModule(new AstraDrtModule(cmd));

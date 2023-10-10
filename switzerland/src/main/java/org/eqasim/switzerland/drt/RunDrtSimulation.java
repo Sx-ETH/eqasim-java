@@ -52,7 +52,7 @@ public class RunDrtSimulation {
 
         controller.addOverridingModule(new SwissModeChoiceModule(cmd));
         controller.addOverridingModule(new EqasimModeChoiceModule());
-        //controller.addOverridingModule(new EqasimAnalysisModule());
+        controller.addOverridingModule(new EqasimAnalysisModule());
 
         // Configure controller for DRT adding dvrp and drt modules
         AstraDrtConfigurator.configureController(controller, cmd, config, scenario);

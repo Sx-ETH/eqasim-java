@@ -4,12 +4,14 @@ import com.google.inject.Provider;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
+import org.eqasim.core.analysis.PersonAnalysisFilter;
 import org.eqasim.core.components.config.EqasimConfigGroup;
 import org.eqasim.core.simulation.mode_choice.AbstractEqasimExtension;
 import org.eqasim.core.simulation.mode_choice.ParameterDefinition;
 import org.eqasim.core.simulation.mode_choice.cost.CostModel;
 import org.eqasim.switzerland.astra.estimators.AstraDrtUtilityEstimator;
 import org.eqasim.switzerland.astra.predictors.AstraDrtPredictor;
+import org.eqasim.switzerland.drt.DrtPersonAnalysisFilter;
 import org.eqasim.switzerland.drt.mode_choice.DrtDistanceConstraint;
 import org.eqasim.switzerland.drt.mode_choice.cost.DrtCostModel;
 import org.eqasim.switzerland.drt.mode_choice.parameters.SwissDrtCostParameters;
@@ -42,6 +44,9 @@ public class AstraDrtModule extends AbstractEqasimExtension {
 
         bind(SwissCostParameters.class).to(SwissDrtCostParameters.class);
         bindTripConstraintFactory(DrtDistanceConstraint.NAME).to(DrtDistanceConstraint.Factory.class);
+
+        // Person filter for eqasim analysis
+        bind(PersonAnalysisFilter.class).to(DrtPersonAnalysisFilter.class);
     }
 
     @Provides
@@ -74,7 +79,7 @@ public class AstraDrtModule extends AbstractEqasimExtension {
     public DrtDistanceConstraint.Factory provideShapeFileConstraintFactory(Network network) {
         return new DrtDistanceConstraint.Factory(network);
     }
-    
+
     @Provides
     public AstraDrtModeAvailability provideAstraModeAvailability(SwissModeAvailability delegate) {
         return new AstraDrtModeAvailability(delegate);
