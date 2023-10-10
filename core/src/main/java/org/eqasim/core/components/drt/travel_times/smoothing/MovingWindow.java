@@ -54,6 +54,20 @@ public class MovingWindow implements Smoothing {
         return total / (count + 1);
     }
 
+    @Override
+    public double getGlobalData(ArrayList<DataStats> iterationGlobalData, DrtModeChoiceConfigGroup.Feedback feedback) {
+        int startIteration = Math.max(0, iterationGlobalData.size() - this.movingWindow);
+        double total = 0;
+        int count = 0;
+        for (int i = startIteration; i < iterationGlobalData.size(); i++) {
+            if (!Double.isNaN(iterationGlobalData.get(i).getStat(feedback))) {
+                total += iterationGlobalData.get(i).getStat(feedback);
+                count++;
+            }
+        }
+        return total / count;
+    }
+
 
     //delay time
     @Override

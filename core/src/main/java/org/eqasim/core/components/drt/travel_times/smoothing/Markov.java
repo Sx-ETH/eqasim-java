@@ -44,4 +44,14 @@ public class Markov implements Smoothing {
                                      int timeBin, DrtModeChoiceConfigGroup.Feedback feedback) {
         return dynamicWaitTime;
     }
+
+    @Override
+    public double getGlobalData(ArrayList<DataStats> iterationGlobalData, DrtModeChoiceConfigGroup.Feedback feedback) {
+        int nIteration = iterationGlobalData.size() - 1;
+        if (nIteration < 0) {
+            return Double.NaN;
+        }
+        return iterationGlobalData.get(nIteration).getStat(feedback);
+    }
+
 }

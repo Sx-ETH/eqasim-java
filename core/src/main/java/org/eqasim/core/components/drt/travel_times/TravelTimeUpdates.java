@@ -34,6 +34,7 @@ import org.opengis.feature.simple.SimpleFeature;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -55,6 +56,8 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
     // These fields are needed in case we use a fixed zonal system as a fallback to compute the global stats
     private DataStats globalWaitingTime = null;
     private DataStats globalDelayFactor = null;
+    private ArrayList<DataStats> iterationGlobalWaitingTime = new ArrayList<>();
+    private ArrayList<DataStats> iterationGlobalDelayFactor = new ArrayList<>();
 
     private DynamicWaitTimeMetrics dynamicWaitTimeMetrics = null;
     private Smoothing smoothing;
@@ -148,7 +151,7 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
             DrtModeChoiceConfigGroup.Feedback feedback = drtDmcConfig.getFeedBackMethod();
             double delayFactor;
             if (drtDmcConfig.getDrtMetricCalculationParamSet().getMethod() == DrtMetricCalculationParamSet.Method.Global) {
-                delayFactor = this.globalDelayFactor.getStat(feedback);
+                delayFactor = this.smoothing.getGlobalData(this.iterationGlobalDelayFactor, feedback);
             } else {
                 Link startLink = this.network.getLinks().get(route.getStartLinkId());
                 Link endLink = this.network.getLinks().get(route.getEndLinkId());
@@ -177,7 +180,7 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
             DrtModeChoiceConfigGroup.Feedback feedback = drtDmcConfig.getFeedBackMethod();
             double waitTime = Double.NaN;
             if (drtDmcConfig.getDrtMetricCalculationParamSet().getMethod() == DrtMetricCalculationParamSet.Method.Global) {
-                waitTime = this.globalWaitingTime.getStat(feedback);
+                waitTime = this.smoothing.getGlobalData(this.iterationGlobalWaitingTime, feedback);
             } else {
                 int timeBin = this.drtTimeUtils.getBinIndex(departureTime);
                 String zone = zones.getZoneForLinkId(route.getStartLinkId());
@@ -222,6 +225,8 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
         // We always compute the global stats
         this.globalWaitingTime = DrtFixedZoneMetrics.calculateGlobalWaitingTime(drtTrips);
         this.globalDelayFactor = DrtFixedZoneMetrics.calculateGlobalDelayFactor(drtTrips);
+        this.iterationGlobalWaitingTime.add(globalWaitingTime);
+        this.iterationGlobalDelayFactor.add(globalDelayFactor);
 
         // Calculate the zonal and time bin metrics and append them to the ArrayLists, we always compute it
         // because the DF is always computed in a zonal system (in case we don't use global)

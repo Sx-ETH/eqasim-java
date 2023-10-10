@@ -59,6 +59,22 @@ public class SuccessiveAverage implements Smoothing {
         return waitTime;
     }
 
+    @Override
+    public double getGlobalData(ArrayList<DataStats> iterationGlobalData, DrtModeChoiceConfigGroup.Feedback feedback) {
+        int size = iterationGlobalData.size();
+        double globalData = Double.NaN;
+        for (int i = 0; i < size; i++) {
+            if (!Double.isNaN(iterationGlobalData.get(i).getStat(feedback))) {
+                if (Double.isNaN(globalData)) {
+                    globalData = iterationGlobalData.get(i).getStat(feedback);
+                } else {
+                    globalData = globalData * (1 - this.msaWeight) + iterationGlobalData.get(i).getStat(feedback) * this.msaWeight;
+                }
+            }
+        }
+        return globalData;
+    }
+
     //delay time
     @Override
     public double getDelayFactor(DrtFixedZoneMetrics drtZoneMetricData, int distanceBin, int timeBin,
