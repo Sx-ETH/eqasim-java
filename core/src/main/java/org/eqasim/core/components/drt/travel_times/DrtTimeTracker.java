@@ -10,6 +10,7 @@ import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.contrib.drt.passenger.events.DrtRequestSubmittedEvent;
 import org.matsim.contrib.drt.passenger.events.DrtRequestSubmittedEventHandler;
+import org.matsim.contrib.drt.run.MultiModeDrtConfigGroup;
 import org.matsim.contrib.dvrp.optimizer.Request;
 import org.matsim.contrib.dvrp.passenger.*;
 import org.matsim.core.router.LinkWrapperFacility;
@@ -17,6 +18,7 @@ import org.matsim.core.router.TripRouter;
 import org.matsim.core.router.TripStructureUtils;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class DrtTimeTracker implements PassengerPickedUpEventHandler, DrtRequestSubmittedEventHandler, PassengerDroppedOffEventHandler, PassengerRequestRejectedEventHandler {
 
@@ -26,12 +28,17 @@ public class DrtTimeTracker implements PassengerPickedUpEventHandler, DrtRequest
 
     private final Scenario scenario;
 
+    private Collection<String> drtOperators;
+
     @Inject
     public DrtTimeTracker(TripRouter tripRouter, Scenario scenario) {
         this.scenario = scenario;
         this.submittedRequest = new HashMap<>();
         this.drtTrips = new HashSet<>();
         this.tripRouter = tripRouter;
+
+        MultiModeDrtConfigGroup multiModeDrtConfigGroup = (MultiModeDrtConfigGroup) scenario.getConfig().getModules().get(MultiModeDrtConfigGroup.GROUP_NAME);
+        drtOperators = multiModeDrtConfigGroup.modes().collect(Collectors.toList());
     }
 
     @Override
@@ -51,7 +58,7 @@ public class DrtTimeTracker implements PassengerPickedUpEventHandler, DrtRequest
     // because in a tour case the person id as the key would not work
     @Override
     public void handleEvent(PassengerPickedUpEvent event) {
-        if (event.getMode().equals("drt") && this.submittedRequest.containsKey(event.getRequestId())) {
+        if (drtOperators.contains(event.getMode()) && this.submittedRequest.containsKey(event.getRequestId())) {
             DrtTripData drtTrip = this.submittedRequest.get(event.getRequestId());
             drtTrip.pickUpTime = event.getTime();
             drtTrip.waitTime = drtTrip.pickUpTime - drtTrip.startTime;
@@ -63,7 +70,7 @@ public class DrtTimeTracker implements PassengerPickedUpEventHandler, DrtRequest
     public void handleEvent(PassengerDroppedOffEvent event) {
 
         //Here we collect detour/delay related information to compute a delay factor
-        if (event.getMode().equals("drt") && this.submittedRequest.containsKey(event.getRequestId())) {
+        if (drtOperators.contains(event.getMode()) && this.submittedRequest.containsKey(event.getRequestId())) {
             DrtTripData drtTrip = this.submittedRequest.get(event.getRequestId());
             drtTrip.totalTravelTime = event.getTime() - drtTrip.pickUpTime;
             drtTrip.arrivalTime = event.getTime();
