@@ -16,6 +16,7 @@ import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
 import org.matsim.contrib.drt.routing.DrtRoute;
+import org.matsim.contrib.drt.run.MultiModeDrtConfigGroup;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.groups.GlobalConfigGroup;
 import org.matsim.core.config.groups.QSimConfigGroup;
@@ -38,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class TravelTimeUpdates implements IterationEndsListener, StartupListener, ShutdownListener {
     private static final Logger logger = Logger.getLogger(TravelTimeUpdates.class);
@@ -62,6 +64,8 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
     private DynamicWaitTimeMetrics dynamicWaitTimeMetrics = null;
     private Smoothing smoothing;
 
+    private static Collection<String> drtOperators;
+
 
     @Inject
     public TravelTimeUpdates(DrtTimeTracker trackedTimes,
@@ -71,6 +75,9 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
         this.drtPredictions = drtPredictions;
         this.network = network;
         this.smoothing = smoothing;
+
+        MultiModeDrtConfigGroup multiModeDrtConfigGroup = (MultiModeDrtConfigGroup) config.getModules().get(MultiModeDrtConfigGroup.GROUP_NAME);
+        drtOperators = multiModeDrtConfigGroup.modes().collect(Collectors.toList());
     }
 
     private static void writeGlobalStats(DataStats globalWaitingTime, DataStats globalDelayFactor, String outputPath)
@@ -95,7 +102,7 @@ public class TravelTimeUpdates implements IterationEndsListener, StartupListener
         for (int i = 0; i < trips.size(); i++) { // We start at 0 to be able to match it with the predictions
             TripStructureUtils.Trip trip = trips.get(i);
             for (Leg leg : trip.getLegsOnly()) {
-                if (leg.getMode().equals("drt") && leg.getDepartureTime().seconds() == startTime) {
+                if (drtOperators.contains(leg.getMode()) && leg.getDepartureTime().seconds() == startTime) {
                     return i;
                 }
             }
