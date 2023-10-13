@@ -2,7 +2,7 @@ package org.eqasim.switzerland.astra;
 
 import org.eqasim.core.components.config.EqasimConfigGroup;
 import org.eqasim.core.components.drt.config_group.DrtModeChoiceConfigGroup;
-import org.eqasim.core.components.drt.travel_times.SwissDrtTravelTimeModule;
+import org.eqasim.core.components.drt.travel_times.DrtTravelTimeModule;
 import org.eqasim.core.components.transit.EqasimTransitQSimModule;
 import org.eqasim.switzerland.astra.estimators.AstraDrtUtilityEstimator;
 import org.eqasim.switzerland.drt.mode_choice.cost.DrtCostModel;
@@ -145,7 +145,7 @@ public class AstraDrtConfigurator extends AstraConfigurator {
 
         //consider drt zones generation
         controller.addOverridingModule(new DrtModeZonalSystemModule(DrtConfigGroup.getSingleModeDrtConfig(config)));
-        controller.addOverridingModule(new SwissDrtTravelTimeModule(DrtConfigGroup.getSingleModeDrtConfig(config), scenario,
+        controller.addOverridingModule(new DrtTravelTimeModule(DrtConfigGroup.getSingleModeDrtConfig(config), scenario,
                 (DrtModeChoiceConfigGroup) config.getModules().get(DrtModeChoiceConfigGroup.GROUP_NAME)));
     }
 }

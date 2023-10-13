@@ -1,7 +1,7 @@
 package org.eqasim.ile_de_france.drt;
 
 import org.eqasim.core.components.drt.config_group.DrtModeChoiceConfigGroup;
-import org.eqasim.core.components.drt.travel_times.SwissDrtTravelTimeModule;
+import org.eqasim.core.components.drt.travel_times.DrtTravelTimeModule;
 import org.eqasim.core.components.drt.travel_times.TravelTimeConfigurator;
 import org.eqasim.core.components.transit.EqasimTransitQSimModule;
 import org.eqasim.core.simulation.analysis.EqasimAnalysisModule;
@@ -96,7 +96,7 @@ public class RunDrtSimulationTravelTime {
         }
         {
             // Add support of travel times module
-            controller.addOverridingModule(new SwissDrtTravelTimeModule(DrtConfigGroup.getSingleModeDrtConfig(config), scenario,
+            controller.addOverridingModule(new DrtTravelTimeModule(DrtConfigGroup.getSingleModeDrtConfig(config), scenario,
                     (DrtModeChoiceConfigGroup) config.getModules().get(DrtModeChoiceConfigGroup.GROUP_NAME)));
         }
         /*if(cba) {

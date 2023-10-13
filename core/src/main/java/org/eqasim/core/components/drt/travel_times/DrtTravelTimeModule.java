@@ -10,13 +10,13 @@ import org.eqasim.core.simulation.mode_choice.AbstractEqasimExtension;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.contrib.drt.run.DrtConfigGroup;
 
-public class SwissDrtTravelTimeModule extends AbstractEqasimExtension {
+public class DrtTravelTimeModule extends AbstractEqasimExtension {
 
     private final DrtConfigGroup drtConfig;
     private final Scenario scenario;
     private final DrtModeChoiceConfigGroup drtModeChoiceConfigGroup;
 
-    public SwissDrtTravelTimeModule(DrtConfigGroup drtConfig, Scenario scenario, DrtModeChoiceConfigGroup drtModeChoiceConfigGroup) {
+    public DrtTravelTimeModule(DrtConfigGroup drtConfig, Scenario scenario, DrtModeChoiceConfigGroup drtModeChoiceConfigGroup) {
         this.drtConfig = drtConfig;
         this.scenario = scenario;
         this.drtModeChoiceConfigGroup = drtModeChoiceConfigGroup;
