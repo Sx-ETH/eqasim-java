@@ -37,8 +37,6 @@ public class DynamicWaitTimeMetrics {
         //generate a list for quadtrees based on the timebin
         quadTreesByTimeBins = new ArrayList<>(nTimeBins);
 
-        //ToDo need to figure out how to use Array for this since the quadtree is not an explicit type
-
         for (int i = 0; i < nTimeBins; i++) {
             //create quadtree per timebin
 
@@ -69,12 +67,12 @@ public class DynamicWaitTimeMetrics {
             return Double.NaN;
         }
         switch (dynamicType) {
-            case KNN_CN: //Todo make it not case sensitive maybe?
+            case KNN_CN:
                 waitTimes = quadTree.getKNearestNeighbors(startLocation.getX(), startLocation.getY(), kValue);
                 break;
             case KNN_PN:
                 //get share of data in timebin to get kValue
-                kValue = (int) Math.min(kMax, Math.ceil(quadTree.size() * kShare)); //Todo this means we get the lower value
+                kValue = (int) Math.min(kMax, Math.ceil(quadTree.size() * kShare));
                 waitTimes = quadTree.getKNearestNeighbors(startLocation.getX(), startLocation.getY(), kValue);
                 break;
             case FD:

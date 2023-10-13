@@ -33,7 +33,6 @@ public class DrtMetricSmootheningParamSet extends ReflectiveConfigGroupWithConfi
         return this.msaWeight;
     }
 
-    //ToDo add conditions to the setters
     @StringSetter(MSA_WEIGHT)
     public void setMsaWeight(double msaWeight) {
         this.msaWeight = msaWeight;

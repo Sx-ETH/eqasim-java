@@ -1,5 +1,6 @@
 package org.eqasim.core.components.drt.config_group;
 
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import org.matsim.contrib.util.ReflectiveConfigGroupWithConfigurableParameterSets;
 
@@ -25,14 +26,14 @@ public class DrtDynamicSystemParamSet extends ReflectiveConfigGroupWithConfigura
     public enum DecayType {POWER_DECAY, INVERSE_DECAY, EXPONENTIAL_DECAY, SPATIAL_CORRELATION}
 
     private Type type = Type.KNN_CN;
+    @Positive
+    private int kMax = 1000; //max k value that is needed for KNN PN
 
-    private int kMax = 1000; //max k value that is needed for percentage share
-
-    private double kShare = 0.0; //Todo Restriction set
+    private double kShare = 0.0;
     private DecayType decayType = DecayType.POWER_DECAY;
 
     @PositiveOrZero
-    private double radius = 0.0; //ToDo make -1 to force user to set it?
+    private double radius = 0.0;
 
     public DrtDynamicSystemParamSet() {
         super(SET_NAME);
@@ -75,6 +76,9 @@ public class DrtDynamicSystemParamSet extends ReflectiveConfigGroupWithConfigura
 
     @StringSetter(K_SHARE)
     public void setkShare(double kShare) {
+        if (kShare <= 0 || kShare > 1) {
+            throw new IllegalArgumentException("K percentage share should be in (0 - 1]");
+        }
         this.kShare = kShare;
     }
 

@@ -37,7 +37,6 @@ public class DrtTimeTracker implements PassengerPickedUpEventHandler, DrtRequest
     @Override
     public void handleEvent(DrtRequestSubmittedEvent event) {
         DrtTripData drtTrip = new DrtTripData();
-        //ToDo need to check why I have to cast here
         drtTrip.requestId = event.getRequestId();
         drtTrip.personId = event.getPersonId();
         drtTrip.startTime = event.getTime();
@@ -97,7 +96,7 @@ public class DrtTimeTracker implements PassengerPickedUpEventHandler, DrtRequest
 
     @Override
     public void handleEvent(PassengerRequestRejectedEvent event) {
-        double simEndTime = 24 * 3600;  //toDo pull from the config
+        double simEndTime = this.scenario.getConfig().qsim().getEndTime().seconds();
         if (this.submittedRequest.containsKey(event.getRequestId())) {
             DrtTripData drtTrip = this.submittedRequest.get(event.getRequestId());
             drtTrip.rejected = true;
