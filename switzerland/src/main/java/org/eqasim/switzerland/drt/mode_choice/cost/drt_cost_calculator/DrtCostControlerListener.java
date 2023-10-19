@@ -1,35 +1,34 @@
 package org.eqasim.switzerland.drt.mode_choice.cost.drt_cost_calculator;
 
-import org.apache.commons.math.stat.descriptive.DescriptiveStatistics;
 import org.eqasim.switzerland.drt.mode_choice.parameters.SwissDrtCostParameters;
-import org.matsim.api.core.v01.Id;
 import org.matsim.contrib.drt.analysis.DrtEventSequenceCollector;
 import org.matsim.contrib.drt.analysis.DrtLegsAnalyser;
 import org.matsim.contrib.drt.analysis.DrtVehicleDistanceStats;
 import org.matsim.core.controler.events.IterationEndsEvent;
 import org.matsim.core.controler.listener.IterationEndsListener;
-import org.matsim.vehicles.Vehicle;
+import org.matsim.core.utils.io.IOUtils;
 
-import javax.inject.Inject;
-import java.util.Map;
+import java.io.BufferedWriter;
 
 public class DrtCostControlerListener implements IterationEndsListener {
 
     DrtVehicleDistanceStats vehicleDistanceStats;
     SwissDrtCostParameters swissDrtCostParameters;
     DrtEventSequenceCollector drtEventSequenceCollector;
+    boolean headerWritten = false;
 
-    public DrtCostControlerListener(DrtVehicleDistanceStats vehicleDistanceStats, DrtEventSequenceCollector drtEventSequenceCollector, SwissDrtCostParameters swissDrtCostParameters){
-        this.vehicleDistanceStats  = vehicleDistanceStats;
+    public DrtCostControlerListener(DrtVehicleDistanceStats vehicleDistanceStats, DrtEventSequenceCollector drtEventSequenceCollector, SwissDrtCostParameters swissDrtCostParameters) {
+        this.vehicleDistanceStats = vehicleDistanceStats;
         this.drtEventSequenceCollector = drtEventSequenceCollector;
         this.swissDrtCostParameters = swissDrtCostParameters;
     }
+
     @Override
     public void notifyIterationEnds(IterationEndsEvent event) {
-        if (event.getIteration() >=25){ //ToDo make this configurable
-        setNewCost();
+        if (event.getIteration() >= 25) { //ToDo make this configurable
+            setNewCost();
         }
-        writeCosts();
+        writeCosts(event);
 
     }
 
@@ -46,7 +45,7 @@ public class DrtCostControlerListener implements IterationEndsListener {
         //get number of trips
 
         Double totalDistance_m = DrtLegsAnalyser.getTotalDistance(vehicleDistanceStats.getVehicleStates());
-        Double totalPassengerDistance_m = vehicleDistanceStats.getTravelDistances().values().stream().reduce(0.0,Double::sum);
+        Double totalPassengerDistance_m = vehicleDistanceStats.getTravelDistances().values().stream().reduce(0.0, Double::sum);
         int fleetsize = vehicleDistanceStats.getVehicleStates().size();
         long num_trips = getDrtLegCount(drtEventSequenceCollector);
 
@@ -82,8 +81,20 @@ public class DrtCostControlerListener implements IterationEndsListener {
 
     }
 
-    private void writeCosts(){
+    private void writeCosts(IterationEndsEvent event) {
         //ToDo output cost as it changes in a csv file
+        try (BufferedWriter writer = IOUtils.getAppendingBufferedWriter(
+                event.getServices().getControlerIO().getOutputFilename("drt_drtCosts.csv"))) {
+            if (!headerWritten) {
+                writer.write("iteration; drtCostPerKm\n");
+                headerWritten = true;
+            }
+            writer.write(event.getIteration() + ";" + swissDrtCostParameters.getDrtPricePerKm());
+            writer.newLine();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
 }

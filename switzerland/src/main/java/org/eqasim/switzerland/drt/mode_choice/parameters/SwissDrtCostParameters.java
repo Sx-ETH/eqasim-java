@@ -29,4 +29,8 @@ public class SwissDrtCostParameters extends SwissCostParameters {
     public void setDrtPricePerKm(Double updatedDrtPrice) {
         this.drtCost_CHF_km = updatedDrtPrice;
     }
+
+    public double getDrtPricePerKm() {
+        return this.drtCost_CHF_km;
+    }
 }
