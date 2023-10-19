@@ -32,11 +32,11 @@ public class DrtVehicleDistanceStats
         implements PassengerPickedUpEventHandler, LinkEnterEventHandler, PassengerDroppedOffEventHandler,
         TeleportationArrivalEventHandler {
 
-    public static class VehicleState {
+    static class VehicleState {
         final Map<Id<Person>, MutableDouble> distanceByPersonId = new HashMap<>();
         double totalDistance = 0;
         double totalOccupiedDistance = 0;
-        public double totalPassengerTraveledDistance = 0; //in (passenger x meters)
+        double totalPassengerTraveledDistance = 0; //in (passenger x meters)
         final double[] totalDistanceByOccupancy;
 
         private VehicleState(int maxCapacity) {

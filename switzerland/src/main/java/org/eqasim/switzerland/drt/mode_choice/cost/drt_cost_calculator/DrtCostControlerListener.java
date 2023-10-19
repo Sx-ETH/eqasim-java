@@ -16,17 +16,20 @@ import java.util.Map;
 public class DrtCostControlerListener implements IterationEndsListener {
 
     DrtVehicleDistanceStats vehicleDistanceStats;
-    @Inject
     SwissDrtCostParameters swissDrtCostParameters;
     DrtEventSequenceCollector drtEventSequenceCollector;
 
-    public DrtCostControlerListener(DrtVehicleDistanceStats vehicleDistanceStats, DrtEventSequenceCollector drtEventSequenceCollector){
+    public DrtCostControlerListener(DrtVehicleDistanceStats vehicleDistanceStats, DrtEventSequenceCollector drtEventSequenceCollector, SwissDrtCostParameters swissDrtCostParameters){
         this.vehicleDistanceStats  = vehicleDistanceStats;
         this.drtEventSequenceCollector = drtEventSequenceCollector;
+        this.swissDrtCostParameters = swissDrtCostParameters;
     }
     @Override
     public void notifyIterationEnds(IterationEndsEvent event) {
+        if (event.getIteration() >=25){ //ToDo make this configurable
         setNewCost();
+        }
+        writeCosts();
 
     }
 
@@ -43,10 +46,7 @@ public class DrtCostControlerListener implements IterationEndsListener {
         //get number of trips
 
         Double totalDistance_m = DrtLegsAnalyser.getTotalDistance(vehicleDistanceStats.getVehicleStates());
-
-        double testDist = getTotalPassengerDistanceTraveled(vehicleDistanceStats);
-        double BTestDist = vehicleDistanceStats.getTravelDistances().values().stream().reduce(0.0,Double::sum);
-        Double totalPassengerDistance_m = testDist;
+        Double totalPassengerDistance_m = vehicleDistanceStats.getTravelDistances().values().stream().reduce(0.0,Double::sum);
         int fleetsize = vehicleDistanceStats.getVehicleStates().size();
         long num_trips = getDrtLegCount(drtEventSequenceCollector);
 
@@ -59,24 +59,20 @@ public class DrtCostControlerListener implements IterationEndsListener {
                 (costFleet - swissDrtCostParameters.drtBaseFare_CHF * num_trips) / (totalPassengerDistance_m / 1000));
 
         if (Double.isFinite(pAMoD)) {
-            //swissDrtCostParameters.setDrtPricePerKm(pAMoD);
+            swissDrtCostParameters.setDrtPricePerKm(pAMoD);
         }
 
-//        log.info("The drt total distance is " + totalDistance_m);
-//        log.info("The drt total passenger distance is " + totalPassengerDistance_m);
-//        log.info("The drt cost for the fleet is " + costFleet);
-//        log.info("The drt cost for the next iteration is " + pAMoD);
     }
 
-    public static double getTotalPassengerDistanceTraveled(DrtVehicleDistanceStats stats) {
-        Map<Id<Vehicle>, DrtVehicleDistanceStats.VehicleState> vehicleDistances = stats.getVehicleStates();
-
-        DescriptiveStatistics driven = new DescriptiveStatistics();
-        for (DrtVehicleDistanceStats.VehicleState state : vehicleDistances.values()) {
-            driven.addValue(state.totalPassengerTraveledDistance);
-        }
-        return driven.getSum();
-    }
+//    public static double getTotalPassengerDistanceTraveled(DrtVehicleDistanceStats stats) {
+//        Map<Id<Vehicle>, DrtVehicleDistanceStats.VehicleState> vehicleDistances = stats.getVehicleStates();
+//
+//        DescriptiveStatistics driven = new DescriptiveStatistics();
+//        for (DrtVehicleDistanceStats.VehicleState state : vehicleDistances.values()) {
+//            driven.addValue(state.totalPassengerTraveledDistance);
+//        }
+//        return driven.getSum();
+//    }
 
     public static long getDrtLegCount(DrtEventSequenceCollector drtEventSequenceCollector) {
         return drtEventSequenceCollector.getPerformedRequestSequences()
@@ -84,6 +80,10 @@ public class DrtCostControlerListener implements IterationEndsListener {
                 .stream()
                 .filter(DrtEventSequenceCollector.EventSequence::isCompleted).count();
 
+    }
+
+    private void writeCosts(){
+        //ToDo output cost as it changes in a csv file
     }
 
 }
