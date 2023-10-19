@@ -6,6 +6,7 @@ import org.eqasim.core.components.drt.travel_times.DrtTravelTimeModule;
 import org.eqasim.core.components.transit.EqasimTransitQSimModule;
 import org.eqasim.switzerland.astra.estimators.AstraDrtUtilityEstimator;
 import org.eqasim.switzerland.drt.mode_choice.cost.DrtCostModel;
+import org.eqasim.switzerland.drt.mode_choice.cost.drt_cost_calculator.AstraDrtCostModule;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
@@ -147,5 +148,17 @@ public class AstraDrtConfigurator extends AstraConfigurator {
         controller.addOverridingModule(new DrtModeZonalSystemModule(DrtConfigGroup.getSingleModeDrtConfig(config)));
         controller.addOverridingModule(new DrtTravelTimeModule(DrtConfigGroup.getSingleModeDrtConfig(config), scenario,
                 (DrtModeChoiceConfigGroup) config.getModules().get(DrtModeChoiceConfigGroup.GROUP_NAME)));
+
+        //add cost calculator module
+        controller.addOverridingModule(new AstraDrtCostModule(DrtConfigGroup.getSingleModeDrtConfig(config)));
+
+        //ToDo for multiple operators
+        /*for (DrtConfigGroup singleDrtConfigGroup: multiModeConfig.getModalElements()){
+
+            //controller.addOverridingModule(new DrtModeZonalSystemModule(singleDrtConfigGroup));
+            //break;
+//            controller.addOverridingModule(new SwissDrtTravelTimeModule(singleDrtConfigGroup, scenario,
+//                    (DrtModeChoiceConfigGroup) config.getModules().get(DrtModeChoiceConfigGroup.GROUP_NAME)));
+        }*/
     }
 }

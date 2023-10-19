@@ -7,6 +7,12 @@ public class SwissDrtCostParameters extends SwissCostParameters {
     public double drtCost_CHF;
     public double drtCost_CHF_km;
 
+    public double drtBaseFare_CHF;
+
+    public final static double COST_PER_DISTANCE_PER_VEHICLE_KM_DRT = 0.098;
+    public final static double COST_PER_TRIP_DRT = 0.375;
+    public final static double COST_PER_VEHICLE_PER_DAY_DRT = 33.3;
+
     public static SwissDrtCostParameters buildDefault() {
 
         SwissDrtCostParameters parameters = new SwissDrtCostParameters();

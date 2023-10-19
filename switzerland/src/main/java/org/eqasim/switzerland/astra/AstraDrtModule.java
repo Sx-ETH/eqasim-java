@@ -13,12 +13,21 @@ import org.eqasim.switzerland.astra.estimators.AstraDrtUtilityEstimator;
 import org.eqasim.switzerland.astra.predictors.AstraDrtPredictor;
 import org.eqasim.switzerland.drt.DrtPersonAnalysisFilter;
 import org.eqasim.switzerland.drt.mode_choice.DrtDistanceConstraint;
+import org.eqasim.switzerland.drt.mode_choice.DrtWaitTimeConstraint;
+import org.eqasim.switzerland.drt.mode_choice.DrtWalkConstraint;
 import org.eqasim.switzerland.drt.mode_choice.cost.DrtCostModel;
 import org.eqasim.switzerland.drt.mode_choice.parameters.SwissDrtCostParameters;
 import org.eqasim.switzerland.mode_choice.SwissModeAvailability;
 import org.eqasim.switzerland.mode_choice.parameters.SwissCostParameters;
 import org.matsim.api.core.v01.network.Network;
+import org.matsim.contrib.drt.analysis.DrtAnalysisControlerListener;
+import org.matsim.contrib.drt.analysis.DrtEventSequenceCollector;
+import org.matsim.contrib.drt.analysis.DrtVehicleDistanceStats;
+import org.matsim.contrib.dvrp.fleet.FleetSpecification;
+import org.matsim.contrib.util.stats.VehicleOccupancyProfileCalculator;
 import org.matsim.core.config.CommandLine;
+import org.matsim.core.config.Config;
+import org.matsim.core.controler.MatsimServices;
 
 import java.io.File;
 import java.util.Map;
@@ -43,10 +52,16 @@ public class AstraDrtModule extends AbstractEqasimExtension {
         bind(AstraDrtPredictor.class);
 
         bind(SwissCostParameters.class).to(SwissDrtCostParameters.class);
+
+        //trip constraints
         bindTripConstraintFactory(DrtDistanceConstraint.NAME).to(DrtDistanceConstraint.Factory.class);
+        bindTripConstraintFactory(DrtWaitTimeConstraint.NAME).to(DrtWaitTimeConstraint.Factory.class);
+        bindTripConstraintFactory(DrtWalkConstraint.NAME).to(DrtWalkConstraint.Factory.class);
 
         // Person filter for eqasim analysis
         bind(PersonAnalysisFilter.class).to(DrtPersonAnalysisFilter.class);
+
+
     }
 
     @Provides
