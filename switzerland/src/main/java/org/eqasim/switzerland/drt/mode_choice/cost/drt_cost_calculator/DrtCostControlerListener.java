@@ -82,7 +82,6 @@ public class DrtCostControlerListener implements IterationEndsListener {
     }
 
     private void writeCosts(IterationEndsEvent event) {
-        //ToDo output cost as it changes in a csv file
         try (BufferedWriter writer = IOUtils.getAppendingBufferedWriter(
                 event.getServices().getControlerIO().getOutputFilename("drt_drtCosts.csv"))) {
             if (!headerWritten) {
