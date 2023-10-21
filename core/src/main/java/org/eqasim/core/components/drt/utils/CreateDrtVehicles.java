@@ -118,9 +118,8 @@ public class CreateDrtVehicles {
         Link startLink = null;
         //Link startLink = cumulativeDensity.entrySet().iterator().next().getKey(); //initializing with the first link
         for (int i = 0; i < numberofVehicles; i++) {
-
-            double r = random.nextDouble();
             do {
+                double r = random.nextDouble();
                 for (Link link : linkList) {
                     if (r <= cumulativeDensity.get(link)) {
                         startLink = link;
@@ -128,9 +127,9 @@ public class CreateDrtVehicles {
                     }
                 }
             }
-            while (!startLink.getAllowedModes().contains(TransportMode.car) &&
-                    ((!useBoundary) || (shapes.isEmpty()) ||
-                            (useBoundary && !shapes.isEmpty() && checkLinkId(startLink.getId()))));
+            while (!startLink.getAllowedModes().contains(TransportMode.car) ||
+                    (useBoundary && !shapes.isEmpty() && !checkLinkId(startLink.getId()))
+            );
             //for multi-modal networks: Only links where cars can ride should be used.
 
             //check for boundary conditions
