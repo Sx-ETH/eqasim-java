@@ -111,7 +111,7 @@ public class AstraPtUtilityEstimator extends PtUtilityEstimator {
         utility += estimateInVehicleTimeUtility(variables);
         utility += estimateWaitingTimeUtility(variables);
         utility += estimateLineSwitchUtility(variables);
-        utility += estimateMonetaryCostUtility(variables, personVariables);
+        utility += estimateMonetaryCostUtility(variables);//, personVariables);
         utility += estimateAgeUtility(personVariables);
         utility += estimateWorkUtility(tripVariables);
         utility += estimateHeadwayUtility(variables);
