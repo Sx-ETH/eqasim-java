@@ -10,6 +10,7 @@ def read_output(output_directory, last_iter=-1):
     drt_trips_stats = []
     drt_predictions = []
     drt_vehicles_stats = []
+    occupancy = []
     
     iter_0_path = os.path.join(output_directory,'ITERS','it.0')
     binned = '0.drt_zonalAndTimeBinWaitingTime.csv' in os.listdir(iter_0_path)
@@ -31,15 +32,28 @@ def read_output(output_directory, last_iter=-1):
         drt_trips_stats.append(pd.read_csv(iter_path + 'drt_drtTripsStats.csv', sep=';'))
         drt_predictions.append(pd.read_csv(iter_path + 'drt_drtTripsPredictions.csv', sep=';'))
         drt_vehicles_stats.append(pd.read_csv(iter_path + 'vehicleDistanceStats_drt.csv', sep=';'))
+        # read first line to parse column names
+        with open(iter_path + 'occupancy_time_profiles_drt.txt') as f:
+            first_line = f.readline()
+        names = first_line.replace('\n','').split('\t')
+        occupancy.append(pd.read_csv(iter_path + 'occupancy_time_profiles_drt.txt',
+                                         delim_whitespace=True,
+                                         skiprows=1,
+                                         header=None,
+                                         names=names
+                                         )
+        )
 
     drt_costs = pd.read_csv(os.path.join(output_directory,'drt_drtCosts.csv'), sep=';')
     drt_costs.columns = drt_costs.columns.str.replace(' ', '')
+
     d = {'drt_legs': drt_legs,
          'global_stats': global_stats,
          'drt_trips_stats': drt_trips_stats,
          'drt_predictions': drt_predictions,
          'drt_costs': drt_costs,
-         'drt_vehicles_stats': drt_vehicles_stats
+         'drt_vehicles_stats': drt_vehicles_stats,
+         'occupancy': occupancy
         }
     
     if binned:
@@ -374,3 +388,31 @@ def plot_travel_time_per_iter(output, ax=None, horizon=None):
         # compute rolling mean
         waiting_time_avg = pd.Series(waiting_time_avg)
         ax.plot(waiting_time_avg.rolling(window=horizon).mean(), '-', label='Mean', color='black')
+
+def plot_occupancy_drt(occupancy, start_time=0, end_time=24, add_stay_relocate=False):
+    def parse_tim_occupancy(time):
+        l = time.split(':')
+        assert len(l) == 2
+        return int(l[0]) * 3600 + int(l[1]) * 60
+    occupancy = occupancy.copy(deep=True)
+    occupancy['parsed_time'] = occupancy['time'].apply(parse_tim_occupancy)
+    occupancy = occupancy.sort_values(by=['parsed_time'])
+    occupancy = occupancy[occupancy['parsed_time'] >= start_time*3600]
+    occupancy = occupancy[occupancy['parsed_time'] <= end_time*3600]
+    fig, ax = plt.subplots(figsize=(10,5))
+    columns = list(occupancy.columns[1:-1]) # delete time column
+    colors = ["#fde723","#a1d83e","#4ac16d","#1fa187","#277f8d","#365c8d","#440054"]
+    if not add_stay_relocate:
+        columns = [c for c in columns if 'STAY' != c and 'RELOCATE' != c]
+        colors = ["#fde723","#4ac16d","#277f8d","#365c8d","#440054"]
+    values = occupancy[columns].values.T
+    ax.stackplot(occupancy['parsed_time'], values, labels=columns, colors=colors)
+    xticks = [z*3600 for z in range(start_time, end_time+1, 2)]
+    xticks_labels = [str(z) + 'h' for z in range(start_time, end_time+1, 2)]
+    ax.set_xticks(xticks)
+    ax.set_xticklabels(xticks_labels)
+    ax.legend()
+    ax.set_xlabel('Time of day')
+    ax.set_ylabel('Number of vehicles')
+    ax.set_title('Occupancy of drt vehicles')
+    plt.show()
