@@ -85,7 +85,7 @@ public class DrtCostControlerListener implements IterationEndsListener {
         try (BufferedWriter writer = IOUtils.getAppendingBufferedWriter(
                 event.getServices().getControlerIO().getOutputFilename("drt_drtCosts.csv"))) {
             if (!headerWritten) {
-                writer.write("iteration; drtCostPerKm\n");
+                writer.write("iteration;drtCostPerKm\n");
                 headerWritten = true;
             }
             writer.write(event.getIteration() + ";" + swissDrtCostParameters.getDrtPricePerKm());
