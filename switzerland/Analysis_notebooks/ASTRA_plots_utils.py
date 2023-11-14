@@ -44,17 +44,19 @@ def read_output(output_directory, last_iter=-1):
                                          )
         )
 
-    drt_costs = pd.read_csv(os.path.join(output_directory,'drt_drtCosts.csv'), sep=';')
-    drt_costs.columns = drt_costs.columns.str.replace(' ', '')
-
     d = {'drt_legs': drt_legs,
          'global_stats': global_stats,
          'drt_trips_stats': drt_trips_stats,
          'drt_predictions': drt_predictions,
-         'drt_costs': drt_costs,
          'drt_vehicles_stats': drt_vehicles_stats,
          'occupancy': occupancy
         }
+    
+    if 'drt_drtCosts.csv' in os.listdir(output_directory):
+        drt_costs = pd.read_csv(os.path.join(output_directory,'drt_drtCosts.csv'), sep=';')
+        drt_costs.columns = drt_costs.columns.str.replace(' ', '')
+        d['drt_costs'] = drt_costs
+
     
     if binned:
         d['binned_wait_time'] = binned_wait_time
