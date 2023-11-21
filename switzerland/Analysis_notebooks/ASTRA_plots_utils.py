@@ -96,7 +96,11 @@ def plot_amod_stats(outputs, fleet_sizes, last_iter, add_other_scenarios=False):
 def plot_request_per_fleet_size(outputs, fleet_sizes, last_iter=100, add_other_scenarios=False, ax=None):
     n_requests = []
     for f in fleet_sizes:
-        n_requests.append(outputs[f]['drt_trips_stats'][last_iter].shape[0])
+        if last_iter == -1:
+            iter_to_plot = len(outputs[f]['drt_trips_stats']) - 1
+        else:
+            iter_to_plot = last_iter
+        n_requests.append(outputs[f]['drt_trips_stats'][iter_to_plot].shape[0])
     if ax is None:
         plt.figure()
         ax = plt.gca()
@@ -106,7 +110,11 @@ def plot_request_per_fleet_size(outputs, fleet_sizes, last_iter=100, add_other_s
         for a in other_scenarios:
             f_size = int(a.split('_')[-1])
             label = '_'.join(a.split('_')[:-1])
-            value = outputs[a]['drt_trips_stats'][last_iter].shape[0]
+            if last_iter == -1:
+                iter_to_plot = len(outputs[a]['drt_trips_stats']) - 1
+            else:
+                iter_to_plot = last_iter
+            value = outputs[a]['drt_trips_stats'][iter_to_plot].shape[0]
             ax.plot(f_size, value, 'o', label=label)
         ax.legend()
     ax.set_xlabel('Fleet size')
@@ -118,7 +126,11 @@ def plot_distance_fare_per_fleet_size(outputs, fleet_sizes, last_iter=100, add_o
     for f in fleet_sizes:
         cost_df = outputs[f]['drt_costs'].copy(deep=True)
         cost_df = cost_df.set_index('iteration', drop=True)
-        cost.append(cost_df.loc[last_iter]['drtCostPerKm'])
+        if last_iter == -1:
+            iter_to_plot = len(cost_df) - 1
+        else:
+            iter_to_plot = last_iter
+        cost.append(cost_df.loc[iter_to_plot]['drtCostPerKm'])
     if ax is None:
         plt.figure()
         ax = plt.gca()
@@ -130,7 +142,11 @@ def plot_distance_fare_per_fleet_size(outputs, fleet_sizes, last_iter=100, add_o
             label = '_'.join(a.split('_')[:-1])
             cost_df = outputs[a]['drt_costs'].copy(deep=True)
             cost_df = cost_df.set_index('iteration', drop=True)
-            value = cost_df.loc[last_iter]['drtCostPerKm']
+            if last_iter == -1:
+                iter_to_plot = len(cost_df) - 1
+            else:
+                iter_to_plot = last_iter
+            value = cost_df.loc[iter_to_plot]['drtCostPerKm']
             ax.plot(f_size, value, 'o', label=label)
         ax.legend()
     ax.set_xlabel('Fleet size')
@@ -141,8 +157,12 @@ def plot_waiting_time_per_fleet_size(outputs, fleet_sizes, last_iter=100, add_ot
     waiting_time_avg = []
     waiting_time_90 = []
     for f in fleet_sizes:
-        waiting_time_avg.append(outputs[f]['drt_trips_stats'][last_iter]['waitTime'].mean() / 60)
-        waiting_time_90.append(outputs[f]['drt_trips_stats'][last_iter]['waitTime'].quantile(0.9) / 60)
+        if last_iter == -1:
+            iter_to_plot = len(outputs[f]['drt_trips_stats']) - 1
+        else:
+            iter_to_plot = last_iter
+        waiting_time_avg.append(outputs[f]['drt_trips_stats'][iter_to_plot]['waitTime'].mean() / 60)
+        waiting_time_90.append(outputs[f]['drt_trips_stats'][iter_to_plot]['waitTime'].quantile(0.9) / 60)
     if ax is None:
         plt.figure()
         ax = plt.gca()
@@ -153,8 +173,12 @@ def plot_waiting_time_per_fleet_size(outputs, fleet_sizes, last_iter=100, add_ot
         for a in other_scenarios:
             f_size = int(a.split('_')[-1])
             label = '_'.join(a.split('_')[:-1])
-            value_m = outputs[a]['drt_trips_stats'][last_iter]['waitTime'].mean() / 60
-            value_90 = outputs[a]['drt_trips_stats'][last_iter]['waitTime'].quantile(0.9) / 60
+            if last_iter == -1:
+                iter_to_plot = len(outputs[a]['drt_trips_stats']) - 1
+            else:
+                iter_to_plot = last_iter
+            value_m = outputs[a]['drt_trips_stats'][iter_to_plot]['waitTime'].mean() / 60
+            value_90 = outputs[a]['drt_trips_stats'][iter_to_plot]['waitTime'].quantile(0.9) / 60
             ax.plot(f_size, value_m, 'o', label=label)
             ax.plot(f_size, value_90, '^', label=label)
     ax.legend()
@@ -166,8 +190,12 @@ def plot_travel_time_per_fleet_size(outputs, fleet_sizes, last_iter=100, add_oth
     waiting_time_avg = []
     waiting_time_90 = []
     for f in fleet_sizes:
-        waiting_time_avg.append(outputs[f]['drt_trips_stats'][last_iter]['totalTravelTime'].mean() / 60)
-        waiting_time_90.append(outputs[f]['drt_trips_stats'][last_iter]['totalTravelTime'].quantile(0.9) / 60)
+        if last_iter == -1:
+            iter_to_plot = len(outputs[f]['drt_trips_stats']) - 1
+        else:
+            iter_to_plot = last_iter
+        waiting_time_avg.append(outputs[f]['drt_trips_stats'][iter_to_plot]['totalTravelTime'].mean() / 60)
+        waiting_time_90.append(outputs[f]['drt_trips_stats'][iter_to_plot]['totalTravelTime'].quantile(0.9) / 60)
     if ax is None:
         plt.figure()
         ax = plt.gca()
@@ -178,8 +206,12 @@ def plot_travel_time_per_fleet_size(outputs, fleet_sizes, last_iter=100, add_oth
         for a in other_scenarios:
             f_size = int(a.split('_')[-1])
             label = '_'.join(a.split('_')[:-1])
-            value_m = outputs[a]['drt_trips_stats'][last_iter]['totalTravelTime'].mean() / 60
-            value_90 = outputs[a]['drt_trips_stats'][last_iter]['totalTravelTime'].quantile(0.9) / 60
+            if last_iter == -1:
+                iter_to_plot = len(outputs[a]['drt_trips_stats']) - 1
+            else:
+                iter_to_plot = last_iter
+            value_m = outputs[a]['drt_trips_stats'][iter_to_plot]['totalTravelTime'].mean() / 60
+            value_90 = outputs[a]['drt_trips_stats'][iter_to_plot]['totalTravelTime'].quantile(0.9) / 60
             ax.plot(f_size, value_m, 'o', label=label)
             ax.plot(f_size, value_90, '^', label=label)
     ax.legend()
@@ -193,7 +225,11 @@ def plot_vehicles_stats(outputs, fleet_sizes, last_iter, add_other_scenarios=Fal
     # total vehicles distance
     total_distance = []
     for f in fleet_sizes:
-        total_distance.append(outputs[f]['drt_vehicles_stats'][last_iter]['drivenDistance_m'].sum() / 1000)
+        if last_iter == -1:
+            iter_to_plot = len(outputs[f]['drt_vehicles_stats']) - 1
+        else:
+            iter_to_plot = last_iter
+        total_distance.append(outputs[f]['drt_vehicles_stats'][iter_to_plot]['drivenDistance_m'].sum() / 1000)
     axs[0,0].plot(fleet_sizes, total_distance, 'o-')
     axs[0,0].set_xlabel('Fleet size')
     axs[0,0].set_ylabel('Distance [km]')
@@ -201,7 +237,11 @@ def plot_vehicles_stats(outputs, fleet_sizes, last_iter, add_other_scenarios=Fal
     # total empty distance
     total_empty_distance = []
     for f in fleet_sizes:
-        total_empty_distance.append(outputs[f]['drt_vehicles_stats'][last_iter]['emptyDistance_m'].sum() / 1000)
+        if last_iter == -1:
+            iter_to_plot = len(outputs[f]['drt_vehicles_stats']) - 1
+        else:
+            iter_to_plot = last_iter
+        total_empty_distance.append(outputs[f]['drt_vehicles_stats'][iter_to_plot]['emptyDistance_m'].sum() / 1000)
     axs[0,1].plot(fleet_sizes, total_empty_distance, 'o-')
     axs[0,1].set_xlabel('Fleet size')
     axs[0,1].set_ylabel('Distance [km]')
@@ -209,8 +249,12 @@ def plot_vehicles_stats(outputs, fleet_sizes, last_iter, add_other_scenarios=Fal
     # empty distance share
     empty_distance_share = []
     for f in fleet_sizes:
-        total_distance = outputs[f]['drt_vehicles_stats'][last_iter]['drivenDistance_m'].sum() / 1000
-        total_empty_distance = outputs[f]['drt_vehicles_stats'][last_iter]['emptyDistance_m'].sum() / 1000
+        if last_iter == -1:
+            iter_to_plot = len(outputs[f]['drt_vehicles_stats']) - 1
+        else:
+            iter_to_plot = last_iter
+        total_distance = outputs[f]['drt_vehicles_stats'][iter_to_plot]['drivenDistance_m'].sum() / 1000
+        total_empty_distance = outputs[f]['drt_vehicles_stats'][iter_to_plot]['emptyDistance_m'].sum() / 1000
         empty_distance_share.append(total_empty_distance / total_distance * 100)
     axs[1,0].plot(fleet_sizes, empty_distance_share, 'o-')
     axs[1,0].set_xlabel('Fleet size')
@@ -220,8 +264,12 @@ def plot_vehicles_stats(outputs, fleet_sizes, last_iter, add_other_scenarios=Fal
     mean_daily_distance = []
     max_daily_distance = []
     for f in fleet_sizes:
-        mean_daily_distance.append(outputs[f]['drt_vehicles_stats'][last_iter]['drivenDistance_m'].mean() / 1000)
-        max_daily_distance.append(outputs[f]['drt_vehicles_stats'][last_iter]['drivenDistance_m'].max() / 1000)
+        if last_iter == -1:
+            iter_to_plot = len(outputs[f]['drt_vehicles_stats']) - 1
+        else:
+            iter_to_plot = last_iter
+        mean_daily_distance.append(outputs[f]['drt_vehicles_stats'][iter_to_plot]['drivenDistance_m'].mean() / 1000)
+        max_daily_distance.append(outputs[f]['drt_vehicles_stats'][iter_to_plot]['drivenDistance_m'].max() / 1000)
     axs[1,1].plot(fleet_sizes, mean_daily_distance, 'o-', label='Mean')
     axs[1,1].plot(fleet_sizes, max_daily_distance, '^--', label='Max', color='C0')
     axs[1,1].set_xlabel('Fleet size')
@@ -233,16 +281,20 @@ def plot_vehicles_stats(outputs, fleet_sizes, last_iter, add_other_scenarios=Fal
         for a in other_scenarios:
             f_size = int(a.split('_')[-1])
             label = '_'.join(a.split('_')[:-1])
-            value = outputs[a]['drt_vehicles_stats'][last_iter]['drivenDistance_m'].sum() / 1000
+            if last_iter == -1:
+                iter_to_plot = len(outputs[a]['drt_vehicles_stats']) - 1
+            else:
+                iter_to_plot = last_iter
+            value = outputs[a]['drt_vehicles_stats'][iter_to_plot]['drivenDistance_m'].sum() / 1000
             axs[0,0].plot(f_size, value, 'o', label=label)
-            value = outputs[a]['drt_vehicles_stats'][last_iter]['emptyDistance_m'].sum() / 1000
+            value = outputs[a]['drt_vehicles_stats'][iter_to_plot]['emptyDistance_m'].sum() / 1000
             axs[0,1].plot(f_size, value, 'o', label=label)
-            total_distance = outputs[a]['drt_vehicles_stats'][last_iter]['drivenDistance_m'].sum() / 1000
-            total_empty_distance = outputs[a]['drt_vehicles_stats'][last_iter]['emptyDistance_m'].sum() / 1000
+            total_distance = outputs[a]['drt_vehicles_stats'][iter_to_plot]['drivenDistance_m'].sum() / 1000
+            total_empty_distance = outputs[a]['drt_vehicles_stats'][iter_to_plot]['emptyDistance_m'].sum() / 1000
             value = total_empty_distance / total_distance * 100
             axs[1,0].plot(f_size, value, 'o', label=label)
-            value_m = outputs[a]['drt_vehicles_stats'][last_iter]['drivenDistance_m'].mean() / 1000
-            value_max = outputs[a]['drt_vehicles_stats'][last_iter]['drivenDistance_m'].max() / 1000
+            value_m = outputs[a]['drt_vehicles_stats'][iter_to_plot]['drivenDistance_m'].mean() / 1000
+            value_max = outputs[a]['drt_vehicles_stats'][iter_to_plot]['drivenDistance_m'].max() / 1000
             axs[1,1].plot(f_size, value_m, 'o', label=label)
             axs[1,1].plot(f_size, value_max, '^', label=label)
         axs[0,0].legend()
