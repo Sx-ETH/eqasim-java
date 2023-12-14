@@ -104,6 +104,8 @@ def plot_request_per_fleet_size(outputs, fleet_sizes, last_iter=100, add_other_s
     if ax is None:
         plt.figure()
         ax = plt.gca()
+    fleet_sizes = [int(f)/1000 for f in fleet_sizes]
+    n_requests = [int(n)/1000 for n in n_requests]
     ax.plot(fleet_sizes, n_requests, 'o-')
     if add_other_scenarios:
         other_scenarios = [a for a in outputs.keys() if isinstance(a,str)]
@@ -117,9 +119,11 @@ def plot_request_per_fleet_size(outputs, fleet_sizes, last_iter=100, add_other_s
             value = outputs[a]['drt_trips_stats'][iter_to_plot].shape[0]
             ax.plot(f_size, value, 'o', label=label)
         ax.legend()
-    ax.set_xlabel('Fleet size')
-    ax.set_ylabel('Number of requests')
-    ax.set_title('Number of AMoD requests')
+    ax.set_xlabel('Fleet size [x1000]', fontsize=14)
+    ax.set_ylabel('Number of requests [x1000]', fontsize=14)
+    ax.set_title('Number of AMoD requests', fontsize=14)
+    ax.tick_params(axis='both', which='major', labelsize=12)
+
 
 def plot_distance_fare_per_fleet_size(outputs, fleet_sizes, last_iter=100, add_other_scenarios=False, ax=None):
     cost = []
@@ -134,6 +138,7 @@ def plot_distance_fare_per_fleet_size(outputs, fleet_sizes, last_iter=100, add_o
     if ax is None:
         plt.figure()
         ax = plt.gca()
+    fleet_sizes = [int(f)/1000 for f in fleet_sizes]
     ax.plot(fleet_sizes, cost, 'o-')
     if add_other_scenarios:
         other_scenarios = [a for a in outputs.keys() if isinstance(a,str)]
@@ -149,9 +154,10 @@ def plot_distance_fare_per_fleet_size(outputs, fleet_sizes, last_iter=100, add_o
             value = cost_df.loc[iter_to_plot]['drtCostPerKm']
             ax.plot(f_size, value, 'o', label=label)
         ax.legend()
-    ax.set_xlabel('Fleet size')
-    ax.set_ylabel('CHF/km')
-    ax.set_title('Distance fare')
+    ax.set_xlabel('Fleet size [x1000]', fontsize=14)
+    ax.set_ylabel('CHF/km', fontsize=14)
+    ax.set_title('Distance fare', fontsize=14)
+    ax.tick_params(axis='both', which='major', labelsize=12)
 
 def plot_waiting_time_per_fleet_size(outputs, fleet_sizes, last_iter=100, add_other_scenarios=False, ax=None):
     waiting_time_avg = []
@@ -166,6 +172,7 @@ def plot_waiting_time_per_fleet_size(outputs, fleet_sizes, last_iter=100, add_ot
     if ax is None:
         plt.figure()
         ax = plt.gca()
+    fleet_sizes = [int(f)/1000 for f in fleet_sizes]
     ax.plot(fleet_sizes, waiting_time_avg, 'o-', label='Mean')
     ax.plot(fleet_sizes, waiting_time_90, '^--', label='90% Quant', color='C0')
     if add_other_scenarios:
@@ -181,10 +188,11 @@ def plot_waiting_time_per_fleet_size(outputs, fleet_sizes, last_iter=100, add_ot
             value_90 = outputs[a]['drt_trips_stats'][iter_to_plot]['waitTime'].quantile(0.9) / 60
             ax.plot(f_size, value_m, 'o', label=label)
             ax.plot(f_size, value_90, '^', label=label)
-    ax.legend()
-    ax.set_xlabel('Fleet size')
-    ax.set_ylabel('Waiting time [min]')
-    ax.set_title('Waiting time per request')
+    ax.legend(fontsize=12)
+    ax.set_xlabel('Fleet size [x1000]', fontsize=14)
+    ax.set_ylabel('Waiting time [min]', fontsize=14)
+    ax.set_title('Waiting time per request', fontsize=14)
+    ax.tick_params(axis='both', which='major', labelsize=12)
 
 def plot_travel_time_per_fleet_size(outputs, fleet_sizes, last_iter=100, add_other_scenarios=False, ax=None):
     waiting_time_avg = []
@@ -199,6 +207,7 @@ def plot_travel_time_per_fleet_size(outputs, fleet_sizes, last_iter=100, add_oth
     if ax is None:
         plt.figure()
         ax = plt.gca()
+    fleet_sizes = [int(f)/1000 for f in fleet_sizes]
     ax.plot(fleet_sizes, waiting_time_avg, 'o-', label='Mean')
     ax.plot(fleet_sizes, waiting_time_90, '^--', label='90% Quant', color='C0')
     if add_other_scenarios:
@@ -214,10 +223,11 @@ def plot_travel_time_per_fleet_size(outputs, fleet_sizes, last_iter=100, add_oth
             value_90 = outputs[a]['drt_trips_stats'][iter_to_plot]['totalTravelTime'].quantile(0.9) / 60
             ax.plot(f_size, value_m, 'o', label=label)
             ax.plot(f_size, value_90, '^', label=label)
-    ax.legend()
-    ax.set_xlabel('Fleet size')
-    ax.set_ylabel('Travel time [min]')
-    ax.set_title('Travel time per request')
+    ax.legend(fontsize=12)
+    ax.set_xlabel('Fleet size [x1000]', fontsize=14)
+    ax.set_ylabel('Travel time [min]', fontsize=14)
+    ax.set_title('Travel time per request', fontsize=14)
+    ax.tick_params(axis='both', which='major', labelsize=12)
 
 def plot_vehicles_stats(outputs, fleet_sizes, last_iter, add_other_scenarios=False):
     # 2x2 plot
@@ -230,10 +240,13 @@ def plot_vehicles_stats(outputs, fleet_sizes, last_iter, add_other_scenarios=Fal
         else:
             iter_to_plot = last_iter
         total_distance.append(outputs[f]['drt_vehicles_stats'][iter_to_plot]['drivenDistance_m'].sum() / 1000)
-    axs[0,0].plot(fleet_sizes, total_distance, 'o-')
-    axs[0,0].set_xlabel('Fleet size')
-    axs[0,0].set_ylabel('Distance [km]')
-    axs[0,0].set_title('Total fleet distance')
+    fleet_sizes_plot = [int(f)/1000 for f in fleet_sizes]
+    total_distance = [int(d)/1000 for d in total_distance]
+    axs[0,0].plot(fleet_sizes_plot, total_distance, 'o-')
+    axs[0,0].set_xlabel('Fleet size [x1000]', fontsize=14)
+    axs[0,0].set_ylabel('Distance [x1000 vkm]', fontsize=14)
+    axs[0,0].set_title('Total fleet distance', fontsize=14)
+    axs[0,0].tick_params(axis='both', which='major', labelsize=12)
     # total empty distance
     total_empty_distance = []
     for f in fleet_sizes:
@@ -242,10 +255,12 @@ def plot_vehicles_stats(outputs, fleet_sizes, last_iter, add_other_scenarios=Fal
         else:
             iter_to_plot = last_iter
         total_empty_distance.append(outputs[f]['drt_vehicles_stats'][iter_to_plot]['emptyDistance_m'].sum() / 1000)
-    axs[0,1].plot(fleet_sizes, total_empty_distance, 'o-')
-    axs[0,1].set_xlabel('Fleet size')
-    axs[0,1].set_ylabel('Distance [km]')
-    axs[0,1].set_title('Total empty distance')
+    total_empty_distance = [int(d)/1000 for d in total_empty_distance]
+    axs[0,1].plot(fleet_sizes_plot, total_empty_distance, 'o-')
+    axs[0,1].set_xlabel('Fleet size [x1000]', fontsize=14)
+    axs[0,1].set_ylabel('Distance [x1000 vkm]', fontsize=14)
+    axs[0,1].set_title('Total empty distance', fontsize=14)
+    axs[0,1].tick_params(axis='both', which='major', labelsize=12)
     # empty distance share
     empty_distance_share = []
     for f in fleet_sizes:
@@ -256,10 +271,11 @@ def plot_vehicles_stats(outputs, fleet_sizes, last_iter, add_other_scenarios=Fal
         total_distance = outputs[f]['drt_vehicles_stats'][iter_to_plot]['drivenDistance_m'].sum() / 1000
         total_empty_distance = outputs[f]['drt_vehicles_stats'][iter_to_plot]['emptyDistance_m'].sum() / 1000
         empty_distance_share.append(total_empty_distance / total_distance * 100)
-    axs[1,0].plot(fleet_sizes, empty_distance_share, 'o-')
-    axs[1,0].set_xlabel('Fleet size')
-    axs[1,0].set_ylabel('Share [%]')
-    axs[1,0].set_title('Empty distance share')
+    axs[1,0].plot(fleet_sizes_plot, empty_distance_share, 'o-')
+    axs[1,0].set_xlabel('Fleet size [x1000]', fontsize=14)
+    axs[1,0].set_ylabel('Share [%vkm]', fontsize=14)
+    axs[1,0].set_title('Empty distance share', fontsize=14)
+    axs[1,0].tick_params(axis='both', which='major', labelsize=12)
     #Mean and max daily per vehicle distance
     mean_daily_distance = []
     max_daily_distance = []
@@ -270,12 +286,13 @@ def plot_vehicles_stats(outputs, fleet_sizes, last_iter, add_other_scenarios=Fal
             iter_to_plot = last_iter
         mean_daily_distance.append(outputs[f]['drt_vehicles_stats'][iter_to_plot]['drivenDistance_m'].mean() / 1000)
         max_daily_distance.append(outputs[f]['drt_vehicles_stats'][iter_to_plot]['drivenDistance_m'].max() / 1000)
-    axs[1,1].plot(fleet_sizes, mean_daily_distance, 'o-', label='Mean')
-    axs[1,1].plot(fleet_sizes, max_daily_distance, '^--', label='Max', color='C0')
-    axs[1,1].set_xlabel('Fleet size')
-    axs[1,1].set_ylabel('Distance [km]')
-    axs[1,1].set_title('Daily per vehicle distance')
-    axs[1,1].legend()
+    axs[1,1].plot(fleet_sizes_plot, mean_daily_distance, 'o-', label='Mean')
+    axs[1,1].plot(fleet_sizes_plot, max_daily_distance, '^--', label='Max', color='C0')
+    axs[1,1].set_xlabel('Fleet size [x1000]', fontsize=14)
+    axs[1,1].set_ylabel('Distance [vkm]', fontsize=14)
+    axs[1,1].set_title('Daily per vehicle distance', fontsize=14)
+    axs[1,1].legend(fontsize=12)
+    axs[1,1].tick_params(axis='both', which='major', labelsize=12)
     if add_other_scenarios:
         other_scenarios = [a for a in outputs.keys() if isinstance(a,str)]
         for a in other_scenarios:
@@ -326,19 +343,21 @@ def plot_waiting_time_over_day(outputs, fleet_sizes, last_iter, time_bin_min=15,
         axs[1].plot(waiting_time.index, waiting_time, '-', label=str(f))
     xticks = [z*3600 for z in range(start_time, end_time+1, 2)]
     xticks_labels = [str(z) + 'h' for z in range(start_time, end_time+1, 2)]
-    axs[0].set_xlabel('Time [h]')
-    axs[0].set_ylabel('Waiting time [min]')
-    axs[0].set_title('Mean waiting time over day')
-    axs[0].legend()
+    axs[0].set_xlabel('Time [h]', fontsize=14)
+    axs[0].set_ylabel('Waiting time [min]', fontsize=14)
+    axs[0].set_title('Mean waiting time over day', fontsize=14)
+    axs[0].legend(fontsize=12)
     axs[0].set_xticks(xticks)
     axs[0].set_xticklabels(xticks_labels)
-    axs[1].set_xlabel('Time [h]')
-    axs[1].set_ylabel('Waiting time [min]')
-    axs[1].set_title('90% Quantile waiting time over day')
-    axs[1].legend()
+    axs[0].tick_params(axis='both', which='major', labelsize=12)
+    axs[1].set_xlabel('Time [h]', fontsize=14)
+    axs[1].set_ylabel('Waiting time [min]', fontsize=14)
+    axs[1].set_title('90% Quantile waiting time over day', fontsize=14)
+    axs[1].legend(fontsize=12)
     axs[1].set_xticks(xticks)
     axs[1].set_xticklabels(xticks_labels)
     axs[1].yaxis.set_tick_params(labelleft=True)
+    axs[1].tick_params(axis='both', which='major', labelsize=12)
     plt.show()
 
 def op_by_euclidean_distance_bin(drt_trips_stats, column, op, min_distance=0, max_distance=5000, bin_distance_m=250):
@@ -350,18 +369,20 @@ def op_by_euclidean_distance_bin(drt_trips_stats, column, op, min_distance=0, ma
     return grouped
 
 def plot_distance_distribution(outputs, fleet_size, last_iter, distance_bin_m=250, min_distance=0, max_distance=10000):
-    plt.figure(figsize=(6,6))
+    plt.figure(figsize=(5.5,5.5))
     for f in fleet_size:
         df = outputs[f]['drt_trips_stats'][last_iter].copy(deep=True)
         distance = op_by_euclidean_distance_bin(df, 'euclideanDistance', 'count', min_distance, max_distance, distance_bin_m)
+        distance = distance / 1000
         plt.plot(distance.index, distance, '-', label=str(f))
     xticks = [z*1000 for z in range(min_distance//1000, max_distance//1000+1, 1)]
-    xticks_labels = [str(z) + 'km' for z in range(min_distance//1000, max_distance//1000+1, 1)]
-    plt.xlabel('Distance [km]')
-    plt.ylabel('Number of requests')
-    plt.title('Distance distribution')
-    plt.legend()
+    xticks_labels = list(range(min_distance//1000, max_distance//1000+1, 1))
+    plt.xlabel('Distance [km]', fontsize=14)
+    plt.ylabel('Number of requests [x1000]', fontsize=14)
+    plt.title('Distance distribution', fontsize=14)
+    plt.legend(fontsize=12)
     plt.xticks(xticks, xticks_labels)
+    plt.tick_params(axis='both', which='major', labelsize=12)
     plt.show()
 
 
@@ -371,7 +392,7 @@ def plot_convergence(outputs, fleet_sizes, horizon=25):
     fig, axs = plt.subplots(4, n_cols, figsize=(4*n_cols, 12), sharex=True, sharey='row')
     for i, f in enumerate(fleet_sizes):
         # add col title
-        axs[0,i].set_title('Fleet size ' + str(f))
+        axs[0,i].set_title('Fleet size ' + str(f), fontsize=14)
         # plot number of requests
         plot_request_per_iter(outputs[f], axs[0,i], horizon=horizon)
         # plot distance fare
@@ -380,13 +401,17 @@ def plot_convergence(outputs, fleet_sizes, horizon=25):
         plot_waiting_time_per_iter(outputs[f], axs[2,i], horizon=horizon)
         # plot travel time
         plot_travel_time_per_iter(outputs[f], axs[3,i], horizon=horizon)
-        axs[3,i].set_xlabel('Iteration')
-    axs[0,0].set_ylabel('Number of requests')
-    axs[1,0].set_ylabel('Active price [CHF/km]')
-    axs[2,0].set_ylabel('Waiting time [min]')
-    axs[3,0].set_ylabel('Travel time [min]')
+        axs[3,i].set_xlabel('Iteration', fontsize=15)
+    axs[0,0].set_ylabel('Number of requests [x1000]', fontsize=15)
+    axs[1,0].set_ylabel('Active price [CHF/km]', fontsize=15)
+    axs[2,0].set_ylabel('Waiting time [min]', fontsize=15)
+    axs[3,0].set_ylabel('Travel time [min]', fontsize=15)
     if horizon is not None:
-        axs[0,0].legend()
+        axs[0,0].legend(fontsize=14)
+    
+    # change ticks size
+    for ax in axs.flatten():
+        ax.tick_params(axis='both', which='major', labelsize=14)
     plt.tight_layout()
     plt.show()
 
@@ -397,6 +422,7 @@ def plot_request_per_iter(output, ax=None, horizon=None):
     if ax is None:
         plt.figure()
         ax = plt.gca()
+    n_requests = [int(n)/1000 for n in n_requests]
     ax.plot(n_requests, '-', label='Metric')
     if horizon is not None:
         # compute rolling mean
@@ -465,8 +491,9 @@ def plot_occupancy_drt(occupancy, start_time=0, end_time=24, add_stay_relocate=F
     xticks_labels = [str(z) + 'h' for z in range(start_time, end_time+1, 2)]
     ax.set_xticks(xticks)
     ax.set_xticklabels(xticks_labels)
-    ax.legend()
-    ax.set_xlabel('Time of day')
-    ax.set_ylabel('Number of vehicles')
-    ax.set_title('Occupancy of drt vehicles')
+    ax.legend(fontsize=12)
+    ax.set_xlabel('Time of day', fontsize=14)
+    ax.set_ylabel('Number of vehicles', fontsize=14)
+    ax.set_title('Occupancy of drt vehicles', fontsize=14)
+    ax.tick_params(axis='both', which='major', labelsize=12)
     plt.show()
