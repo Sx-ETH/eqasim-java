@@ -78,7 +78,7 @@ def read_output(output_directory, last_iter=-1):
     return d
 
 
-def plot_amod_stats(outputs, fleet_sizes, last_iter, add_other_scenarios=False):
+def plot_amod_stats(outputs, fleet_sizes, last_iter, add_other_scenarios=False, filename=None):
     # create figure with 4 subplots
     fig, axs = plt.subplots(2, 2, figsize=(10, 8))
     axs = axs.flatten()
@@ -91,6 +91,8 @@ def plot_amod_stats(outputs, fleet_sizes, last_iter, add_other_scenarios=False):
     # plot travel time
     plot_travel_time_per_fleet_size(outputs, fleet_sizes, last_iter, add_other_scenarios, axs[3])
     plt.tight_layout()
+    if filename is not None:
+        plt.savefig(filename, dpi=300, bbox_inches='tight')
     plt.show()
 
 def plot_request_per_fleet_size(outputs, fleet_sizes, last_iter=100, add_other_scenarios=False, ax=None):
@@ -229,7 +231,7 @@ def plot_travel_time_per_fleet_size(outputs, fleet_sizes, last_iter=100, add_oth
     ax.set_title('Travel time per request', fontsize=14)
     ax.tick_params(axis='both', which='major', labelsize=12)
 
-def plot_vehicles_stats(outputs, fleet_sizes, last_iter, add_other_scenarios=False):
+def plot_vehicles_stats(outputs, fleet_sizes, last_iter, add_other_scenarios=False, filename=None):
     # 2x2 plot
     fig, axs = plt.subplots(2, 2, figsize=(10,8))
     # total vehicles distance
@@ -319,6 +321,8 @@ def plot_vehicles_stats(outputs, fleet_sizes, last_iter, add_other_scenarios=Fal
         axs[1,0].legend()
         axs[1,1].legend()
     plt.tight_layout()
+    if filename is not None:
+        plt.savefig(filename, dpi=300, bbox_inches='tight')
     plt.show()
 
 def op_by_time_bin(drt_trips_stats, column, op, start_time=6, end_time=24, bin_duration_min=30):
@@ -329,7 +333,7 @@ def op_by_time_bin(drt_trips_stats, column, op, start_time=6, end_time=24, bin_d
     grouped = legs.groupby(['time_bin'])[column].agg(op)
     return grouped
 
-def plot_waiting_time_over_day(outputs, fleet_sizes, last_iter, time_bin_min=15, start_time=6, end_time=24):
+def plot_waiting_time_over_day(outputs, fleet_sizes, last_iter, time_bin_min=15, start_time=6, end_time=24, filename=None):
     # 1x2 plot sharing y axis but y labels in both
     fig, axs = plt.subplots(1, 2, figsize=(13,5), sharey=True)
     # waiting time over day by time bin
@@ -358,6 +362,9 @@ def plot_waiting_time_over_day(outputs, fleet_sizes, last_iter, time_bin_min=15,
     axs[1].set_xticklabels(xticks_labels)
     axs[1].yaxis.set_tick_params(labelleft=True)
     axs[1].tick_params(axis='both', which='major', labelsize=12)
+    plt.tight_layout()
+    if filename is not None:
+        plt.savefig(filename, dpi=300, bbox_inches='tight')
     plt.show()
 
 def op_by_euclidean_distance_bin(drt_trips_stats, column, op, min_distance=0, max_distance=5000, bin_distance_m=250):
@@ -368,7 +375,7 @@ def op_by_euclidean_distance_bin(drt_trips_stats, column, op, min_distance=0, ma
     grouped = legs.groupby(['distance_bin'])[column].agg(op)
     return grouped
 
-def plot_distance_distribution(outputs, fleet_size, last_iter, distance_bin_m=250, min_distance=0, max_distance=10000):
+def plot_distance_distribution(outputs, fleet_size, last_iter, distance_bin_m=250, min_distance=0, max_distance=10000, filename=None):
     plt.figure(figsize=(5.5,5.5))
     for f in fleet_size:
         df = outputs[f]['drt_trips_stats'][last_iter].copy(deep=True)
@@ -383,10 +390,13 @@ def plot_distance_distribution(outputs, fleet_size, last_iter, distance_bin_m=25
     plt.legend(fontsize=12)
     plt.xticks(xticks, xticks_labels)
     plt.tick_params(axis='both', which='major', labelsize=12)
+    plt.tight_layout()
+    if filename is not None:
+        plt.savefig(filename, dpi=300, bbox_inches='tight')
     plt.show()
 
 
-def plot_convergence(outputs, fleet_sizes, horizon=25):
+def plot_convergence(outputs, fleet_sizes, horizon=25, filename=None):
     n_cols = len(fleet_sizes)
     # 4xn_cols plot
     fig, axs = plt.subplots(4, n_cols, figsize=(4*n_cols, 12), sharex=True, sharey='row')
@@ -413,6 +423,8 @@ def plot_convergence(outputs, fleet_sizes, horizon=25):
     for ax in axs.flatten():
         ax.tick_params(axis='both', which='major', labelsize=14)
     plt.tight_layout()
+    if filename is not None:
+        plt.savefig(filename, dpi=300, bbox_inches='tight')
     plt.show()
 
 def plot_request_per_iter(output, ax=None, horizon=None):
@@ -469,7 +481,7 @@ def plot_travel_time_per_iter(output, ax=None, horizon=None):
         waiting_time_avg = pd.Series(waiting_time_avg)
         ax.plot(waiting_time_avg.rolling(window=horizon).mean(), '-', label='Mean', color='black')
 
-def plot_occupancy_drt(occupancy, start_time=0, end_time=24, add_stay_relocate=False):
+def plot_occupancy_drt(occupancy, start_time=0, end_time=24, add_stay_relocate=False, filename=None):
     def parse_tim_occupancy(time):
         l = time.split(':')
         assert len(l) == 2
@@ -496,4 +508,7 @@ def plot_occupancy_drt(occupancy, start_time=0, end_time=24, add_stay_relocate=F
     ax.set_ylabel('Number of vehicles', fontsize=14)
     ax.set_title('Occupancy of drt vehicles', fontsize=14)
     ax.tick_params(axis='both', which='major', labelsize=12)
+    plt.tight_layout()
+    if filename is not None:
+        plt.savefig(filename, dpi=300, bbox_inches='tight')
     plt.show()
